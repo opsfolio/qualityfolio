@@ -1,0 +1,54 @@
+{
+  "test_case_fii": "TC-CMMC-0005",
+  "title": "Verify readiness percentage reaches 100% after completing all sections",
+  "status": "failed",
+  "start_time": "2025-11-10T10:05:12.118Z",
+  "end_time": "2025-11-10T10:05:38.774Z",
+  "total_duration": "26.65 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Login with valid credentials and verify that the landing page displays the CMMC Level 1 Self-Assessment section",
+      "status": "passed",
+      "start_time": "2025-11-10T10:05:12.130Z",
+      "end_time": "2025-11-10T10:05:16.445Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Complete all Level 1 Self-Assessment sections",
+      "status": "passed",
+      "start_time": "2025-11-10T10:05:16.460Z",
+      "end_time": "2025-11-10T10:05:29.552Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Observe the readiness percentage",
+      "status": "passed",
+      "start_time": "2025-11-10T10:05:29.568Z",
+      "end_time": "2025-11-10T10:05:32.744Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Verify readiness reaches 100%",
+      "status": "failed",
+      "start_time": "2025-11-10T10:05:32.760Z",
+      "end_time": "2025-11-10T10:05:38.744Z",
+      "error": "Error: Expected readiness percentage to be 100%, but received 88%. Readiness bar did not update correctly after completing all sections.\n\nLocator: locator('#readiness-percentage')\nExpected value: \"100%\"\nReceived value: \"88%\"\nCall log:\n  - expect.toHaveText with timeout 5000ms\n  - waiting for locator('#readiness-percentage')\n    4 × locator resolved to <div id=\"readiness-percentage\">88%</div>\n      - unexpected percentage value \"88%\""
+    },
+    {
+      "step": 5,
+      "stepname": "Close the browser",
+      "status": "passed",
+      "start_time": "2025-11-10T10:05:38.746Z",
+      "end_time": "2025-11-10T10:05:38.773Z"
+    },
+    {
+      "step": 6,
+      "stepname": "Worker Cleanup",
+      "status": "passed",
+      "start_time": "2025-11-10T10:05:38.773Z",
+      "end_time": "2025-11-10T10:05:38.774Z"
+    }
+  ],
+  "error": "Errors encountered:\nStep 4: Error: Expected readiness percentage to be 100%, but received 88%. Readiness bar did not update correctly after completing all sections.\n\nLocator: locator('#readiness-percentage')\nExpected value: \"100%\"\nReceived value: \"88%\"\nCall log:\n  - expect.toHaveText with timeout 5000ms\n  - waiting for locator('#readiness-percentage')\n    4 × locator resolved to <div id=\"readiness-percentage\">88%</div>\n      - unexpected percentage value \"88%\""
+}

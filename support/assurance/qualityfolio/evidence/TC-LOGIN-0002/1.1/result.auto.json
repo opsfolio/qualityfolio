@@ -1,0 +1,38 @@
+{
+  "test_case_fii": "TC-LOGIN-0002",
+  "title": "Validate successful authentication and dashboard redirection for valid users.",
+  "status": "passed",
+  "start_time": "2025-11-10T08:29:49.088Z",
+  "end_time": "2025-11-10T08:30:22.099Z",
+  "total_duration": "33.01 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Open login page.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:49.096Z",
+      "end_time": "2025-11-10T08:29:53.347Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Enter valid username and password. ",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:53.379Z",
+      "end_time": "2025-11-10T08:29:56.382Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Click **Login**.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Confirm navigation to user dashboard.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.495Z",
+      "end_time": "2025-11-10T08:29:56.608Z"
+    }
+  ]
+}

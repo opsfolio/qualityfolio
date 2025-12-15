@@ -1,0 +1,38 @@
+{
+  "test_case_fii": "TC-CMMC-0005",
+  "title": "Verify readiness bar reflects accurate percentage completion",
+  "status": "passed",
+  "start_time": "2025-11-10T09:15:01.200Z",
+  "end_time": "2025-11-10T09:15:33.745Z",
+  "total_duration": "32.54 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Login with valid credentials and verify that the landing page displays the CMMC Level 1 Self-Assessment section",
+      "status": "passed",
+      "start_time": "2025-11-10T09:15:01.210Z",
+      "end_time": "2025-11-10T09:15:05.480Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Open CMMC Level 1 Self-Assessment with 8 sections",
+      "status": "passed",
+      "start_time": "2025-11-10T09:15:05.500Z",
+      "end_time": "2025-11-10T09:15:10.333Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Complete 2 sections",
+      "status": "passed",
+      "start_time": "2025-11-10T09:15:10.350Z",
+      "end_time": "2025-11-10T09:15:27.224Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Check readiness percentage displayed",
+      "status": "passed",
+      "start_time": "2025-11-10T09:15:27.240Z",
+      "end_time": "2025-11-10T09:15:33.745Z"
+    }
+  ]
+}

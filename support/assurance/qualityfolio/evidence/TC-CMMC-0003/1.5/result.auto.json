@@ -1,0 +1,31 @@
+{
+  "test_case_fii": "TC-CMMC-0004",
+  "title": "Verify readiness percentage updates dynamically on completing a section",
+  "status": "passed",
+  "start_time": "2025-11-10T09:11:10.120Z",
+  "end_time": "2025-11-10T09:11:34.552Z",
+  "total_duration": "24.43 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Login with valid credentials and verify that the landing page displays the CMMC Level 1 Self-Assessment section",
+      "status": "passed",
+      "start_time": "2025-11-10T09:11:10.130Z",
+      "end_time": "2025-11-10T09:11:14.442Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Complete the 'Company Information' section with valid details",
+      "status": "passed",
+      "start_time": "2025-11-10T09:11:14.460Z",
+      "end_time": "2025-11-10T09:11:26.331Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Observe the readiness percentage bar",
+      "status": "passed",
+      "start_time": "2025-11-10T09:11:26.350Z",
+      "end_time": "2025-11-10T09:11:34.552Z"
+    }
+  ]
+}

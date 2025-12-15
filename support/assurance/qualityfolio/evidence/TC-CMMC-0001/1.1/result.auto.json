@@ -1,0 +1,52 @@
+{
+  "test_case_fii": "TC-CMMC-0002",
+  "title": "Verify left-side navigation displays all sections for Level 1 and Level 2",
+  "status": "passed",
+  "start_time": "2025-11-10T08:29:49.088Z",
+  "end_time": "2025-11-10T08:30:22.099Z",
+  "total_duration": "33.01 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Login with valid credentials and verify that the landing page displays the CMMC Level 1 Self-Assessment section",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:49.096Z",
+      "end_time": "2025-11-10T08:29:53.347Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Verify the list of sections displayed on the left panel. ",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:53.379Z",
+      "end_time": "2025-11-10T08:29:56.382Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Compare with the expected **Level 1 sections**.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Navigate to the CMMC **Level 2 Self-Assessment** page.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.495Z",
+      "end_time": "2025-11-10T08:29:56.608Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Verify the list of sections displayed on the left panel.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:57.495Z",
+      "end_time": "2025-11-10T08:29:57.608Z"
+    },
+    {
+      "step": 6,
+      "stepname": "Compare with the expected **Level 2 sections**.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:58.495Z",
+      "end_time": "2025-11-10T08:29:58.608Z"
+    }
+  ]
+}

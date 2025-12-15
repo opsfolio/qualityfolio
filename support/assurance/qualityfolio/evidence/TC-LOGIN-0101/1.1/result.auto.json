@@ -1,0 +1,38 @@
+{
+  "test_case_fii": "TC-LOGIN-0101",
+  "title": "Automated verification of the **Login button presence and accessibility** on the Opsfolio CMMC page using DOM validation and visual evidence capture.",
+  "status": "passed",
+  "start_time": "2025-11-10T08:29:49.088Z",
+  "end_time": "2025-11-10T08:30:22.099Z",
+  "total_duration": "33.01 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Navigate to `https://opsfolio.com/regime/cmmc`",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:49.096Z",
+      "end_time": "2025-11-10T08:29:53.347Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Wait for page load completion.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:53.379Z",
+      "end_time": "2025-11-10T08:29:56.382Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Validate DOM element `'text=Login'` presence.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Capture page screenshot post verification.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.495Z",
+      "end_time": "2025-11-10T08:29:56.608Z"
+    }
+  ]
+}

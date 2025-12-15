@@ -1,0 +1,45 @@
+{
+  "test_case_fii": "TC-LOGIN-0102",
+  "title": "Automated validation ensuring users can successfully log in using valid credentials and are redirected to the dashboard.",
+  "status": "passed",
+  "start_time": "2025-11-10T08:29:49.088Z",
+  "end_time": "2025-11-10T08:30:22.099Z",
+  "total_duration": "33.01 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Launch browser and navigate to `https://opsfolio.com/login`",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:49.096Z",
+      "end_time": "2025-11-10T08:29:53.347Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Fill in **username** and **password** fields using valid credentials. ",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:53.379Z",
+      "end_time": "2025-11-10T08:29:56.382Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Click the **Login** button.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Wait for redirect to `/dashboard`.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.495Z",
+      "end_time": "2025-11-10T08:29:56.608Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Capture network request/response for `/login` and UI screenshot.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:57.495Z",
+      "end_time": "2025-11-10T08:29:57.608Z"
+    }
+  ]
+}

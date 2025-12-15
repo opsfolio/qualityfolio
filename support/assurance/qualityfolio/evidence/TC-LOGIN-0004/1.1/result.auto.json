@@ -1,0 +1,38 @@
+{
+  "case": "TC-LOGIN-0004",
+  "title": "Verify login attempt using unregistered email",
+  "status": "failed",
+  "start_time": "2025-10-30T03:42:23.787Z",
+  "end_time": "2025-10-30T03:42:36.474Z",
+  "total_duration": "12.69 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Navigate to [https://opsfolio.com/login/](https://opsfolio.com/login/).",
+      "status": "passed",
+      "start_time": "2025-10-30T03:42:23.792Z",
+      "end_time": "2025-10-30T03:42:36.190Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Enter valid username and password.",
+      "status": "passed",
+      "start_time": "2025-10-30T03:42:36.194Z",
+      "end_time": "2025-10-30T03:42:36.286Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Initiate login and simulate slow or intermittent network connectivity.",
+      "status": "passed",
+      "start_time": "2025-10-30T03:42:36.287Z",
+      "end_time": "2025-10-30T03:42:36.501Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Observe the system’s behavior and any displayed error messages.",
+      "status": "failed",
+      "start_time": "2025-10-30T03:42:36.287Z",
+      "end_time": "2025-10-30T03:42:36.501Z"
+    }
+  ]
+}

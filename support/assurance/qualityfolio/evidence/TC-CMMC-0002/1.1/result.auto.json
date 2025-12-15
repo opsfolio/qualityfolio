@@ -1,0 +1,45 @@
+{
+  "test_case_fii": "TC-CMMC-0002",
+  "title": "Verify Previous and Next buttons navigate between sections correctly",
+  "status": "passed",
+  "start_time": "2025-11-10T08:29:49.088Z",
+  "end_time": "2025-11-10T08:30:22.099Z",
+  "total_duration": "33.01 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Login with valid credentials and verify that the landing page displays the CMMC Level 1 Self-Assessment section. ",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:49.096Z",
+      "end_time": "2025-11-10T08:29:53.347Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Start from 'Company Information'.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:53.379Z",
+      "end_time": "2025-11-10T08:29:56.382Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Click **Next** → verify navigation to 'Access Control'.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Click **Previous** → verify navigation back to 'Company Information'.",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.495Z",
+      "end_time": "2025-11-10T08:29:56.608Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Repeat for a middle section (e.g., 'Media Protection').",
+      "status": "passed",
+      "start_time": "2025-11-10T08:29:56.388Z",
+      "end_time": "2025-11-10T08:29:56.490Z"
+    }
+  ]
+}
