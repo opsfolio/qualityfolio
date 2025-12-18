@@ -403,6 +403,42 @@ Example test artifact is available [here](https://github.com/programmablemd/assu
 - [ ] Link evidence files close to the doc.
 - [ ] Let schemas or discovery decide roles later.
 
+## Generate Database and Test Management Dashboard
+
+### 1. Generate SQLite Database from Test Artifacts
+
+1. Create test artifact files and store them in a folder (for example, `test-artifacts`).
+2. Execute the following commands in a terminal:
+
+```bash
+spry rb run qualityfolio.md
+```
+
+This command ingests the test artifact files and generates the SQLite database `resource-surveillance.sqlite.db`, which can be queried using any SQL editor.
+
+
+### 2. Generate Test Management Dashboard
+
+1. Create test artifact files and store them in a folder (for example, `test-artifacts`).
+2. Execute the following commands in a terminal:
+
+```bash
+spry rb run qualityfolio.md
+spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md --watch
+```
+
+3. In another terminal, start SQLPage:
+
+```bash
+sqlpage
+```
+
+This will launch the **Test Management Dashboard** with test metrics, requirement traceability matrix, and test cycle–wise execution views at:
+
+```
+http://localhost:9227/
+```
+
 ## Troubleshooting
 
 - “My evidence isn’t detected” → an evidence must be a leaf heading (no deeper headings beneath it).
