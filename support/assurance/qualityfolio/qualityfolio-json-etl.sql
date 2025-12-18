@@ -1,11 +1,11 @@
 -- SQLITE ETL SCRIPT — FINAL MODIFIED VERSION (Relying on Evidence Status)
- 
- 
+
+
 -- 1. CLEAN AND PARSE THE RAW CONTENT
 ------------------------------------------------------------------------------
- 
+
 DROP TABLE IF EXISTS t_raw_data;
- 
+
 CREATE TABLE t_raw_data AS
 WITH ranked AS (
     SELECT
@@ -19,7 +19,7 @@ WITH ranked AS (
                 REPLACE(
                     REPLACE(
                         SUBSTR(CAST(urt.content AS TEXT), 2, LENGTH(CAST(urt.content AS TEXT)) - 2),
-                        CHAR(10), ''
+                        CHAR(10), '' 
                     ),
                     CHAR(13), ''
                 ),
@@ -27,7 +27,7 @@ WITH ranked AS (
             ),
             '\n', ''             -- Fix escaped newlines
         ) AS cleaned_json_text,
- 
+
         ROW_NUMBER() OVER (
             PARTITION BY ur.uri
             ORDER BY ur.last_modified_at DESC, ur.uniform_resource_id DESC
@@ -47,12 +47,12 @@ SELECT
     cleaned_json_text
 FROM ranked
 WHERE rn = 1;
- 
- 
- 
+
+
+
 -- 2. LOAD doc-classify ROLE→DEPTH MAP
 ------------------------------------------------------------------------------
- 
+
 DROP TABLE IF EXISTS t_role_depth_map;
 CREATE  TABLE t_role_depth_map AS
 SELECT
@@ -68,11 +68,11 @@ SELECT
 FROM uniform_resource ur
     ,JSON_EACH(ur.frontmatter, '$.doc-classify') AS role_map
 WHERE ur.frontmatter IS NOT NULL;
- 
- 
+
+
 -- 3. JSON TRAVERSAL
 ------------------------------------------------------------------------------
- 
+
 DROP TABLE IF EXISTS t_all_sections_flat;
 CREATE  TABLE t_all_sections_flat AS
 SELECT
@@ -86,22 +86,22 @@ FROM t_raw_data td,
     json_tree(td.cleaned_json_text, '$') AS jt_depth,
     json_tree(td.cleaned_json_text, '$') AS jt_title,
     json_tree(td.cleaned_json_text, '$') AS jt_body
-WHERE
-    jt_section.key = 'section'
-    AND jt_depth.parent = jt_section.id
-    AND jt_depth.key = 'depth'
+WHERE 
+    jt_section.key = 'section' 
+    AND jt_depth.parent = jt_section.id 
+    AND jt_depth.key = 'depth' 
     AND jt_depth.value IS NOT NULL
-    AND jt_title.parent = jt_section.id
-    AND jt_title.key = 'title'
+    AND jt_title.parent = jt_section.id 
+    AND jt_title.key = 'title' 
     AND jt_title.value IS NOT NULL
-    AND jt_body.parent = jt_section.id
-    AND jt_body.key = 'body'
+    AND jt_body.parent = jt_section.id 
+    AND jt_body.key = 'body' 
     AND jt_body.value IS NOT NULL;
- 
- 
+
+
 -- 4. NORMALIZE + ROLE ATTACH & CODE EXTRACTION (CRITICAL: Robust Delimiter Injection)
 ------------------------------------------------------------------------------
- 
+
 DROP TABLE IF EXISTS t_all_sections;
 CREATE  TABLE t_all_sections AS
 SELECT
@@ -110,16 +110,16 @@ SELECT
     s.depth,
     s.title,
     s.body_json_string,
-   
+    
     -- Extract @id (Test Case ID)
     TRIM(SUBSTR(
         s.body_json_string,
         INSTR(s.body_json_string, '@id') + 4,
         INSTR(SUBSTR(s.body_json_string, INSTR(s.body_json_string, '@id') + 4), '"') - 1
     )) AS extracted_id,
-   
+    
     -- Extract and clean raw YAML/code content
-    CASE
+    CASE 
         WHEN INSTR(s.body_json_string, '"code":"') > 0 THEN
             -- CRITICAL FIX: Inject CHAR(10) before known keys to force separation for robust SUBSTR/INSTR logic
             REPLACE(
@@ -137,7 +137,7 @@ SELECT
                                                     INSTR(s.body_json_string, '"code":"') + 8,
                                                     INSTR(s.body_json_string, '","type":') - (INSTR(s.body_json_string, '"code":"') + 8)
                                                 ),
-                                               
+                                                
                                                 -- CASE keys
                                                 'Tags:', CHAR(10) || 'Tags:'
                                             ),
@@ -160,20 +160,20 @@ SELECT
             )
         ELSE NULL
     END AS code_content,
-   
+    
     rm.role_name
     -- Removed test_case_status and severity extraction from this step as requested.
-   
+    
 FROM t_all_sections_flat s
 LEFT JOIN t_role_depth_map rm
     ON s.uniform_resource_id = rm.uniform_resource_id
    AND s.depth = rm.role_depth;
- 
- 
+
+
 -- 5. EVIDENCE HISTORY JSON ARRAY (Aggregates all evidence history)
 ------------------------------------------------------------------------------
 -- Logic for cycle, severity, assignee, and status parsing is retained from previous fix.
- 
+
 DROP TABLE IF EXISTS t_evidence_history_json;
 CREATE  TABLE t_evidence_history_json AS
 WITH evidence_positions AS (
@@ -183,43 +183,43 @@ WITH evidence_positions AS (
         tas.extracted_id AS test_case_id,
         tas.file_basename,
         tas.code_content,
- 
+
         -- Find end positions for parsing logic
-        CASE
-            WHEN INSTR(tas.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'severity:')
-            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:')
+        CASE 
+            WHEN INSTR(tas.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'severity:') 
+            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:') 
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_cycle_pos,
- 
+
         CASE
             WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_severity_pos,
-       
-        CASE
+        
+        CASE 
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_assignee_pos,
-       
+        
         CASE
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_status_pos
     FROM t_all_sections tas
     WHERE tas.role_name = 'evidence' AND tas.extracted_id IS NOT NULL AND tas.code_content IS NOT NULL
-),
+), 
 evidence_temp AS (
     -- Stage 1B: Extract fields using calculated positions
     SELECT
         ep.uniform_resource_id,
         ep.test_case_id,
         ep.file_basename,
- 
+
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'cycle:') + 6, ep.end_of_cycle_pos - (INSTR(ep.code_content, 'cycle:') + 6))) AS val_cycle,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'severity:') + 9, ep.end_of_severity_pos - (INSTR(ep.code_content, 'severity:') + 9))) AS val_severity,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'assignee:') + 9, ep.end_of_assignee_pos - (INSTR(ep.code_content, 'assignee:') + 9))) AS val_assignee,
@@ -231,7 +231,7 @@ evidence_temp AS (
 SELECT
     et.uniform_resource_id,
     et.test_case_id,
-   
+    
     '[' || GROUP_CONCAT(
         JSON_OBJECT(
             'cycle', et.val_cycle,
@@ -244,62 +244,62 @@ SELECT
     , ',') || ']' AS evidence_history_json
 FROM evidence_temp et
 GROUP BY et.uniform_resource_id, et.test_case_id;
- 
- 
+
+
 -- 5.5 LATEST EVIDENCE STATUS (Finds the single latest record for each test case PER FILE)
 ------------------------------------------------------------------------------
 -- Logic for cycle, severity, assignee, and status parsing is retained from previous fix.
- 
+
 DROP TABLE IF EXISTS t_latest_evidence_status;
 CREATE  TABLE t_latest_evidence_status AS
 WITH evidence_positions AS (
     -- Stage 1A: Calculate extraction positions safely
     SELECT
         tas.uniform_resource_id,
-        tas.file_basename,
+        tas.file_basename, 
         tas.extracted_id AS test_case_id,
         tas.code_content,
-       
+        
         -- Find end position for cycle
-        CASE
-            WHEN INSTR(tas.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'severity:')
-            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:')
+        CASE 
+            WHEN INSTR(tas.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'severity:') 
+            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:') 
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_cycle_pos,
- 
+
         -- Find end position for severity
-        CASE
-            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:')
+        CASE 
+            WHEN INSTR(tas.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'assignee:') 
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_severity_pos,
-       
+        
         -- Find end position for assignee
-        CASE
+        CASE 
             WHEN INSTR(tas.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'status:')
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_assignee_pos,
-       
+        
         -- Find end position for status
         CASE
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
         END AS end_of_status_pos
- 
+
     FROM t_all_sections tas
     WHERE tas.role_name = 'evidence' AND tas.extracted_id IS NOT NULL AND tas.code_content IS NOT NULL
-),
+), 
 evidence_details AS (
     -- Stage 1B: Extract fields using calculated positions
     SELECT
         ep.uniform_resource_id,
         ep.file_basename,
         ep.test_case_id,
-       
+        
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'cycle:') + 6, ep.end_of_cycle_pos - (INSTR(ep.code_content, 'cycle:') + 6))) AS val_cycle,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'severity:') + 9, ep.end_of_severity_pos - (INSTR(ep.code_content, 'severity:') + 9))) AS val_severity,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'assignee:') + 9, ep.end_of_assignee_pos - (INSTR(ep.code_content, 'assignee:') + 9))) AS val_assignee,
@@ -322,7 +322,7 @@ ranked_evidence AS (
 SELECT
     uniform_resource_id,
     test_case_id,
-    file_basename AS latest_file_basename,
+    file_basename AS latest_file_basename, 
     val_cycle AS latest_cycle,
     val_severity AS latest_severity,
     val_assignee AS latest_assignee,
@@ -330,11 +330,11 @@ SELECT
     val_issue_id AS latest_issue_id
 FROM ranked_evidence
 WHERE rn = 1;
- 
- 
+
+
 -- 6. TEST CASE DETAILS (Aggregates case details and latest evidence status)
 ------------------------------------------------------------------------------
- 
+
 DROP VIEW IF EXISTS v_test_case_details;
 CREATE VIEW v_test_case_details AS
 SELECT
@@ -349,14 +349,19 @@ SELECT
    
     les.latest_cycle,
     les.latest_assignee,
-    les.latest_issue_id
+    les.latest_issue_id,
+    CASE
+        WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN
+           SUBSTR(s.code_content, INSTR(s.code_content, 'requirementID:') + 14,    INSTR(s.code_content, 'Priority:') -(15+INSTR(s.code_content, 'requirementID:')) )    
+           else  '' end as requirement_ID  
 FROM t_all_sections s
 LEFT JOIN t_latest_evidence_status les
     ON s.uniform_resource_id = les.uniform_resource_id
    AND s.extracted_id = les.test_case_id
 WHERE s.role_name = 'case' AND s.extracted_id IS NOT NULL;
- 
- 
+
+
+
 DROP VIEW IF EXISTS v_section_hierarchy_summary;
 CREATE VIEW v_section_hierarchy_summary AS
 SELECT
@@ -375,3 +380,22 @@ SELECT
     COUNT(CASE WHEN s.role_name = 'case' THEN 1 ELSE NULL END) AS test_case_count
 FROM t_all_sections s
 GROUP BY s.uniform_resource_id, s.file_basename;
+
+
+DROP VIEW IF EXISTS v_success_percentage;
+
+CREATE VIEW v_success_percentage AS
+SELECT
+    COUNT(CASE WHEN test_case_status = 'passed' THEN 1 END) AS successful_cases,
+    COUNT(CASE WHEN test_case_status = 'failed' THEN 1 END) AS failed_cases,
+    COUNT(*) AS total_cases,
+    ROUND((COUNT(CASE WHEN test_case_status = 'passed' THEN 1 END) * 100.0) / COUNT(*)) || '%' AS success_percentage,
+    ROUND((COUNT(CASE WHEN test_case_status = 'failed' THEN 1 END) * 100.0) / COUNT(*)) || '%' AS failed_percentage
+FROM v_test_case_details;
+
+
+
+
+
+
+
