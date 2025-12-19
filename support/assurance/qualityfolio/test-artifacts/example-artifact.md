@@ -135,7 +135,8 @@ This test case validates that when a user attempts to log in with **valid creden
 ```yaml META
 cycle: 1.1
 assignee: John Carter
-status: failed
+status: 
+issue_id: ["BUG-GLUE-001"]
 ```
 
 **Attachment**
@@ -150,6 +151,7 @@ status: failed
 doc-classify:
   role: issue
 issue_id: BUG-GLUE-001
+created_date: 12-18-2025
 test_case_id: TC-GLUE-002
 title: "Login fails with timeout error even when valid credentials are used"
 status: open

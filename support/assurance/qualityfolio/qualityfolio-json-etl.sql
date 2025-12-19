@@ -130,33 +130,36 @@ SELECT
                                 REPLACE(
                                     REPLACE(
                                         REPLACE(
-                                            REPLACE(  
-                                                -- Start with the extracted code string
-                                                SUBSTR(
-                                                    s.body_json_string,
-                                                    INSTR(s.body_json_string, '"code":"') + 8,
-                                                    INSTR(s.body_json_string, '","type":') - (INSTR(s.body_json_string, '"code":"') + 8)
+                                            REPLACE(
+                                                REPLACE(  
+                                                    -- Start with the extracted code string
+                                                    SUBSTR(
+                                                        s.body_json_string,
+                                                        INSTR(s.body_json_string, '"code":"') + 8,
+                                                        INSTR(s.body_json_string, '","type":') - (INSTR(s.body_json_string, '"code":"') + 8)
+                                                    ),
+                                                    
+                                                    -- CASE keys
+                                                    'Tags:', CHAR(10) || 'Tags:'
                                                 ),
-                                                
-                                                -- CASE keys
-                                                'Tags:', CHAR(10) || 'Tags:'
+                                                'Scenario Type:', CHAR(10) || 'Scenario Type:'
                                             ),
-                                            'Scenario Type:', CHAR(10) || 'Scenario Type:'
+                                            'Priority:', CHAR(10) || 'Priority:'
                                         ),
-                                        'Priority:', CHAR(10) || 'Priority:'
+                                        'requirementID:', CHAR(10) || 'requirementID:'
                                     ),
-                                    'requirementID:', CHAR(10) || 'requirementID:'
+                                    -- EVIDENCE keys (and others that might follow 'cycle:')
+                                    'cycle:', CHAR(10) || 'cycle:'
                                 ),
-                                -- EVIDENCE keys (and others that might follow 'cycle:')
-                                'cycle:', CHAR(10) || 'cycle:'
+                                'severity:', CHAR(10) || 'severity:' -- CRITICAL ADDITION RETAINED: For evidence block severity (to stop cycle from running into it)
                             ),
-                            'severity:', CHAR(10) || 'severity:' -- CRITICAL ADDITION RETAINED: For evidence block severity (to stop cycle from running into it)
+                            'assignee:', CHAR(10) || 'assignee:'
                         ),
-                        'assignee:', CHAR(10) || 'assignee:'
+                        'status:', CHAR(10) || 'status:'
                     ),
-                    'status:', CHAR(10) || 'status:'
+                    'issue_id:', CHAR(10) || 'issue_id:'
                 ),
-                'issue_id:', CHAR(10) || 'issue_id:'
+                'created_date:', CHAR(10) || 'created_date:'
             )
         ELSE NULL
     END AS code_content,
@@ -209,7 +212,12 @@ WITH evidence_positions AS (
         CASE
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
-        END AS end_of_status_pos
+        END AS end_of_status_pos,
+        
+        CASE
+            WHEN INSTR(tas.code_content, CHAR(10) || 'created_date:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'created_date:')
+            ELSE LENGTH(tas.code_content) + 1
+        END AS end_of_issue_id_pos
     FROM t_all_sections tas
     WHERE tas.role_name = 'evidence' AND tas.extracted_id IS NOT NULL AND tas.code_content IS NOT NULL
 ), 
@@ -224,7 +232,8 @@ evidence_temp AS (
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'severity:') + 9, ep.end_of_severity_pos - (INSTR(ep.code_content, 'severity:') + 9))) AS val_severity,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'assignee:') + 9, ep.end_of_assignee_pos - (INSTR(ep.code_content, 'assignee:') + 9))) AS val_assignee,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'status:') + 7, ep.end_of_status_pos - (INSTR(ep.code_content, 'status:') + 7))) AS val_status,
-        CASE WHEN INSTR(ep.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'issue_id:') + 9)) ELSE '' END AS val_issue_id
+        CASE WHEN INSTR(ep.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'issue_id:') + 9, ep.end_of_issue_id_pos - (INSTR(ep.code_content, 'issue_id:') + 9))) ELSE '' END AS val_issue_id,
+        CASE WHEN INSTR(ep.code_content, 'created_date:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'created_date:') + 13)) ELSE NULL END AS val_created_date
     FROM evidence_positions ep
 )
 -- Stage 2: Aggregate the extracted values into a structured JSON string (array)
@@ -239,6 +248,7 @@ SELECT
             'assignee', et.val_assignee,
             'status', et.val_status,
             'issue_id', et.val_issue_id,
+            'created_date', et.val_created_date,
             'file_basename', et.file_basename
         )
     , ',') || ']' AS evidence_history_json
@@ -288,7 +298,13 @@ WITH evidence_positions AS (
         CASE
             WHEN INSTR(tas.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'issue_id:')
             ELSE LENGTH(tas.code_content) + 1
-        END AS end_of_status_pos
+        END AS end_of_status_pos,
+        
+        -- Find end position for issue_id
+        CASE
+            WHEN INSTR(tas.code_content, CHAR(10) || 'created_date:') > 0 THEN INSTR(tas.code_content, CHAR(10) || 'created_date:')
+            ELSE LENGTH(tas.code_content) + 1
+        END AS end_of_issue_id_pos
 
     FROM t_all_sections tas
     WHERE tas.role_name = 'evidence' AND tas.extracted_id IS NOT NULL AND tas.code_content IS NOT NULL
@@ -304,7 +320,8 @@ evidence_details AS (
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'severity:') + 9, ep.end_of_severity_pos - (INSTR(ep.code_content, 'severity:') + 9))) AS val_severity,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'assignee:') + 9, ep.end_of_assignee_pos - (INSTR(ep.code_content, 'assignee:') + 9))) AS val_assignee,
         TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'status:') + 7, ep.end_of_status_pos - (INSTR(ep.code_content, 'status:') + 7))) AS val_status,
-        CASE WHEN INSTR(ep.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'issue_id:') + 9)) ELSE '' END AS val_issue_id
+        CASE WHEN INSTR(ep.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'issue_id:') + 9, ep.end_of_issue_id_pos - (INSTR(ep.code_content, 'issue_id:') + 9))) ELSE '' END AS val_issue_id,
+        CASE WHEN INSTR(ep.code_content, 'created_date:') > 0 THEN TRIM(SUBSTR(ep.code_content, INSTR(ep.code_content, 'created_date:') + 13)) ELSE NULL END AS val_created_date
     FROM evidence_positions ep
 ),
 -- Use ROW_NUMBER() to find the latest (highest cycle) for each test case PER FILE
@@ -327,7 +344,8 @@ SELECT
     val_severity AS latest_severity,
     val_assignee AS latest_assignee,
     val_status AS latest_status,
-    val_issue_id AS latest_issue_id
+    val_issue_id AS latest_issue_id,
+    val_created_date AS latest_created_date
 FROM ranked_evidence
 WHERE rn = 1;
 
@@ -350,16 +368,20 @@ SELECT
     les.latest_cycle,
     les.latest_assignee,
     les.latest_issue_id,
-    CASE
+    /*CASE
         WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN
-           SUBSTR(s.code_content, INSTR(s.code_content, 'requirementID:') + 14,    INSTR(s.code_content, 'Priority:') -(15+INSTR(s.code_content, 'requirementID:')) )    
+           TRIM(SUBSTR(s.code_content, INSTR(s.code_content, 'requirementID:') + 14,    INSTR(s.code_content, 'Priority:') -(15+INSTR(s.code_content, 'requirementID:')) ))    
+           else  '' end as requirement_ID  */
+           CASE
+        WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN
+           TRIM(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'requirementid:') + 14,    INSTR(lower(s.code_content), 'priority:') -(15+INSTR(lower(s.code_content), 'requirementid:')) ))    
            else  '' end as requirement_ID  
+ 
 FROM t_all_sections s
 LEFT JOIN t_latest_evidence_status les
     ON s.uniform_resource_id = les.uniform_resource_id
    AND s.extracted_id = les.test_case_id
 WHERE s.role_name = 'case' AND s.extracted_id IS NOT NULL;
-
 
 
 DROP VIEW IF EXISTS v_section_hierarchy_summary;
@@ -393,7 +415,96 @@ SELECT
     ROUND((COUNT(CASE WHEN test_case_status = 'failed' THEN 1 END) * 100.0) / COUNT(*)) || '%' AS failed_percentage
 FROM v_test_case_details;
 
+DROP VIEW IF EXISTS v_test_assignee;
+CREATE VIEW v_test_assignee as
+select 'ALL' as assignee
+union all
+select distinct latest_assignee as assignee
+from v_test_case_details;
 
+
+-- 7. OPEN ISSUES AGE TRACKING
+------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS t_issues;
+CREATE TABLE t_issues AS
+WITH issue_code_blocks AS (
+    -- Extract code blocks from JSON tree that contain 'role: issue'
+    SELECT DISTINCT
+        td.uniform_resource_id,
+        JSON_EXTRACT(code_node.value, '$.code') AS issue_yaml_code
+    FROM t_raw_data td,
+        JSON_TREE(td.cleaned_json_text, '$') AS code_node
+    WHERE code_node.key = 'code_block'
+      AND JSON_EXTRACT(code_node.value, '$.code') LIKE '%role: issue%'
+)
+SELECT
+    uniform_resource_id,
+    
+    -- Extract issue_id (find text between 'issue_id: ' and next key - either 'created_date:' or 'test_case_id:')
+    TRIM(SUBSTR(
+        issue_yaml_code,
+        INSTR(issue_yaml_code, 'issue_id: ') + 10,
+        CASE
+            WHEN INSTR(issue_yaml_code, 'created_date: ') > 0 
+                AND INSTR(issue_yaml_code, 'created_date: ') < INSTR(issue_yaml_code, 'test_case_id:')
+            THEN INSTR(issue_yaml_code, 'created_date:') - INSTR(issue_yaml_code, 'issue_id: ') - 10
+            ELSE INSTR(issue_yaml_code, 'test_case_id:') - INSTR(issue_yaml_code, 'issue_id: ') - 10
+        END
+    )) AS issue_id,
+    
+    -- Extract test_case_id (find text between 'test_case_id: ' and 'title:')
+    TRIM(SUBSTR(
+        issue_yaml_code,
+        INSTR(issue_yaml_code, 'test_case_id: ') + 14,
+        INSTR(issue_yaml_code, 'title:') - INSTR(issue_yaml_code, 'test_case_id: ') - 14
+    )) AS test_case_id,
+    
+    -- Extract status (find text between 'status: ' and end or next key)
+    TRIM(SUBSTR(
+        issue_yaml_code,
+        INSTR(issue_yaml_code, 'status: ') + 8,
+        CASE
+            WHEN INSTR(SUBSTR(issue_yaml_code, INSTR(issue_yaml_code, 'status: ') + 8), 'created_date:') > 0
+            THEN INSTR(SUBSTR(issue_yaml_code, INSTR(issue_yaml_code, 'status: ') + 8), 'created_date:') - 1
+            ELSE LENGTH(issue_yaml_code)
+        END
+    )) AS status,
+    
+    -- Extract created_date (find text between 'created_date: ' and 'test_case_id:')
+    CASE 
+        WHEN INSTR(issue_yaml_code, 'created_date: ') > 0 THEN
+            TRIM(SUBSTR(
+                issue_yaml_code,
+                INSTR(issue_yaml_code, 'created_date: ') + 14,
+                INSTR(issue_yaml_code, 'test_case_id:') - INSTR(issue_yaml_code, 'created_date: ') - 14
+            ))
+        ELSE NULL
+    END AS created_date
+    
+FROM issue_code_blocks
+WHERE issue_yaml_code IS NOT NULL;
+
+
+DROP VIEW IF EXISTS v_open_issues_age;
+CREATE VIEW v_open_issues_age AS
+SELECT
+    iss.issue_id,
+    iss.created_date,
+    iss.test_case_id,
+    CAST(JULIANDAY('now') - JULIANDAY(
+        -- Convert MM-DD-YYYY to YYYY-MM-DD format
+        SUBSTR(iss.created_date, 7, 4) || '-' || 
+        SUBSTR(iss.created_date, 1, 2) || '-' || 
+        SUBSTR(iss.created_date, 4, 2)
+    ) AS INTEGER) AS total_days,
+    tcd.test_case_title AS test_case_description
+FROM t_issues iss
+LEFT JOIN v_test_case_details tcd
+    ON iss.test_case_id = tcd.test_case_id
+WHERE iss.status = 'open'
+    AND iss.created_date IS NOT NULL
+ORDER BY total_days DESC;
 
 
 
