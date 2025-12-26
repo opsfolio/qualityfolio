@@ -135,7 +135,7 @@ This test case validates that when a user attempts to log in with **valid creden
 ```yaml META
 cycle: 1.1
 assignee: John Carter
-status: 
+status: failed
 issue_id: ["BUG-GLUE-001"]
 ```
 
