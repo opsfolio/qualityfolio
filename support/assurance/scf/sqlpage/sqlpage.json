@@ -1,6 +1,0 @@
-{
-  "database_url": "sqlite://scf-2025.3.sqlite.db?mode=rwc",
-  "web_root": "./dev-src.auto",
-  "allow_exec": true,
-  "port": 9227
-}
