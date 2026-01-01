@@ -39,11 +39,10 @@ The OWASP GLUE application testing project focuses on validating the reliability
 @id TC-GLUE-001
 
 ```yaml HFM
-doc-classify:
-requirementID: REQ-GLUE-01
-priority: High
-tags: ["Login", "Positive", "Authentication"]
-scenario-type: Happy Path
+  requirementID: REQ-GLUE-01
+  priority: High
+  tags: ["Login", "Positive", "Authentication"]
+  scenario-type: Happy Path
 ```
 
 **Description**
@@ -76,9 +75,11 @@ Verify that a user can successfully log in using a registered email and the corr
 @id TC-GLUE-001
 
 ```yaml META
-cycle: 1.1
-assignee: Emily Davis
-status: passed
+  cycle: 1.1
+  cycle-date: 12-12-2025
+  severity: Low
+  assignee: Emily Davis
+  status: passed
 ```
 
 **Attachment**
@@ -92,12 +93,10 @@ status: passed
 @id TC-GLUE-002
 
 ```yaml HFM
-doc-classify:
-fii: TC-GLUE-002
-requirementID: REQ-GLUE-01
-priority: High
-tags: ["Login", "Network Timeout", "Negative", "Resilience"]
-scenario-type: Happy Path
+  requirementID: REQ-GLUE-01
+  priority: High
+  tags: ["Login", "Network Timeout", "Negative", "Resilience"]
+  scenario-type: Happy Path
 ```
 
 **Description**
@@ -133,10 +132,10 @@ This test case validates that when a user attempts to log in with **valid creden
 @id TC-GLUE-002
 
 ```yaml META
-cycle: 1.1
-assignee: John Carter
-status: failed
-issue_id: ["BUG-GLUE-001"]
+  cycle: 1.1
+  cycle-date: 12-12-2025
+  assignee: John Carter
+  status: failed
 ```
 
 **Attachment**
@@ -150,11 +149,11 @@ issue_id: ["BUG-GLUE-001"]
 ```yaml HFM
 doc-classify:
   role: issue
-issue_id: BUG-GLUE-001
-created_date: 12-18-2025
-test_case_id: TC-GLUE-002
-title: "Login fails with timeout error even when valid credentials are used"
-status: open
+  issue_id: BUG-GLUE-001
+  created_date: 12-18-2025
+  test_case_id: TC-GLUE-002
+  title: "Login fails with timeout error even when valid credentials are used"
+  status: open
 ```
 
 **Issue Details**

@@ -75,54 +75,17 @@ Save logs, screenshots, and test output for audits or reviews.
 Generate complete test execution reports automatically.
 
 ---
-
-# **Core Test Management Tasks**
-
-## **Run Playwright Tests**
-
-### **Purpose:**
-
-<!-- Execute all Playwright tests inside the `opsfolio` folder.
-
-\`\`\`bash playwright-test -C PlaywrightTest --descr "Run Playwright
-tests in the opsfolio folder" #!/usr/bin/env -S bash -->
-
-# Navigate to the opsfolio directory
-
-<!-- cd ../../../../opsfolio -->
-
-## How To Run Tasks
-
-# Run Playwright tests in the opsfolio folder
-
-<!-- ```bash playwright-test -C PlaywrightTest --descr "Run Playwright tests in the opsfolio folder"
-#!/usr/bin/env -S bash
-
-# Navigate to the opsfolio directory
-cd ../../../../opsfolio
-
-# Installation and configuration
-npm install
-npx playwright install
-
-# Run Playwright tests
-npx playwright test
-
-
-``` -->
-
 # Surveilr Ingest Files
 
 ```bash ingest --descr "Ingest Files"
 #!/usr/bin/env -S bash
-# rm -rf resource-surveillance.sqlite.db
-surveilr ingest files -r ./test-artifacts && surveilr orchestrate transform-markdown
+surveilr ingest files -r ./opsfolio && surveilr orchestrate transform-markdown
 ```
 
 # SQL query
 
 ```bash deploy -C --descr "Generate sqlpage_files table upsert SQL and push them to SQLite"
-cat qualityfolio-json-etl.sql | sqlite3 resource-surveillance.sqlite.db
+surveilr shell qualityfolio-json-etl.sql
 ```
 
 ```bash prepare-sqlpage-dev --descr "Generate the dev-src.auto directory to work in SQLPage dev mode"
@@ -135,932 +98,505 @@ spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json
 SELECT 'shell' AS component,
        NULL AS icon,
       --  'https://www.surveilr.com/assets/brand/qf-logo.png' AS favicon,
-       'https://www.surveilr.com/assets/brand/qf-logo.png' AS image,
+      --  'https://www.surveilr.com/assets/brand/qf-logo.png' AS image,
        'fluid' AS layout,
        true AS fixed_top_menu,
        'index.sql' AS link,
-       '{"link":"/index.sql"}' AS menu_item;
+       '{"link":"/index.sql"}' AS menu_item;       
+       
+SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
+SET page_title  = json_extract($resource_json, '$.route.caption');
+SET page_description  = json_extract($resource_json, '$.route.description');
+SET page_path = json_extract($resource_json, '$.route.path');
 
 ${ctx.breadcrumbs()}
+
+```
+
+---
+
+# Dashboard Routes
+
+## Home Dashboard
+
+```sql index.sql { route: { caption: "Home Page" } }
 
 select
     'divider'            as component,
     'QA Progress & Performance Dashboard' as contents,
-    5                  as size,
+    6                  as size,
     'blue'               as color;
+-- Introduction
 
-```
-
-```sql index.sql { route: { caption: "Home Page" } }
-
-SELECT
-  'text' AS component,
+SELECT 'text' AS component,
   'The dashboard provides a centralized view of your testing efforts, displaying key metrics such as test progress, results, and team productivity. It offers visual insights with charts and reports, enabling efficient tracking of test runs, milestones, and issue trends, ensuring streamlined collaboration and enhanced test management throughout the project lifecycle' AS contents;
 
-SELECT
-    'card' AS component,
-    4 AS columns;
+-- Metrics Cards
+SELECT 'card' AS component, 4 AS columns;
 
-SELECT
-  '## Test Case Count' AS description_md,
-  '# ' || COALESCE(SUM(test_case_count), 0) AS description_md,
-  'green-lt' AS background_color,
-  'file' AS icon,
-  'test-cases.sql' AS link
-FROM v_section_hierarchy_summary;
+-- Total Test Cases
+SELECT '## Test Case Count' AS description_md,
+       '# ' || COALESCE(SUM(test_case_count), 0) AS description_md,
+       'green-lt' AS background_color,
+       'file' AS icon,
+       'test-cases.sql' AS link
+FROM qf_case_count;
 
--- Second Card V2: Total Passed
-SELECT
-    '## Total Passed Cases'  AS description_md,
-    '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
-    'green-lt' AS background_color,
-    'check' AS icon,
-    'passed.sql' AS link
-FROM v_test_case_details
+-- Passed Cases
+SELECT '## Total Passed Cases' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'green-lt' AS background_color,
+       'check' AS icon,
+       'passed.sql' AS link
+FROM qf_case_status
 WHERE test_case_status IN ('passed','pending');
 
--- Second Card: Total Defects
-SELECT
-    '## Total Defects'  AS description_md,
-    '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
-    'red-lt' AS background_color,
-    'bug' AS icon,
-    'defects.sql' AS link
-FROM v_test_case_details
+-- Total Defects
+SELECT '## Total Defects' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'red-lt' AS background_color,
+       'bug' AS icon,
+       'defects.sql' AS link
+FROM qf_case_status
 WHERE test_case_status IN ('reopen', 'failed');
 
 -- Closed Defects
-SELECT
-    '## Closed Defects'  AS description_md,
-    '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
-    'blue-lt' AS background_color,
-    'x' AS icon,
-    'closed.sql' AS link
-FROM v_test_case_details
-WHERE test_case_status IN ('closed');
+SELECT '## Closed Defects' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'blue-lt' AS background_color,
+       'x' AS icon,
+       'closed.sql' AS link
+FROM qf_case_status
+WHERE test_case_status = 'closed';
 
+-- Reopened Defects
+SELECT '## Open Defects' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'yellow-lt' AS background_color,
+       'alert-circle' AS icon,
+       'open.sql' AS link
+FROM qf_case_status
+WHERE test_case_status = 'failed';
 
-SELECT
-    '## Reopened Defects'  AS description_md,
-    '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
-    'yellow-lt' AS background_color,
-    'alert-circle' AS icon,
-    'reopen.sql' AS link
-FROM v_test_case_details
-WHERE test_case_status IN ('reopen');
+-- Reopened Defects
+SELECT '## Reopened Defects' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'yellow-lt' AS background_color,
+       'alert-circle' AS icon,
+       'reopen.sql' AS link
+FROM qf_case_status
+WHERE test_case_status = 'reopen';
 
+-- Failed Percentage
 WITH counts AS (
-  SELECT
-    (SELECT COUNT(DISTINCT test_case_id) FROM v_test_case_details) AS total_tests,
-    (SELECT COUNT(DISTINCT test_case_id)
-       FROM v_test_case_details
-      WHERE test_case_status IN ('reopen','failed')
-    ) AS total_defects
+  SELECT COUNT(DISTINCT test_case_id) AS total_tests,
+         COUNT(DISTINCT CASE WHEN test_case_status IN ('reopen','failed')
+               THEN test_case_id END) AS total_defects
+  FROM qf_case_status
 )
-SELECT
-  '## Failed Percentage' AS description_md,
-  '# ' ||
-  CASE
-    WHEN total_tests = 0 THEN '0%'
-    ELSE ROUND((total_defects * 100.0) / total_tests) || '%'
-  END AS description_md,
-  'red-lt' AS background_color,
-  'alert-circle' AS icon
+SELECT '## Failed Percentage' AS description_md,
+       '# ' || CASE WHEN total_tests = 0 THEN '0%'
+                    ELSE ROUND((total_defects * 100.0) / total_tests) || '%' END AS description_md,
+       'red-lt' AS background_color,
+       'alert-circle' AS icon
 FROM counts;
 
+-- Success Percentage
 WITH counts AS (
-  SELECT
-    (SELECT COUNT(DISTINCT test_case_id) FROM v_test_case_details) AS total_tests,
-    (SELECT COUNT(DISTINCT test_case_id)
-       FROM v_test_case_details
-      WHERE test_case_status IN ('reopen','failed')
-    ) AS total_defects
+  SELECT COUNT(DISTINCT test_case_id) AS total_tests,
+         COUNT(DISTINCT CASE WHEN test_case_status IN ('reopen','failed')
+               THEN test_case_id END) AS total_defects
+  FROM qf_case_status
 )
-SELECT
-  '## Success Percentage' AS description_md,
-  '# ' ||
-  CASE
-    WHEN total_tests = 0 THEN '0%'
-    ELSE ROUND(((total_tests - total_defects) * 100.0) / total_tests) || '%'
-  END AS description_md,
-  'green-lt' AS background_color,
-  'check' AS icon
+SELECT '## Success Percentage' AS description_md,
+       '# ' || CASE WHEN total_tests = 0 THEN '0%'
+                    ELSE ROUND(((total_tests - total_defects) * 100.0) / total_tests) || '%' END AS description_md,
+       'green-lt' AS background_color,
+       'check' AS icon
 FROM counts;
 
-select
-    'divider'            as component,
-    'Comprehensive Test Status' as contents,
-    5                  as size,
-    'blue'               as color;
+-- Test Status Visualization
+SELECT 'divider' AS component,
+       'Comprehensive Test Status' AS contents,
+       5 AS size,
+       'blue' AS color;
+
+SELECT 'card' AS component, 2 AS columns;
+SELECT '/chart/pie-chart-left.sql?color=green&n=42&_sqlpage_embed' AS embed;
+SELECT '/chart/chart.sql?' AS embed;
+
+-- Assignee Breakdown
+SELECT 'divider' AS component,
+       'ASSIGNEE WISE TEST CASE DETAILS' AS contents,
+       5 AS size,
+       'blue' AS color;
 
 
-select
-    'card' as component,
-    2      as columns;
-select
-    '/chart/pie-chart-left.sql?color=green&n=42&_sqlpage_embed' as embed;
-select
-    '/chart/pie-chart-left.sql?_sqlpage_embed' as embed;
+-- Non Assigned Test Case Button
+SELECT 'button' AS component, 'end' AS justify;
+SELECT '/non-assigned-test-cases.sql' AS link,
+       'Non Assigned Test Cases' AS title,
+       'blue' AS color;
 
-select
-    'divider'            as component,
-    'ASSIGNEE WISE TEST CASE DETAILS' as contents,
-    5                  as size,
-    'blue'               as color;
-
+-- Assignee Filter
 SELECT 'form' AS component,
-'Submit' as validate,
-'true' as auto_submit ;
+       'Submit' AS validate,
+       'true' AS auto_submit;
 
-SELECT
-    'assignee' AS name,
-    'true' as autofocus,
-    'Assignee' AS label,
-    'select'   AS type,
-    (
-        SELECT assignee
-        FROM v_test_assignee
-        WHERE assignee = :assignee
-    ) AS value,
-    json_group_array(
-        json_object('label', assignee, 'value', assignee)
-    ) AS options
-FROM v_test_assignee;
+SELECT 'assignee' AS name,
+       'true' AS autofocus,
+       'Assignee' AS label,
+       'select' AS type,
+       (SELECT assignee FROM qf_assignee_master WHERE assignee = :assignee) AS value,
+       json_group_array(json_object('label', assignee, 'value', assignee)) AS options
+FROM qf_assignee_master
+where assignee!='';
 
-${paginate("v_test_assignee ")}
-SELECT
-  'table' AS component,
-  "TOTAL TEST CASES" AS markdown,
-  "TOTAL PASSED" AS markdown,
-  "TOTAL FAILED" AS markdown,
-  "TOTAL REOPEN" AS markdown,
-  "TOTAL CLOSED" AS markdown,
-  -- "CYCLE" AS markdown,
-  "ASSIGNEE" AS markdown,
-  1 AS search,
-  1 AS sort;
+${paginate("qf_assignee_master")}
 
-SELECT
-    latest_assignee AS "ASSIGNEE",
+SELECT 'table' AS component,
+       "TOTAL TEST CASES" AS markdown,
+       "TOTAL PASSED" AS markdown,
+       "TOTAL FAILED" AS markdown,
+       "TOTAL REOPEN" AS markdown,
+       "TOTAL CLOSED" AS markdown,
+       "ASSIGNEE" AS markdown,
+       1 AS search,
+       1 AS sort;
 
-    ${md.link(
-        "COUNT(test_case_id)",
-        [`'assigneetotaltestcase.sql?assignee='`, "latest_assignee"]
-    )} AS "TOTAL TEST CASES",
-
-    ${md.link(
-        "SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
-        [`'assigneetotalpassed.sql?assignee='`, "latest_assignee"]
-    )} AS "TOTAL PASSED",
-
-    ${md.link(
-        "SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
-        [`'assigneetotalfailed.sql?assignee='`, "latest_assignee"]
-    )} AS "TOTAL FAILED",
-
-    ${md.link(
-        "SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END)",
-        [`'assigneetotalreopen.sql?assignee='`, "latest_assignee"]
-    )} AS "TOTAL REOPEN",
-
-    ${md.link(
-        "SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
-        [`'assigneetotalclosed.sql?assignee='`, "latest_assignee"]
-    )} AS "TOTAL CLOSED"
-
-FROM v_test_case_details
-WHERE
-  CASE
-    WHEN :assignee IS NULL THEN 1=1
-    WHEN :assignee = 'ALL' THEN 1=1
-    ELSE latest_assignee = :assignee
-  END
+SELECT latest_assignee AS "ASSIGNEE",
+    ${md.link("COUNT(test_case_id)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee"])} AS "TOTAL TEST CASES",
+    ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=passed'"])} AS "TOTAL PASSED",
+    ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=failed'"])} AS "TOTAL FAILED",
+    ${md.link("SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=reopen'"])} AS "TOTAL REOPEN",
+    ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=closed'"])} AS "TOTAL CLOSED"
+FROM qf_case_status
+WHERE CASE
+        -- Always exclude NULL or empty assignees
+        WHEN latest_assignee IS NULL OR TRIM(latest_assignee) = '' THEN 0
+        -- ALL selected → allow only valid assignees
+        WHEN :assignee IS NULL OR :assignee = 'ALL' THEN 1
+        -- Specific assignee selected
+        ELSE latest_assignee = :assignee
+      END = 1
 GROUP BY latest_assignee
 ${pagination.limit};
 ${pagination.navigation}
 
-select
-'divider' as component,
-'TEST CYCLE DETAILS' as contents,
-5 as size,
-'blue' as color;
+-- Test Cycle Details
+SELECT 'divider' AS component,
+       'TEST CYCLE DETAILS' AS contents,
+       5 AS size,
+       'blue' AS color;
 
-select
-    'button' as component,
-      'end' as justify;
-select
-    '/test-case-history.sql' as link,
-    'Test Case History'            as title,'blue' as color;
+SELECT 'button' AS component, 'end' AS justify;
+SELECT '/test-case-history.sql' AS link,
+       'Test Cycle History' AS title,
+       'blue' AS color;
 
--- SELECT
--- 'table' AS component,
--- -- "CYCLE" AS markdown,
--- "TOTAL TEST CASES" AS markdown,
--- "TOTAL PASSED" AS markdown,
--- "TOTAL FAILED" AS markdown,
--- "TOTAL RE-OPEN" AS markdown,
--- "TOTAL CLOSED" AS markdown,
+SELECT 'table' AS component,
+       "CYCLE" AS markdown,
+       "TOTAL TEST CASES" AS markdown,
+       "TOTAL PASSED" AS markdown,
+       "TOTAL FAILED" AS markdown,
+       "TOTAL RE-OPEN" AS markdown,
+       "TOTAL CLOSED" AS markdown,
+       1 AS sort,
+       1 AS search;
 
--- 1 AS sort,
--- 1 AS search;
+SELECT latest_cycle AS "CYCLE",
+    '[' || COUNT(test_case_id) || '](cycletotaltestcase.sql?cycle=' || latest_cycle || ')' AS "TOTAL TEST CASES",
+    '[' || SUM(status = 'passed') || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=passed)' AS "TOTAL PASSED",
+    '[' || SUM(status = 'failed') || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=failed)' AS "TOTAL FAILED",
+    '[' || SUM(status = 'reopen') || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=reopen)' AS "TOTAL RE-OPEN",
+    '[' || SUM(status = 'closed') || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=closed)' AS "TOTAL CLOSED"
+FROM qf_evidence_recent where latest_cycle!=''
+GROUP BY latest_cycle;
 
--- SELECT
--- -- '[' || latest_cycle || '](test-cases.sql?cycle=' || latest_cycle || ')' AS "CYCLE",
--- latest_cycle AS "CYCLE",
--- '[' || COUNT(test_case_id) || '](cycletotaltestcase.sql?' ||'cycle=' || latest_cycle || ')' AS "TOTAL TEST CASES",
--- '[' || SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END) || '](cycletotalpassed.sql?' ||'cycle=' || latest_cycle || ')' AS "TOTAL PASSED",
--- '[' || SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END) || '](cycletotalfailed.sql?' ||'cycle=' || latest_cycle || ')' AS "TOTAL FAILED",
--- '[' || SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END) || '](cycletotalreopen.sql?' ||'cycle=' || latest_cycle || ')' AS "TOTAL RE-OPEN",
--- '[' || SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END) || '](cycletotalclosed.sql?' ||'cycle=' || latest_cycle || ')' AS "TOTAL CLOSED"
+-- Requirement Traceability
+SELECT 'divider' AS component,
+       'REQUIREMENT TRACEABILITY' AS contents,
+       5 AS size,
+       'blue' AS color;
 
--- FROM
--- v_test_case_details
--- GROUP BY
--- latest_cycle;
+${paginate("qf_case_status", "GROUP BY requirement_ID")}
 
-SELECT
-'table' AS component,
-"CYCLE" AS markdown,
-"TOTAL TEST CASES" AS markdown,
-"TOTAL PASSED" AS markdown,
-"TOTAL FAILED" AS markdown,
-"TOTAL RE-OPEN" AS markdown,
-"TOTAL CLOSED" AS markdown,
-1 AS sort,
-1 AS search;
- 
-SELECT
-    latest_cycle AS "CYCLE",
- 
-    '[' || test_count || '](cycletotaltestcase.sql?cycle=' || latest_cycle || ')'
-        AS "TOTAL TEST CASES",
- 
-    '[' || passed_count || '](cycletotalpassed.sql?cycle=' || latest_cycle || ')'
-        AS "TOTAL PASSED",
- 
-    '[' || failed_count || '](cycletotalfailed.sql?cycle=' || latest_cycle || ')'
-        AS "TOTAL FAILED",
- 
-    '[' || reopen_count || '](cycletotalreopen.sql?cycle=' || latest_cycle || ')'
-        AS "TOTAL RE-OPEN",
- 
-    '[' || closed_count || '](cycletotalclosed.sql?cycle=' || latest_cycle || ')'
-        AS "TOTAL CLOSED"
- 
-FROM v_latest_ingested_cycle_summary;
-
--- REQUIREMENT
-
-select
-'divider' as component,
-'REQUIREMENT TRACEABILITY' as contents,
-5 as size,
-'blue' as color;
-
-${paginate("v_test_case_details", "GROUP BY  requirement_ID")}
-SELECT
-'table' AS component,
-"TOTAL TEST CASES" AS markdown,
-"TOTAL PASSED" AS markdown,
-"TOTAL FAILED" AS markdown,
-"TOTAL RE-OPEN" AS markdown,
-"TOTAL CLOSED" AS markdown,
-1 AS sort,
-1 AS search;
+SELECT 'table' AS component,
+        "REQUIREMENT ID" AS markdown,
+       "TOTAL TEST CASES" AS markdown,
+       "TOTAL PASSED" AS markdown,
+       "TOTAL FAILED" AS markdown,
+       "TOTAL RE-OPEN" AS markdown,
+       "TOTAL CLOSED" AS markdown,
+       1 AS sort,
+       1 AS search;
 
 SELECT
--- '[' || requirementID || '](test-cases.sql?cycle=' || requirementID || ')' AS "REQUIREMENTS",
-requirement_ID AS "REQUIREMENTS",
-'[' || COUNT(test_case_id) || '](requirementtotaltestcase.sql?'||'req=' || requirement_ID || ')' AS "TOTAL TEST CASES",
-'[' || SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END) || '](requirementpassedtestcase.sql?' ||'req=' || requirement_ID || ')' AS "TOTAL PASSED",
-'[' || SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END) || '](requirementfailedtestcase.sql?' ||'req=' || requirement_ID || ')' AS "TOTAL FAILED",
-'[' || SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END) || '](requirementreopentestcase.sql?' ||'req=' || requirement_ID || ')' AS "TOTAL RE-OPEN",
-'[' || SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END) || '](requirementclosedtestcase.sql?' ||'req=' || requirement_ID || ')' AS "TOTAL CLOSED"
-
-FROM
-v_test_case_details
-GROUP BY
-requirement_ID
+      requirement_ID AS "REQUIREMENT ID",
+    '[' || COUNT(test_case_id) || '](requirementtotaltestcase.sql?req=' || requirement_ID || ')' AS "TOTAL TEST CASES",
+    '[' || SUM(test_case_status = 'passed') || '](requirementtotaltestcase.sql?req=' || requirement_ID || '&status=passed)' AS "TOTAL PASSED",
+    '[' || SUM(test_case_status = 'failed') || '](requirementtotaltestcase.sql?req=' || requirement_ID || '&status=failed)' AS "TOTAL FAILED",
+    '[' || SUM(test_case_status = 'reopen') || '](requirementtotaltestcase.sql?req=' || requirement_ID || '&status=reopen)' AS "TOTAL RE-OPEN",
+    '[' || SUM(test_case_status = 'closed') || '](requirementtotaltestcase.sql?req=' || requirement_ID || '&status=closed)' AS "TOTAL CLOSED"
+FROM qf_case_status
+GROUP BY requirement_ID
 ${pagination.limit};
 ${pagination.navigation}
 
-select
-'divider' as component,
-'OPEN ISSUES' as contents,
-5 as size,
-'blue' as color;
+-- Open Issues
+SELECT 'divider' AS component,
+       'OPEN ISSUES' AS contents,
+       5 AS size,
+       'blue' AS color;
 
-SELECT
-'table' AS component,
-1 AS sort,
-1 AS search;
+SELECT 'table' AS component, 1 AS sort, 1 AS search;
 
-SELECT
-  issue_id    AS "Issue ID",
-  test_case_id AS "Test Case ID",
-  test_case_description AS "Description",
-  created_date    AS "Created Date",
-  total_days    AS "Issue Age"
-
-FROM v_open_issues_age
+SELECT issue_id AS "Issue ID",
+       test_case_id AS "Test Case ID",
+       test_case_description AS "Description",
+       created_date AS "Created Date",
+       total_days AS "Issue Age in Days"
+FROM qf_open_issue_age
 ORDER BY test_case_id;
 ```
+
+---
+
+# Test Case List Views
+
+## All Test Cases
+
+ <!--  -->
 
 ```sql test-cases.sql { route: { caption: "Test Cases" } }
+-- @route.description "An overview of all test cases showing the test case ID, title, current status, and the latest execution cycle, allowing quick review and tracking of test case progress."
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
 
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM v_test_case_details
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
 ORDER BY test_case_id;
-
 ```
 
-```sql passed.sql { route: { caption: "Test Cases" } }
+## Passed Test Cases
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
+<!-- Lists all test cases that have passed -->
 
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  latest_cycle     AS "Latest Cycle"
-FROM v_test_case_details
-WHERE test_case_status='passed'
+```sql passed.sql { route: { caption: "Passed Test Cases" } }
+-- @route.description "Lists all test cases with a passed status, showing their test case ID, title, and latest execution cycle for quick status review"
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Passed Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE test_case_status = 'passed'
 ORDER BY test_case_id;
-
 ```
 
-```sql defects.sql { route: { caption: "Test Cases" } }
+## Defects (Failed & Reopened)
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
+```sql defects.sql { route: { caption: "Defects Test Cases" } }
+-- @route.description "Shows test cases with defects, including failed and reopened cases, along with their test case ID, title, current status, and latest cycle for effective defect tracking"
 
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM v_test_case_details
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Defects' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
 WHERE test_case_status IN ('reopen', 'failed')
 ORDER BY test_case_id;
-
 ```
 
-```sql closed.sql { route: { caption: "Test Cases" } }
+## Closed Cases
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
+```sql closed.sql { route: { caption: "Closed Test Cases" } }
+-- @route.description "List of all test cases that have closed"
 
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM v_test_case_details
-WHERE test_case_status IN ('closed')
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Closed Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE test_case_status = 'closed'
 ORDER BY test_case_id;
-
 ```
 
-```sql reopen.sql { route: { caption: "Test Cases" } }
+## Open Cases
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
+```sql open.sql { route: { caption: "Open Test Cases" } }
+-- @route.description "Displays all open test cases with their test case ID, title, current status, and latest cycle to help monitor issues "
 
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM v_test_case_details
-WHERE test_case_status IN ('reopen')
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Reopened Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE test_case_status = 'failed'
 ORDER BY test_case_id;
-
 ```
+
+## Reopened Cases
+
+```sql reopen.sql { route: { caption: "Reopened Test Cases" } }
+-- @route.description "Displays all reopened test cases with their test case ID, title, current status, and latest cycle to help monitor issues "
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Reopened Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE test_case_status = 'reopen'
+ORDER BY test_case_id;
+```
+
+---
+
+# Filtered Views
+
+## Cycle-Filtered Test Cases
 
 ```sql cycletotaltestcase.sql { route: { caption: "Test Cases" } }
+-- @route.description "Shows test cases filtered by selected cycle and status, displaying the test case ID, title, current status, and latest cycle for focused analysis and tracking "
 
-SELECT
-  'table' AS component,
-  'Test Case ID' as markdown,
-  'Test Cases' AS title,
-  1 AS search,
-  1 AS sort;
 
-SELECT
-   '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_cycle = $cycle
-ORDER BY
-  test_case_id;
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE ($cycle IS NULL OR latest_cycle = $cycle)
+  AND ($status IS NULL OR test_case_status = $status)
+ORDER BY test_case_id;
 ```
 
-```sql cycletotalpassed.sql { route: { caption: "Test Passed" } }
+## Requirement-Filtered Test Cases
 
-SELECT
-  'table' AS component, 
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
+```sql requirementtotaltestcase.sql { route: { caption: "Requirement Cases" } }
+-- @route.description "Lists test cases associated with a specific requirement, showing their test case ID, title, current status, latest cycle, and requirement for requirement-wise tracking"
 
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_cycle = $cycle
-  and test_case_status='passed'
-ORDER BY
-  test_case_id;
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
+SELECT 'table' AS component,
+       'Test Cases' AS title,
+       'Test Case ID' AS markdown,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle",
+       requirement_ID AS "Requirement"
+FROM qf_case_status
+WHERE requirement_ID = $req
+  AND ($status IS NULL OR test_case_status = $status)
+ORDER BY test_case_id;
 ```
 
-```sql cycletotalfailed.sql { route: { caption: "Test Passed" } }
+## Assignee-Filtered Test Cases
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
+```sql assigneetotaltestcase.sql { route: { caption: "Assignee Cases" } }
+-- @route.description "Displays test cases filtered by assignee and status, showing the test case ID, title, current status, and latest cycle to support ownership-based tracking and review "
 
-SELECT
- '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_cycle = $cycle
-  and test_case_status='failed'
-ORDER BY
-  test_case_id;
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
+SELECT 'table' AS component,
+       'Test Cases' AS title,
+       'Test Case ID' AS markdown,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status
+WHERE ($assignee IS NULL OR latest_assignee = $assignee)
+  AND ($status IS NULL OR test_case_status = $status)
+ORDER BY test_case_id;
 ```
 
-```sql cycletotalreopen.sql { route: { caption: "Test Passed" } }
+---
 
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
+# Historical Views
 
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_cycle = $cycle
-  and test_case_status='reopen'
-ORDER BY
-  test_case_id;
+## Test Cycle History with Date Filtering
 
-```
+```sql test-case-history.sql { route: { caption: "Test Cycle History" } }
+-- @route.description "Provides a cycle-wise summary of test execution, showing total test cases and status-wise counts (passed, failed, reopened, closed), with optional date-range filtering to analyze results by cycle creation and ingestion time."
 
-```sql cycletotalclosed.sql { route: { caption: "Test Passed" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
- '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_cycle = $cycle
-  and test_case_status='closed'
-ORDER BY
-  test_case_id;
-
-
-```
-
-```sql requirementtotaltestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-  requirement_ID    AS "Requirement"
-
-FROM
-  v_test_case_details
-WHERE
-  requirement_ID = $req
-ORDER BY
-  test_case_id;
-
-```
-
-```sql requirementpassedtestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-  requirement_ID    AS "Requirement"
-
-FROM
-  v_test_case_details
-WHERE
-  requirement_ID = $req
-  and test_case_status='passed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql requirementfailedtestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-  requirement_ID    AS "Requirement"
-
-FROM
-  v_test_case_details
-WHERE
-  requirement_ID = $req
-  and test_case_status='failed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql requirementreopentestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-  requirement_ID    AS "Requirement"
-
-FROM
-  v_test_case_details
-WHERE
-  requirement_ID = $req
-  and test_case_status='reopen'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql requirementclosedtestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-  requirement_ID    AS "Requirement"
-
-FROM
-  v_test_case_details
-WHERE
-  requirement_ID = $req
-  and test_case_status='closed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql chart/pie-chart-left.sql { route: { caption: "" } }
-SELECT
-'chart' AS component,
-'pie' AS type,
-TRUE AS labels,
-'green' as color,
-'red' as color,
-'chart-left' AS class;
-
-select
-'Passed' as label,
-success_percentage as value
-from v_success_percentage;
-
-select
-'Failed' as label,
-failed_percentage as value
-from v_success_percentage;
-```
-
-```sql chart/pie-chart-right.sql { route: { caption: "" } }
-SELECT
-'chart' AS component,
-'pie' AS type,
-TRUE AS labels,
-'green' as color,
-'red' as color,
-'chart-left' AS class;
-
-select
-'Passed' as label,
-success_percentage as value
-from v_success_percentage;
-
-select
-'Failed' as label,
-failed_percentage as value
-from v_success_percentage;
-```
-
-```sql assigneetotaltestcase.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-  'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
- 
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-ORDER BY
-  test_case_id;
-
-```
-
-```sql assigneetotalpassed.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-  and test_case_status='passed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql assigneetotalfailed.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-  and test_case_status='failed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql assigneetotalreopen.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-  and test_case_status='reopen'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql assigneetotalreopen.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-  and test_case_status='reopen'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql assigneetotalclosed.sql { route: { caption: "Test Cases" } }
-
-SELECT
-  'table' AS component,
-  'Test Cases' AS title,
-   'Test Case ID' as markdown,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  '[' ||  test_case_id || '](testcasedetails.sql?'||'testcaseid=' || test_case_id || ')' AS "Test Case ID",
-  test_case_title  AS "Title",
-  test_case_status AS "Status",
-  latest_cycle     AS "Latest Cycle"
-FROM
-  v_test_case_details
-WHERE
-  latest_assignee = $assignee
-  and test_case_status='closed'
-ORDER BY
-  test_case_id;
-
-```
-
-```sql test-case-history.sql { route: { caption: "Test Case History" } }
-
-
--- Calendar filter card
-
-
-SELECT
-  'table' AS component,
-  'CYCLE' AS markdown,
-  'TOTAL TEST CASES' AS markdown,
-  'TOTAL PASSED' AS markdown,
-  'TOTAL FAILED' AS markdown,
-  'TOTAL RE-OPEN' AS markdown,
-  'TOTAL CLOSED' AS markdown,
-
-  1 AS sort,
-  1 AS search;
-
-SELECT
-    latest_cycle AS "CYCLE",
-
-    -- ALL test cases for this cycle (with date parameters)
-    '[' || COUNT(test_case_id) || ']' ||
-    '(cycletotaltestcase.sql?cycle=' || latest_cycle ||
-    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
-         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
-         ELSE '' END || ')'
-    AS "TOTAL TEST CASES",
-
-    -- PASSED (with date parameters)
-    '[' || SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) || ']' ||
-    '(results.sql?cycle=' || latest_cycle || '&status=passed' ||
-    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
-         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
-         ELSE '' END || ')'
-    AS "TOTAL PASSED",
-
-    -- FAILED (with date parameters)
-    '[' || SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) || ']' ||
-    '(results.sql?cycle=' || latest_cycle || '&status=failed' ||
-    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
-         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
-         ELSE '' END || ')'
-    AS "TOTAL FAILED",
-
-    -- REOPEN (with date parameters)
-    '[' || SUM(CASE WHEN status = 'reopen' THEN 1 ELSE 0 END) || ']' ||
-    '(results.sql?cycle=' || latest_cycle || '&status=reopen' ||
-    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
-         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
-         ELSE '' END || ')'
-    AS "TOTAL RE-OPEN",
-
-    -- CLOSED (with date parameters)
-    '[' || SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) || ']' ||
-    '(results.sql?cycle=' || latest_cycle || '&status=closed' ||
-    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
-         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
-         ELSE '' END || ')'
-    AS "TOTAL CLOSED",
-
-    cycle_date AS "CYCLE DATE CREATED"
-
-FROM v_evidence_history_complete
-
-GROUP BY latest_cycle, cycle_date
-ORDER BY latest_cycle DESC;
-```
-
-```sql results.sql { route: { caption: "Test cases" } }
+SELECT 'text' AS component,
+$page_description AS contents_md;
 SELECT
   'form'    AS component,
   'get'     AS method,
@@ -1079,86 +615,178 @@ SELECT
   'To date'    AS label,
   'date'       AS type,
   $to_date AS value;
-SELECT
-  'table' AS component,
-  'Test Cases Details' AS title,
-  1 AS search,
-  1 AS sort;
-
-SELECT
-  test_case_id     AS "Test Case ID",
-  test_case_title  AS "Title",
-  status AS "Status",
-  latest_cycle     AS "Latest Cycle",
-   cycle_date AS "created date"
-FROM
-  v_evidence_history_complete
-WHERE
-  latest_cycle = $cycle
-  and status= $status
- and
-    CASE
-      WHEN :from_date IS NULL OR :to_date IS NULL THEN 1=1
-      ELSE date(cycle_date) BETWEEN date(:from_date) AND date(:to_date)
-    END
-ORDER BY
-  test_case_id;
-
+SELECT 'table' AS component,
+       'CYCLE' AS markdown,
+       'TOTAL TEST CASES' AS markdown,
+       'TOTAL PASSED' AS markdown,
+       'TOTAL FAILED' AS markdown,
+       'TOTAL RE-OPEN' AS markdown,
+       'TOTAL CLOSED' AS markdown,
+       1 AS sort,
+       1 AS search;
+ 
+SELECT latest_cycle AS "CYCLE",
+    '[' || COUNT(test_case_id) || '](cycletotaltestcase.sql?cycle=' || latest_cycle ||
+    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
+         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
+         ELSE '' END || ')' AS "TOTAL TEST CASES",
+    '[' || SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=passed' ||
+    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
+         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
+         ELSE '' END || ')' AS "TOTAL PASSED",
+    '[' || SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=failed' ||
+    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
+         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
+         ELSE '' END || ')' AS "TOTAL FAILED",
+    '[' || SUM(CASE WHEN status = 'reopen' THEN 1 ELSE 0 END) || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=reopen' ||
+    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
+         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
+         ELSE '' END || ')' AS "TOTAL RE-OPEN",
+    '[' || SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) || '](cycletotaltestcase.sql?cycle=' || latest_cycle || '&status=closed' ||
+    CASE WHEN :from_date IS NOT NULL AND :to_date IS NOT NULL
+         THEN '&from_date=' || :from_date || '&to_date=' || :to_date
+         ELSE '' END || ')' AS "TOTAL CLOSED",
+    cycle_date AS "CYCLE DATE CREATED"
+FROM qf_evidence_history_all
+WHERE latest_cycle != ''
+ 
+AND (
+      ($from_date IS NULL OR $from_date = '')
+  AND ($to_date   IS NULL OR $to_date   = '')
+   OR (
+        DATE(
+          SUBSTR(cycle_date, 7, 4) || '-' ||
+          SUBSTR(cycle_date, 1, 2) || '-' ||
+          SUBSTR(cycle_date, 4, 2)
+        )
+        BETWEEN DATE($from_date) AND DATE($to_date)
+      )
+)
+GROUP BY ingestion_timestamp, latest_cycle, cycle_date
+ORDER BY ingestion_timestamp DESC, latest_cycle DESC;
 ```
 
+---
 
-```sql testcasedetails.sql { route: { caption: "Test Cases Details" } }
+# Detail Views
+
+## Test Case Details
+
+```sql testcasedetails.sql { route: { caption: "Test Case Details" } }
+-- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
 SELECT 'card' AS component,
        'Test Cases Details' AS title,
        1 AS columns;
 
-SELECT
-    'Test Case ID: ' || test_case_id AS title,
-    '**Description:** ' || description || '  
-  
+SELECT 'Test Case ID: ' || test_case_id AS title,
+    '**Description:** ' || description || '
+
 ' ||
-    '**Preconditions:**  
-  
+    '**Preconditions:**
+
 ' ||
-    (
-      SELECT group_concat(
-               (CAST(j.key AS INTEGER) + 1) || '. ' ||
-               json_extract(j.value, '$.item[0].paragraph'),
-               char(10)
-             )
-      FROM json_each(preconditions) AS j
-    ) || '  
-  
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(preconditions) AS j) || '
+
 ' ||
-    '**Steps:**  
-  
+    '**Steps:**
+
 ' ||
-    (
-      SELECT group_concat(
-               (CAST(j.key AS INTEGER) + 1) || '. ' ||
-               json_extract(j.value, '$.item[0].paragraph'),
-               char(10)
-             )
-      FROM json_each(steps) AS j
-    ) || '  
-  
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(steps) AS j) || '
+
 ' ||
-    '**Expected Results:**  
-  
+    '**Expected Results:**
+
 ' ||
-    (
-      SELECT group_concat(
-               (CAST(j.key AS INTEGER) + 1) || '. ' ||
-               json_extract(j.value, '$.item[0].paragraph'),
-               char(10)
-             )
-      FROM json_each(expected_results) AS j
-    )
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(expected_results) AS j)
     AS description_md
-FROM v_case_summary
+FROM qf_case_master
 WHERE test_case_id = $testcaseid
 ORDER BY test_case_id;
+```
 
+---
+
+# Visualizations
+
+## Pass/Fail Pie Chart
+
+```sql chart/pie-chart-left.sql { route: { caption: "" } }
+SELECT 'chart' AS component,
+       'pie' AS type,
+       'Test case execution status' AS title,
+       TRUE AS labels,
+       'green' AS color,
+       'red' AS color,
+       'chart-left' AS class;
+
+SELECT 'Passed' AS label,
+       success_percentage AS value
+FROM qf_success_rate;
+
+SELECT 'Failed' AS label,
+       failed_percentage AS value
+FROM qf_success_rate;
+```
+
+## Open Issues Age Chart
+
+```sql chart/chart.sql { route: { caption: "" } }
+SELECT 'chart' AS component,
+       'bar' AS type,
+       'Age-wise Open Issues' AS title,
+       TRUE AS labels,
+       'Date' AS xtitle,
+       'Age' AS ytitle,
+       5 as ystep;
+
+SELECT created_date AS label,
+       total_records AS value
+FROM qf_agewise_opencases;
+```
+
+## Non Assigned Test Cases
+
+```sql non-assigned-test-cases.sql { route: { caption: "Non Assigned Test CAses" } }
+-- @route.description "Provides the List of Non Assigned Test Cases"
+
+SELECT 'table' AS component,
+       "TOTAL TEST CASES" AS markdown,
+       "TOTAL PASSED" AS markdown,
+       "TOTAL FAILED" AS markdown,
+       "TOTAL REOPEN" AS markdown,
+       "TOTAL CLOSED" AS markdown,
+       1 AS search,
+       1 AS sort;
+
+SELECT
+    ${md.link("COUNT(test_case_id)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee"])} AS "TOTAL TEST CASES",
+    ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=passed'"])} AS "TOTAL PASSED",
+    ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=failed'"])} AS "TOTAL FAILED",
+    ${md.link("SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=reopen'"])} AS "TOTAL REOPEN",
+    ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=closed'"])} AS "TOTAL CLOSED"
+FROM qf_case_status
+WHERE latest_assignee IS NULL OR latest_assignee = ''
+GROUP BY latest_assignee;
 
 ```

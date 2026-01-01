@@ -1,8 +1,8 @@
 -- SQLITE ETL SCRIPT — FINAL MODIFIED VERSION (Relying on Evidence Status)
 -- 1. CLEAN AND PARSE THE RAW CONTENT
 ------------------------------------------------------------------------------
-DROP TABLE IF EXISTS t_raw_data;
-CREATE TABLE t_raw_data AS WITH ranked AS (
+DROP TABLE IF EXISTS qf_markdown_master;
+CREATE TABLE qf_markdown_master AS WITH ranked AS (
   SELECT
     ur.uniform_resource_id,
     ur.uri,
@@ -55,8 +55,8 @@ WHERE
   rn = 1;
 -- 2. LOAD doc-classify ROLE→DEPTH MAP
   ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS t_role_depth_map;
-CREATE TABLE t_role_depth_map AS
+DROP TABLE IF EXISTS qf_depth_master;
+CREATE TABLE qf_depth_master AS
 SELECT
   ur.uniform_resource_id,
   JSON_EXTRACT(role_map.value, '$.role') AS role_name,
@@ -86,8 +86,8 @@ WHERE
   ur.frontmatter IS NOT NULL;
 -- 3. JSON TRAVERSAL
   ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS t_all_sections_flat;
-CREATE TABLE t_all_sections_flat AS
+  DROP TABLE IF EXISTS qf_depth;
+CREATE TABLE qf_depth AS
 SELECT
   td.uniform_resource_id,
   td.file_basename,
@@ -95,7 +95,7 @@ SELECT
   CAST(jt_depth.value AS INTEGER) AS depth,
   jt_body.value AS body_json_string
 FROM
-  t_raw_data td,
+  qf_markdown_master td,
   json_tree(td.cleaned_json_text, '$') AS jt_section,
   json_tree(td.cleaned_json_text, '$') AS jt_depth,
   json_tree(td.cleaned_json_text, '$') AS jt_title,
@@ -113,8 +113,8 @@ WHERE
   AND jt_body.value IS NOT NULL;
 -- 4. NORMALIZE + ROLE ATTACH & CODE EXTRACTION (CRITICAL: Robust Delimiter Injection)
   ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS t_all_sections;
-CREATE TABLE t_all_sections AS
+DROP TABLE IF EXISTS qf_role;
+CREATE TABLE qf_role AS
 SELECT
   s.uniform_resource_id,
   s.file_basename,
@@ -187,14 +187,14 @@ SELECT
   END AS code_content,
   rm.role_name
 FROM
-  t_all_sections_flat s
-  LEFT JOIN t_role_depth_map rm ON s.uniform_resource_id = rm.uniform_resource_id
+  qf_depth s
+  LEFT JOIN qf_depth_master rm ON s.uniform_resource_id = rm.uniform_resource_id
   AND s.depth = rm.role_depth;
 -- 5. EVIDENCE HISTORY JSON ARRAY (Aggregates all evidence history)
   ------------------------------------------------------------------------------
   -- Logic for cycle, severity, assignee, and status parsing is retained from previous fix.
-  DROP TABLE IF EXISTS t_evidence_history_json;
-CREATE TABLE t_evidence_history_json AS WITH evidence_positions AS (
+  DROP TABLE IF EXISTS qf_evidence_event;
+CREATE TABLE qf_evidence_event AS WITH evidence_positions AS (
     -- Stage 1A: Calculate extraction positions safely in a separate CTE
     SELECT
       tas.uniform_resource_id,
@@ -229,7 +229,7 @@ CREATE TABLE t_evidence_history_json AS WITH evidence_positions AS (
         ELSE LENGTH(tas.code_content) + 1
       END AS end_of_issue_id_pos
     FROM
-      t_all_sections tas
+      qf_role tas
     WHERE
       tas.role_name = 'evidence'
       AND tas.extracted_id IS NOT NULL
@@ -320,8 +320,8 @@ GROUP BY
   et.test_case_id;
 -- 5.5 LATEST EVIDENCE STATUS (Finds the single latest record for each test case PER FILE)
   ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS t_latest_evidence_status;
-CREATE TABLE t_latest_evidence_status AS WITH evidence_positions AS (
+  DROP TABLE IF EXISTS qf_evidence_status;
+CREATE TABLE qf_evidence_status AS WITH evidence_positions AS (
     SELECT
       tas.uniform_resource_id,
       tas.file_basename,
@@ -363,7 +363,7 @@ CREATE TABLE t_latest_evidence_status AS WITH evidence_positions AS (
         ELSE LENGTH(tas.code_content) + 1
       END AS end_of_status_pos
     FROM
-      t_all_sections tas
+      qf_role tas
     WHERE
       tas.role_name = 'evidence'
       AND tas.extracted_id IS NOT NULL
@@ -451,8 +451,8 @@ WHERE
   rn = 1;
 -- 6. TEST CASE DETAILS (Aggregates case details and latest evidence status)
   ------------------------------------------------------------------------------
-  DROP VIEW IF EXISTS v_test_case_details;
-CREATE VIEW v_test_case_details AS
+  DROP VIEW IF EXISTS qf_case_status;
+CREATE VIEW qf_case_status AS
 SELECT
   s.uniform_resource_id,
   s.file_basename,
@@ -483,21 +483,21 @@ SELECT
     else ''
   end as requirement_ID
 FROM
-  t_all_sections s
-  LEFT JOIN t_latest_evidence_status les ON s.uniform_resource_id = les.uniform_resource_id
+  qf_role s
+  LEFT JOIN qf_evidence_status les ON s.uniform_resource_id = les.uniform_resource_id
   AND s.extracted_id = les.test_case_id
 WHERE
   s.role_name = 'case'
   AND s.extracted_id IS NOT NULL;
-DROP VIEW IF EXISTS v_section_hierarchy_summary;
-CREATE VIEW v_section_hierarchy_summary AS
+DROP VIEW IF EXISTS qf_case_count;
+CREATE VIEW qf_case_count AS
 SELECT
   s.file_basename,
   (
     SELECT
       title
     FROM
-      t_all_sections p
+      qf_role p
     WHERE
       p.uniform_resource_id = s.uniform_resource_id
       AND p.role_name = 'project'
@@ -525,12 +525,12 @@ SELECT
     END
   ) AS test_case_count
 FROM
-  t_all_sections s
+  qf_role s
 GROUP BY
   s.uniform_resource_id,
   s.file_basename;
-DROP VIEW IF EXISTS v_success_percentage;
-CREATE VIEW v_success_percentage AS
+DROP VIEW IF EXISTS qf_success_rate;
+CREATE VIEW qf_success_rate AS
 SELECT
   COUNT(
     CASE
@@ -562,20 +562,20 @@ SELECT
     ) / COUNT(*)
   ) || '%' AS failed_percentage
 FROM
-  v_test_case_details;
-DROP VIEW IF EXISTS v_test_assignee;
-CREATE VIEW v_test_assignee as
+  qf_case_status;
+DROP VIEW IF EXISTS qf_assignee_master;
+CREATE VIEW qf_assignee_master as
 select
   'ALL' as assignee
 union all
 select
   distinct latest_assignee as assignee
 from
-  v_test_case_details;
+  qf_case_status;
 -- 7. OPEN ISSUES AGE TRACKING
   ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS t_issues;
-CREATE TABLE t_issues AS WITH issue_code_blocks AS (
+  DROP TABLE IF EXISTS qf_issue;
+CREATE TABLE qf_issue AS WITH issue_code_blocks AS (
     --------------------------------------------------------------------------
     -- 1. Extract issue code blocks and NORMALIZE YAML (one key per line)
     --------------------------------------------------------------------------
@@ -607,7 +607,7 @@ CREATE TABLE t_issues AS WITH issue_code_blocks AS (
         CHAR(10) || 'role:'
       ) AS issue_yaml_code
     FROM
-      t_raw_data td,
+      qf_markdown_master td,
       JSON_TREE(td.cleaned_json_text, '$') AS code_node
     WHERE
       code_node.key = 'code_block'
@@ -716,8 +716,8 @@ FROM
 WHERE
   issue_id IS NOT NULL
   AND test_case_id IS NOT NULL;
-DROP VIEW IF EXISTS v_open_issues_age;
-CREATE VIEW v_open_issues_age AS
+DROP VIEW IF EXISTS qf_open_issue_age;
+CREATE VIEW qf_open_issue_age AS
 SELECT
   iss.issue_id,
   iss.created_date,
@@ -730,8 +730,8 @@ SELECT
   ) AS total_days,
   tcd.test_case_title AS test_case_description
 FROM
-  t_issues iss
-  LEFT JOIN v_test_case_details tcd ON iss.test_case_id = tcd.test_case_id
+  qf_issue iss
+  LEFT JOIN qf_case_status tcd ON iss.test_case_id = tcd.test_case_id
 WHERE
   iss.status = 'open'
   AND iss.created_date IS NOT NULL
@@ -740,15 +740,15 @@ ORDER BY
 
 
   --history--
-DROP VIEW IF EXISTS v_evidence_history_complete;
+DROP VIEW IF EXISTS qf_evidence_history;
  
-CREATE VIEW v_evidence_history_complete AS
+CREATE VIEW qf_evidence_history AS
  
 WITH raw_transform_data AS (
     SELECT distinct
         ur.uniform_resource_id,
         ur.uri,
-        ur.last_modified_at,
+        ur.created_at,
         urt.uniform_resource_transform_id,
         urpe.file_basename,
  
@@ -800,7 +800,7 @@ sections_parsed AS (
         rtd.uniform_resource_id,
         rtd.uniform_resource_transform_id,
         rtd.file_basename,
-        rtd.last_modified_at,
+        rtd.created_at AS last_modified_at,
         jt_title.value AS title,
         CAST(jt_depth.value AS INTEGER) AS depth,
         jt_body.value AS body_json_string
@@ -1016,51 +1016,26 @@ LEFT JOIN case_titles ct
     ON ct.uniform_resource_id = eep.uniform_resource_id
    AND ct.test_case_id = eep.test_case_id
  
-ORDER BY eep.test_case_id, eep.last_modified_at DESC, latest_cycle DESC;
+ORDER BY eep.test_case_id, eep.last_modified_at DESC,
+latest_cycle DESC;
+ 
+ 
 
 
-DROP VIEW IF EXISTS v_latest_ingested_cycle_summary;
- 
-CREATE VIEW v_latest_ingested_cycle_summary AS
-WITH last_changed_cycle AS (
-    SELECT
-        latest_cycle
-    FROM v_evidence_history_complete
-    WHERE latest_cycle IS NOT NULL
-      AND latest_cycle != ''
-    ORDER BY ingestion_timestamp DESC
-    LIMIT 1
-)
-SELECT
-    tcd.latest_cycle,
- 
-    SUM(tcd.test_case_status = 'passed')  AS passed_count,
-    SUM(tcd.test_case_status = 'failed')  AS failed_count,
-    SUM(tcd.test_case_status = 'reopen')  AS reopen_count,
-    SUM(tcd.test_case_status = 'closed')  AS closed_count,
- 
-    COUNT(tcd.test_case_id) AS test_count
- 
-FROM v_test_case_details tcd
-JOIN last_changed_cycle lcc
-  ON tcd.latest_cycle = lcc.latest_cycle
- 
-GROUP BY tcd.latest_cycle;
 
+--CASE DEPTH WISE ANALYSIS
 
---RAHUL WORKS
-
-DROP VIEW IF EXISTS v_sections_case_summary_depth;
-CREATE VIEW v_sections_case_summary_depth AS
+DROP VIEW IF EXISTS qf_case_depth;
+CREATE VIEW qf_case_depth AS
 SELECT DISTINCT
     file_basename,
     role_name   AS rolename,
     depth
-FROM t_all_sections
+FROM qf_role
 WHERE role_name = 'case'; 
 
-DROP VIEW IF EXISTS v_case_details;
-CREATE VIEW v_case_details AS
+DROP VIEW IF EXISTS qf_case_overview;
+CREATE VIEW qf_case_overview AS
 SELECT
     v.file_basename,
     v.rolename,
@@ -1069,24 +1044,23 @@ SELECT
     s.body_json_string,
     s.extracted_id  AS code,
     s.code_content  AS content
-FROM v_sections_case_summary_depth v
-JOIN t_all_sections s
+FROM qf_case_depth v
+JOIN qf_role s
       ON  s.file_basename = v.file_basename
       AND s.depth        = v.depth
       AND s.role_name    = v.rolename; 
 
 
 -- Drop old view if you’re iterating
-DROP VIEW IF EXISTS v_case_summary;
+DROP VIEW IF EXISTS qf_case_master;
 
-CREATE VIEW v_case_summary AS
+CREATE VIEW qf_case_master AS
 SELECT
     file_basename,
     extracted_id  AS code,
     code_content  AS content,
     depth,
 
-    -- Test Case ID: "@id TC-BCTM-0037"  -> "TC-BCTM-0037"
     REPLACE(
         json_extract(body_json_string, '$[0].paragraph'),
         '@id ',
@@ -1118,7 +1092,372 @@ SELECT
         'depth',            depth
     ) AS case_summary_json
 
-FROM t_all_sections
+FROM qf_role
 WHERE role_name = 'case';
 
       
+DROP VIEW IF EXISTS qf_agewise_opencases;
+CREATE VIEW qf_agewise_opencases AS
+select created_date,count(created_date) as total_records  
+ from qf_open_issue_age
+group by created_date;
+
+--latest batch changes--
+
+DROP VIEW IF EXISTS qf_evidence_recent;
+CREATE VIEW qf_evidence_recent AS
+WITH latest_ingestion AS (
+    SELECT MAX(ingestion_timestamp) AS max_timestamp
+    FROM qf_evidence_history
+),
+latest_batch AS (
+    SELECT DISTINCT test_case_id
+    FROM qf_evidence_history
+    WHERE ingestion_timestamp = (SELECT max_timestamp FROM latest_ingestion)
+),
+current_and_previous AS (
+    SELECT 
+        h.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY h.test_case_id 
+            ORDER BY h.ingestion_timestamp DESC
+        ) AS row_num
+    FROM qf_evidence_history h
+    INNER JOIN latest_batch lb ON h.test_case_id = lb.test_case_id
+)
+SELECT 
+    curr.test_case_id,
+    curr.test_case_title,
+    curr.file_basename,
+    curr.ingestion_timestamp,
+    curr.latest_cycle,
+    curr.cycle_date,
+    curr.status,
+    curr.severity,
+    curr.assignee,
+    curr.issue_id,
+    prev.latest_cycle AS prev_cycle,
+    prev.status AS prev_status,
+    prev.severity AS prev_severity
+FROM current_and_previous curr
+LEFT JOIN current_and_previous prev 
+    ON curr.test_case_id = prev.test_case_id 
+    AND prev.row_num = 2
+WHERE curr.row_num = 1
+AND (
+    COALESCE(curr.latest_cycle, '') != COALESCE(prev.latest_cycle, '') OR
+    COALESCE(curr.cycle_date, '') != COALESCE(prev.cycle_date, '') OR
+    COALESCE(curr.status, '') != COALESCE(prev.status, '') OR
+    COALESCE(curr.severity, '') != COALESCE(prev.severity, '') OR
+    COALESCE(curr.assignee, '') != COALESCE(prev.assignee, '') OR
+    COALESCE(curr.issue_id, '') != COALESCE(prev.issue_id, '') OR
+    prev.test_case_id IS NULL
+);
+
+DROP VIEW IF EXISTS qf_evidence_history_all;
+CREATE VIEW qf_evidence_history_all AS
+  WITH raw_transform_data AS (
+    SELECT distinct
+        ur.uniform_resource_id,
+        ur.uri,
+        ur.created_at,
+        urt.uniform_resource_transform_id,
+        urpe.file_basename,
+ 
+        REPLACE(
+            REPLACE(
+                REPLACE(
+                    REPLACE(
+                        SUBSTR(CAST(urt.content AS TEXT), 2, LENGTH(CAST(urt.content AS TEXT)) - 2),
+                        CHAR(10), ''
+                    ),
+                    CHAR(13), ''
+                ),
+                '\x22', '"'
+            ),
+            '\n', ''
+        ) AS cleaned_json_text
+    FROM uniform_resource_transform urt
+    JOIN uniform_resource ur
+        ON ur.uniform_resource_id = urt.uniform_resource_id
+    JOIN ur_ingest_session_fs_path_entry urpe
+        ON ur.uniform_resource_id = urpe.uniform_resource_id
+    -- ✅ REMOVED: WHERE ur.last_modified_at IS NOT NULL
+    -- This now includes ALL files, not just changed ones
+),
+ 
+-- ✅ NEW: Get all ingestion timestamps
+all_ingestion_timestamps AS (
+    SELECT DISTINCT created_at AS ingestion_timestamp
+    FROM uniform_resource
+    WHERE created_at IS NOT NULL
+),
+ 
+role_depth_mapping AS (
+    SELECT
+        ur.uniform_resource_id,
+        JSON_EXTRACT(role_map.value, '$.role') AS role_name,
+        CAST(
+            SUBSTR(
+                JSON_EXTRACT(role_map.value, '$.select'),
+                INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7,
+                INSTR(
+                    SUBSTR(
+                        JSON_EXTRACT(role_map.value, '$.select'),
+                        INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7
+                    ),
+                    '"'
+                ) - 1
+            ) AS INTEGER
+        ) AS role_depth
+    FROM uniform_resource ur,
+         JSON_EACH(ur.frontmatter, '$.doc-classify') AS role_map
+    WHERE ur.frontmatter IS NOT NULL
+),
+ 
+sections_parsed AS (
+    SELECT
+        rtd.uniform_resource_id,
+        rtd.uniform_resource_transform_id,
+        rtd.file_basename,
+        rtd.created_at AS last_modified_at,
+        jt_title.value AS title,
+        CAST(jt_depth.value AS INTEGER) AS depth,
+        jt_body.value AS body_json_string
+    FROM raw_transform_data rtd,
+         json_tree(rtd.cleaned_json_text, '$') AS jt_section,
+         json_tree(rtd.cleaned_json_text, '$') AS jt_depth,
+         json_tree(rtd.cleaned_json_text, '$') AS jt_title,
+         json_tree(rtd.cleaned_json_text, '$') AS jt_body
+    WHERE jt_section.key = 'section'
+      AND jt_depth.parent = jt_section.id AND jt_depth.key = 'depth'
+      AND jt_title.parent = jt_section.id AND jt_title.key = 'title'
+      AND jt_body.parent = jt_section.id AND jt_body.key = 'body'
+),
+ 
+sections_with_roles AS (
+    SELECT
+        sp.uniform_resource_id,
+        sp.uniform_resource_transform_id,
+        sp.file_basename,
+        sp.last_modified_at,
+        sp.depth,
+        sp.title,
+        sp.body_json_string,
+ 
+        TRIM(
+            SUBSTR(
+                sp.body_json_string,
+                INSTR(sp.body_json_string, '@id') + 4,
+                INSTR(
+                    SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '@id') + 4),
+                    '"'
+                ) - 1
+            )
+        ) AS extracted_id,
+ 
+       CASE
+        WHEN INSTR(sp.body_json_string, '"code":"') > 0 THEN
+            REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(
+                                    REPLACE(
+                                        REPLACE(
+                                            REPLACE(
+                                                REPLACE(
+                                                    SUBSTR(
+                                                        sp.body_json_string,
+                                                        INSTR(sp.body_json_string, '"code":"') + 8,
+                                                        INSTR(sp.body_json_string, '","type":')
+                                                        - (INSTR(sp.body_json_string, '"code":"') + 8)
+                                                    ),
+                                                    'Tags:', CHAR(10) || 'Tags:'
+                                                ),
+                                                'Scenario Type:', CHAR(10) || 'Scenario Type:'
+                                            ),
+                                            'Priority:', CHAR(10) || 'Priority:'
+                                        ),
+                                        'requirementID:', CHAR(10) || 'requirementID:'
+                                    ),
+                                    'cycle-date:', CHAR(10) || 'cycle-date:'
+                                ),
+                                'cycle:', CHAR(10) || 'cycle:'
+                            ),
+                            'severity:', CHAR(10) || 'severity:'
+                        ),
+                        'assignee:', CHAR(10) || 'assignee:'
+                    ),
+                    'status:', CHAR(10) || 'status:'
+                ),
+                'issue_id:', CHAR(10) || 'issue_id:'
+            )
+        ELSE NULL
+    END AS code_content,
+ 
+        rdm.role_name
+    FROM sections_parsed sp
+    LEFT JOIN role_depth_mapping rdm
+        ON sp.uniform_resource_id = rdm.uniform_resource_id
+       AND sp.depth = rdm.role_depth
+),
+ 
+case_titles AS (
+    SELECT
+        uniform_resource_id,
+        extracted_id AS test_case_id,
+        title AS test_case_title
+    FROM sections_with_roles
+    WHERE role_name = 'case'
+      AND extracted_id IS NOT NULL
+),
+ 
+evidence_extraction_positions AS (
+    SELECT
+        swr.uniform_resource_id,
+        swr.uniform_resource_transform_id,
+        swr.file_basename,
+        swr.last_modified_at,
+        swr.extracted_id AS test_case_id,
+        swr.code_content,
+ 
+        CASE
+             WHEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'severity:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'assignee:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'status:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'requirementID:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'requirementID:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'Priority:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Priority:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'Tags:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Tags:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:')
+            ELSE LENGTH(swr.code_content) + 1
+        END AS end_of_cycle_pos,
+ 
+        CASE
+            WHEN INSTR(swr.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'assignee:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'status:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
+            ELSE LENGTH(swr.code_content) + 1
+        END AS end_of_severity_pos,
+ 
+        CASE
+            WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'status:')
+            WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
+            ELSE LENGTH(swr.code_content) + 1
+        END AS end_of_assignee_pos,
+ 
+        CASE
+            WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
+            ELSE LENGTH(swr.code_content) + 1
+        END AS end_of_status_pos,
+ 
+        CASE
+            WHEN INSTR(swr.code_content, CHAR(10) || 'cycle:') > INSTR(swr.code_content, 'cycle-date:')
+            THEN INSTR(swr.code_content, CHAR(10) || 'cycle:')
+         
+            WHEN INSTR(swr.code_content, CHAR(10) || 'severity:') > INSTR(swr.code_content, 'cycle-date:')
+            THEN INSTR(swr.code_content, CHAR(10) || 'severity:')
+         
+            WHEN INSTR(swr.code_content, CHAR(10) || 'assignee:') > INSTR(swr.code_content, 'cycle-date:')
+            THEN INSTR(swr.code_content, CHAR(10) || 'assignee:')
+         
+            WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > INSTR(swr.code_content, 'cycle-date:')
+            THEN INSTR(swr.code_content, CHAR(10) || 'status:')
+         
+            WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > INSTR(swr.code_content, 'cycle-date:')
+            THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
+         
+            ELSE LENGTH(swr.code_content) + 1
+        END AS end_of_cycle_date_pos
+ 
+    FROM sections_with_roles swr
+    WHERE swr.role_name = 'evidence'
+      AND swr.extracted_id IS NOT NULL
+      AND swr.code_content IS NOT NULL
+),
+ 
+-- ✅ NEW: Get the most recent version of each test case at or before each ingestion
+evidence_with_full_history AS (
+    SELECT
+        ait.ingestion_timestamp,
+        eep.uniform_resource_id,
+        eep.uniform_resource_transform_id,
+        eep.file_basename,
+        eep.last_modified_at AS file_last_modified,
+        eep.test_case_id,
+        eep.code_content,
+        eep.end_of_cycle_pos,
+        eep.end_of_severity_pos,
+        eep.end_of_assignee_pos,
+        eep.end_of_status_pos,
+        eep.end_of_cycle_date_pos,
+        ROW_NUMBER() OVER (
+            PARTITION BY ait.ingestion_timestamp, eep.test_case_id
+            ORDER BY eep.last_modified_at DESC
+        ) AS rn
+    FROM all_ingestion_timestamps ait
+    CROSS JOIN evidence_extraction_positions eep
+    WHERE eep.last_modified_at <= ait.ingestion_timestamp
+)
+ 
+SELECT
+    ewfh.ingestion_timestamp,
+    ewfh.uniform_resource_id,
+    ewfh.uniform_resource_transform_id,
+    ewfh.file_basename,
+    ewfh.file_last_modified,
+    ewfh.test_case_id,
+    ct.test_case_title,
+ 
+    CASE
+        WHEN TRIM(SUBSTR(
+            ewfh.code_content,
+            INSTR(ewfh.code_content, 'cycle:') + 6,
+            ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6)
+        )) LIKE '%:%'
+        THEN NULL
+        ELSE TRIM(SUBSTR(
+            ewfh.code_content,
+            INSTR(ewfh.code_content, 'cycle:') + 6,
+            ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6)
+        ))
+    END AS latest_cycle,
+ 
+    TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'severity:') + 9,
+         ewfh.end_of_severity_pos - (INSTR(ewfh.code_content, 'severity:') + 9))) AS severity,
+ 
+    TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'assignee:') + 9,
+         ewfh.end_of_assignee_pos - (INSTR(ewfh.code_content, 'assignee:') + 9))) AS assignee,
+ 
+    TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'status:') + 7,
+         ewfh.end_of_status_pos - (INSTR(ewfh.code_content, 'status:') + 7))) AS status,
+ 
+    CASE
+        WHEN INSTR(ewfh.code_content, 'issue_id:') > 0
+        THEN TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'issue_id:') + 9))
+        ELSE NULL
+    END AS issue_id,
+   
+    CASE
+        WHEN INSTR(ewfh.code_content, 'cycle-date:') > 0
+        THEN TRIM(
+            SUBSTR(
+                ewfh.code_content,
+                INSTR(ewfh.code_content, 'cycle-date:') + 11,
+                ewfh.end_of_cycle_date_pos
+                  - (INSTR(ewfh.code_content, 'cycle-date:') + 11)
+            )
+        )
+        ELSE NULL
+    END AS cycle_date
+ 
+FROM evidence_with_full_history ewfh
+LEFT JOIN case_titles ct
+    ON ct.uniform_resource_id = ewfh.uniform_resource_id
+   AND ct.test_case_id = ewfh.test_case_id
+WHERE ewfh.rn = 1  -- Only the most recent version at each ingestion point
+ 
+ORDER BY ewfh.ingestion_timestamp DESC, ewfh.test_case_id;

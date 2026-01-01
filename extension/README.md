@@ -41,7 +41,10 @@ To install **Run Spry**, you can download and install the pre-packaged extension
    * Go to the Extensions menu and select **Install Extension**.
    * Browse and select the `.vsix` file you downloaded.
    * Complete the Installation process.
-
+  
+   Install the extension in VS Code:
+   * Open **Visual Studio Code**.
+   * Install it with `code --install-extension ./run-spry-markdown-0.0.1.vsix`
 
 ### Updating Evidence Value or Adding a New Key-Value Pair in Test Cases
 
