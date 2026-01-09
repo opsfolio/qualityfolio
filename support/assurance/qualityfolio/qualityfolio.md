@@ -1,10 +1,11 @@
 ---
 sqlpage-conf:
-  database_url: "${DATABASE_URL}"
-  web_root: "${WEB_ROOT}"
-  allow_exec: ${ALLOW_EXEC}
-  port: "${PORT}"
+  database_url: "sqlite://resource-surveillance.sqlite.db?mode=rwc"
+  web_root: "./dev-src.auto"
+  allow_exec: true
+  port: "9227"
 ---
+ 
 
 ```code DEFAULTS
 sql * --interpolate --injectable
@@ -106,7 +107,8 @@ SELECT 'shell' AS component,
        true AS fixed_top_menu,
        'index.sql' AS link,
        '/style.css' as css;
-   
+
+
 SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
 SET page_title  = json_extract($resource_json, '$.route.caption');
 SET page_description  = json_extract($resource_json, '$.route.description');
@@ -115,7 +117,6 @@ SET page_path = json_extract($resource_json, '$.route.path');
 ${ctx.breadcrumbs()}
 
 ```
-
 ---
 ```contribute sqlpage_files --base .
 ./style.css .
@@ -126,7 +127,11 @@ ${ctx.breadcrumbs()}
 
 ```sql index.sql { route: { } }
 
+
 -- Project Filter
+
+
+
 select
     'divider'            as component,
     'QA Progress & Performance Dashboard' as contents,
@@ -305,10 +310,52 @@ WHERE (latest_assignee IS NULL OR latest_assignee = '')
   AND project_name = :project_name;
 
   -- Automation percentage
- 
+ SELECT
+    '## Automation Coverage' AS description_md,
+    'yellow-lt' AS background_color,
+    '# ' || COALESCE(
+        (
+            SELECT test_case_percentage
+            FROM qf_case_execution_status_percentage
+            WHERE project_name = :project_name
+              AND UPPER(execution_type) = 'AUTOMATION'
+        ),
+        0
+    ) || '%' AS description_md,
+     'automation.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link,
+    'orange' AS color,
+    'brand-ansible' AS icon;
 
 
 
+ SELECT
+    '## Manual Coverage' AS description_md,
+    'green-lt' AS background_color,
+    '# ' || COALESCE(
+        (
+            SELECT test_case_percentage
+            FROM qf_case_execution_status_percentage
+            WHERE project_name = :project_name
+              AND UPPER(execution_type) = 'MANUAL'
+        ),
+        0
+    ) || '%' AS description_md,
+        'manual.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link,
+    'orange' AS color,
+    'brand-ansible' AS icon;
+
+-- Test suite count
+SELECT '## Test Suite Count' AS description_md,
+         '# ' || COALESCE(COUNT(suiteid), 0) AS description_md,
+       'green-lt' AS background_color,
+       'file' AS icon,      
+       'test-suite-cases.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+FROM qf_role_with_suite
+WHERE 
+  project_name = :project_name;
   
 -- Test Status Visualization
 SELECT 'divider' AS component,
@@ -453,7 +500,7 @@ SELECT 'table' AS component,
 
 SELECT  
   ${md.link("cycle",
-        ["'cycletotaltestcase.sql?cycle='", "cycle"])} AS "CYCLE",  
+        ["'cycletotaltestcase.sql?cycle='", "cycle","'&project_name='",":project_name"])} AS "CYCLE",  
   cycledate as 'CYCLE DATE',
   totalcases as 'TOTAL TEST CASES'
 FROM cycle_data_summary
@@ -488,25 +535,17 @@ SELECT 'table' AS component,
 SELECT
     requirement_ID AS "REQUIREMENT ID",
     ${md.link("COUNT(test_case_id)",
-        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL TEST CASES",
+        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&project_name='", ":project_name"])} AS "TOTAL TEST CASES",
     ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
-        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=passed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL PASSED",
+        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=passed&project_name='", ":project_name"])} AS "TOTAL PASSED",
     ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
-        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=failed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL FAILED",
+        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=failed&project_name='", ":project_name"])} AS "TOTAL FAILED",
     ${md.link("SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END)",
-        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=reopen&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL RE-OPEN",
+        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=reopen&project_name='", ":project_name"])} AS "TOTAL RE-OPEN",
     ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
-        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=closed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL CLOSED"
+        ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=closed&project_name='", ":project_name"])} AS "TOTAL CLOSED"
 FROM qf_case_status
-WHERE project_name = CASE 
-      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1 
-      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))
-      ELSE :project_name
-  END
-  AND (
-      (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
-      OR (:project_name IS NOT NULL AND :project_name <> '')
-  )
+WHERE project_name = :project_name
 GROUP BY requirement_ID
 ${pagination.limit};
 ${pagination.navigation};
@@ -532,15 +571,7 @@ SELECT issue_id AS "ISSUE ID",
        created_date AS "CREATED DATE",
        total_days AS "ISSUE AGE IN DAYS"
 FROM qf_open_issue_age
-WHERE project_name = CASE 
-      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1 
-      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))
-      ELSE :project_name
-  END
-  AND (
-      (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
-      OR (:project_name IS NOT NULL AND :project_name <> '')
-  )
+WHERE project_name = :project_name
 ORDER BY test_case_id;
 ```
 
@@ -564,7 +595,9 @@ SELECT 'table' AS component,
        1 AS sort;
 
 SELECT 
-    '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+  ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
     test_case_title AS "Title",
     test_case_status AS "Status",
     latest_cycle AS "Latest Cycle"
@@ -589,7 +622,11 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+
+  ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        latest_cycle AS "Latest Cycle"
 FROM qf_case_status
@@ -612,7 +649,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
@@ -636,7 +676,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
@@ -660,7 +703,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
@@ -684,7 +730,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
@@ -711,7 +760,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
  
-SELECT '[' || tbl1.testcaseid || '](testcasedetails.sql?testcaseid=' || tbl1.testcaseid || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("tbl1.testcaseid ",
+        ["'testcasedetails.sql?testcaseid='", "tbl1.testcaseid",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        tbl2.title  AS "Title",
        tbl1.status AS "Status",
        tbl1.cycle AS "Latest Cycle"
@@ -738,7 +790,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle",
@@ -763,7 +818,10 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT 
+ ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
@@ -902,9 +960,11 @@ SELECT 'Test Case ID: ' || test_case_id AS title,
         char(10))
      FROM json_each(expected_results) AS j)
     AS description_md
-FROM qf_case_master
-WHERE test_case_id = $testcaseid
-ORDER BY test_case_id;
+FROM qf_case_master as qcm
+INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid
+WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name
+
+ORDER BY qcm.test_case_id;
 ```
 
 ---
@@ -966,15 +1026,15 @@ SELECT 'table' AS component,
 
 SELECT
     ${md.link("COUNT(test_case_id)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee"])} AS "TOTAL TEST CASES",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&project_name='", "$project_name"])} AS "TOTAL TEST CASES",
     ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=passed'"])} AS "TOTAL PASSED",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=passed'","'&project_name='", "$project_name"])} AS "TOTAL PASSED",
     ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=failed'"])} AS "TOTAL FAILED",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=failed'","'&project_name='", "$project_name"])} AS "TOTAL FAILED",
     ${md.link("SUM(CASE WHEN test_case_status = 'reopen' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=reopen'"])} AS "TOTAL REOPEN",
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=reopen'","'&project_name='", "$project_name"])} AS "TOTAL REOPEN",
     ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=closed'"])} AS "TOTAL CLOSED"
+        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=closed'","'&project_name='", "$project_name"])} AS "TOTAL CLOSED"
 FROM qf_case_status
 WHERE latest_assignee IS NULL OR latest_assignee = ''
 GROUP BY latest_assignee;
@@ -994,7 +1054,9 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
  
-SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+SELECT  ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
        test_case_title AS "Title",
        latest_cycle AS "Latest Cycle"
 FROM qf_case_status
@@ -1010,7 +1072,7 @@ ORDER BY test_case_id;
 ${paginate("qf_case_status")}
 
 SELECT 'table' AS component,
-       "TOTAL PENDING/EMPTY" AS markdown,
+       "TOTAL PENDING" AS markdown,
        1 AS sort,
        1 AS search;
 
@@ -1018,7 +1080,7 @@ SELECT
   latest_cycle,
   
   ${md.link("COUNT(test_case_id)",
-      ["'todo-test-cases.sql?project_name='","project_name"])} AS "TOTAL PENDING/EMPTY"
+      ["'todo-test-cases.sql?project_name='","project_name"])} AS "TOTAL PENDING"
    
 FROM qf_case_status 
 WHERE (test_case_status = 'pending' OR test_case_status = '' OR test_case_status IS NULL)
@@ -1026,6 +1088,250 @@ WHERE (test_case_status = 'pending' OR test_case_status = '' OR test_case_status
 
 GROUP BY latest_cycle
 
+```
+```sql test-suite-cases.sql { route: { caption: "Test suite" } }
+-- @route.description "Test suite is a collection of test cases designed to verify the functionality, performance, and security of a software application. It ensures that the application meets the specified requirements by executing predefined tests across various scenarios, identifying defects, and validating that the system works as intended.."
+SELECT 'text' AS component,
+$page_description AS contents_md;
 
+SELECT 'table' AS component,
+       'SUITE NAME' AS markdown,
+       'Title' AS title,
+       1 AS search,
+       1 AS sort;
+SELECT
+  ${md.link(
+      "suiteid",
+      [
+        "'suitecasedetails.sql?project_name='",
+        "project_name",
+        "'&id='",
+        "rownum","'&uniform_resource_id='","uniform_resource_id"
+      ]
+  )} AS "SUITE NAME",
+  title AS "Title"
+FROM qf_role_with_suite
+WHERE project_name = $project_name
+ORDER BY suiteid;
 
 ```
+```sql suitecasedetails.sql { route: { caption: "Test suite" } }
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+
+SELECT 'table' AS component,
+     
+       'Test Case ID' AS markdown, 
+        'Test Cases' AS title,   
+       1 AS search,
+       1 AS sort;
+SELECT
+  ${md.link(
+      "tbl.testcaseid",
+      [
+        "'testcasedetails.sql?testcaseid='",
+        "tbl.testcaseid",
+        "'&project_name='",
+        "$project_name"
+      ]
+  )} AS "Test Case ID",
+  tbl.title
+FROM qf_role_with_case tbl
+WHERE tbl.uniform_resource_id = $uniform_resource_id
+  AND tbl.project_name = $project_name
+  AND tbl.rownum > CAST($id AS NUMERIC)  
+  AND (
+        CASE
+          WHEN (
+            SELECT MIN(rownum)
+            FROM qf_role_with_suite
+            WHERE uniform_resource_id = $uniform_resource_id
+              AND rownum > CAST($id AS NUMERIC) AND tbl.project_name = $project_name
+          ) IS NOT NULL
+          THEN tbl.rownum < (
+            SELECT MIN(rownum)
+            FROM qf_role_with_suite
+            WHERE uniform_resource_id = $uniform_resource_id
+              AND rownum > CAST($id AS NUMERIC) AND tbl.project_name = $project_name
+          )
+          ELSE 1 = 1
+        END
+      );
+
+   
+```
+```sql automation.sql { route: { caption: "Automation Test Cases" } }
+-- @route.description "Displays all automated test cases with their test case ID, title, current status, and latest cycle to help monitor issues "
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Automation Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_id || ')' AS "Test Case ID",
+       title AS "Title",
+       
+FROM qf_role_with_case
+WHERE execution_type = 'failed'
+AND project_name = $project_name
+ORDER BY test_case_id;
+```
+
+
+```sql automation.sql { route: { caption: "Automation Test Cases" } }
+-- @route.description "An overview of all test cases under type automation execution showing the test case ID, title, current status, and the latest execution cycle, allowing quick review and tracking of test case progress."
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT 
+
+     ${md.link("testcaseid",
+        ["'automationtestcasedetails.sql?testcaseid='", "testcaseid",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
+    qcs.test_case_title AS "Title",
+    qcs.test_case_status AS "Status",
+    qcs.latest_cycle AS "Latest Cycle"
+FROM qf_role_with_case as qrc
+INNER JOIN qf_case_status as qcs ON qrc.testcaseid=qcs.test_case_id
+AND qcs.project_name=qrc.project_name
+WHERE qrc.project_name = $project_name AND UPPER(execution_type)='AUTOMATION'
+ORDER BY testcaseid;
+```
+```sql automationtestcasedetails.sql { route: { caption: "Automation Test Case Details" } }
+-- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'card' AS component,
+       'Test Cases Details' AS title,
+       1 AS columns;
+
+SELECT 'Test Case ID: ' ||    qcm.test_case_id AS title,
+    '**Description:** ' || description || '
+
+' ||
+    '**Preconditions:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(preconditions) AS j) || '
+
+' ||
+    '**Steps:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(steps) AS j) || '
+
+' ||
+    '**Expected Results:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(expected_results) AS j)
+    AS description_md
+FROM qf_case_master as qcm
+INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid
+WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name
+AND UPPER(qwc.execution_type)='AUTOMATION'
+ORDER BY test_case_id;
+```
+
+
+```sql manual.sql { route: { caption: "Manual Test Cases" } }
+-- @route.description "An overview of all test cases under type manual execution showing the test case ID, title, current status, and the latest execution cycle, allowing quick review and tracking of test case progress."
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT 
+
+     ${md.link("testcaseid",
+        ["'manaultestcasedetails.sql?testcaseid='", "testcaseid",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
+    qcs.test_case_title AS "Title",
+    qcs.test_case_status AS "Status",
+    qcs.latest_cycle AS "Latest Cycle"
+FROM qf_role_with_case as qrc
+INNER JOIN qf_case_status as qcs ON qrc.testcaseid=qcs.test_case_id
+AND qcs.project_name=qrc.project_name
+WHERE qrc.project_name = $project_name AND UPPER(execution_type)='MANUAL'
+ORDER BY testcaseid;
+```
+```sql manaultestcasedetails.sql { route: { caption: "Manual Test Case Details" } }
+-- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'card' AS component,
+       'Test Cases Details' AS title,
+       1 AS columns;
+
+SELECT 'Test Case ID: ' ||    qcm.test_case_id AS title,
+    '**Description:** ' || description || '
+
+' ||
+    '**Preconditions:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(preconditions) AS j) || '
+
+' ||
+    '**Steps:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(steps) AS j) || '
+
+' ||
+    '**Expected Results:**
+
+' ||
+    (SELECT group_concat(
+        (CAST(j.key AS INTEGER) + 1) || '. ' ||
+        json_extract(j.value, '$.item[0].paragraph'),
+        char(10))
+     FROM json_each(expected_results) AS j)
+    AS description_md
+FROM qf_case_master as qcm
+INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid
+WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name
+AND UPPER(qwc.execution_type)='MANUAL'
+ORDER BY test_case_id;
+```
+

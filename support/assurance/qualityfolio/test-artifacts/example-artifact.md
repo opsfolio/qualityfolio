@@ -47,6 +47,7 @@ The OWASP GLUE application testing project focuses on validating the reliability
   priority: High
   tags: ["Login", "Positive", "Authentication"]
   scenario-type: Happy Path
+  Execution Type: Automation
 ```
 
 **Description**
@@ -101,6 +102,7 @@ Verify that a user can successfully log in using a registered email and the corr
   priority: High
   tags: ["Login", "Network Timeout", "Negative", "Resilience"]
   scenario-type: Happy Path
+  Execution Type: Manual
 ```
 
 **Description**

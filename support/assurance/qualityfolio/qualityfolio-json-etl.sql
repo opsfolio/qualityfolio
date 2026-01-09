@@ -116,6 +116,7 @@ WHERE
   DROP TABLE IF EXISTS qf_role;
 CREATE TABLE qf_role AS
 SELECT
+ROW_NUMBER() OVER (ORDER BY s.uniform_resource_id) AS rownum ,
   s.uniform_resource_id,
   s.file_basename,
   s.depth,
@@ -1581,7 +1582,8 @@ WHERE
 
 DROP VIEW IF EXISTS qf_role_with_project;
 CREATE VIEW qf_role_with_project AS
-  select  
+  select 
+   tbl.rownum, 
 tbl.extracted_id as project_id,
 tbl.depth,
 tbl.file_basename,
@@ -1603,6 +1605,7 @@ where role_name='project';
 DROP VIEW IF EXISTS qf_role_with_evidence;
 CREATE VIEW qf_role_with_evidence AS
 select
+ tbl.rownum,
   tbl.extracted_id as testcaseid,
   tbl.depth,
   tbl.file_basename,
@@ -1776,6 +1779,7 @@ group by
 DROP VIEW IF EXISTS qf_role_with_case;
 CREATE VIEW qf_role_with_case AS
 select
+ tbl.rownum,
   tbl.extracted_id as testcaseid,
   tbl.depth,
   tbl.file_basename,
@@ -1907,3 +1911,122 @@ select sum(T.totalcount) as totalcount,
             where status in ('failed','reopen')
             group by project_name  )T
             group by T.project_name;
+
+
+DROP VIEW IF EXISTS qf_case_execution_status_percentage;
+CREATE VIEW qf_case_execution_status_percentage AS
+    with tblproject_testcases as(select project_name ,count(*) as test_case_total_count
+from qf_role_with_case
+-- where (upper(execution_type)='AUTOMATION' or upper(execution_type)='MANUAL')
+group by project_name)
+select  
+ tbl1.project_name, tbl1.execution_type,tbl2.test_case_total_count,count(tbl1.project_name) as test_case_count,
+ round((round(count(tbl1.project_name),2) /round(tbl2.test_case_total_count,2)) * 100,2) as test_case_percentage
+from   qf_role_with_case tbl1
+inner join tblproject_testcases tbl2
+on tbl1.project_name=tbl2.project_name
+where (upper(execution_type)='AUTOMATION' or upper(execution_type)='MANUAL')
+group by tbl1.project_name,tbl1.execution_type;
+
+DROP VIEW IF EXISTS qf_role_with_suite;
+CREATE VIEW qf_role_with_suite AS
+select
+ tbl.rownum,
+  tbl.extracted_id as suiteid,
+  tbl.depth,
+  tbl.file_basename,
+  tbl.uniform_resource_id,
+  tbl.role_name,
+  tbl.title,
+  trim(
+    replace(
+      SUBSTR(
+        tbl.code_content,
+        INSTR(tbl.code_content, 'requirementID:') + 15,
+        case
+          when INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'requirementID:') + 15,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          ) = 0 then length(tbl.code_content)
+          else INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'requirementID:') + 15,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          )
+        end
+      ),
+      char(10),
+      ''
+    )
+  ) as requirementID  ,
+  trim(
+    replace(
+      SUBSTR(
+        tbl.code_content,
+        INSTR(tbl.code_content, 'Priority:') + 10,
+        case
+          when INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'Priority:') + 10,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          ) = 0 then length(tbl.code_content)
+          else INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'Priority:') + 10,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          )
+        end
+      ),
+      char(10),
+      ''
+    )
+  ) as priority,
+  trim(
+    replace(
+      SUBSTR(
+        tbl.code_content,
+        INSTR(tbl.code_content, 'Scenario Type:') + 15,
+        case
+          when INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'Scenario Type:') + 15,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          ) = 0 then length(tbl.code_content)
+          else INSTR(
+            substr(
+              tbl.code_content,
+              INSTR(tbl.code_content, 'Scenario Type:') + 15,
+              length(tbl.code_content)
+            ),
+            CHAR(10)
+          )
+        end
+      ),
+      char(10),
+      ''
+    )
+  ) as scenario_type,
+  prj.title as project_name,
+  prj.project_id
+from
+  qf_role tbl
+  inner join qf_role_with_project prj
+  on prj.uniform_resource_id=tbl.uniform_resource_id
+where
+  tbl.role_name = 'suite'  and prj.depth=1 and tbl.depth=3;
