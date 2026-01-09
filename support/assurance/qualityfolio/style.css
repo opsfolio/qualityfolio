@@ -1,0 +1,36 @@
+.project-dropdown {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+     margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.project-dropdown fieldset,
+.project-dropdown form {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.project-dropdown select {
+    width: 100%;
+    height: 42px;
+    font-size: 14px;
+    font-weight: 500;
+
+}
+
+/* Kill orange spacing */
+.page-body > form.project-dropdown {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.form-fieldset .row{
+    justify-content: end !important;
+}
+
