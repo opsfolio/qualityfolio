@@ -21,15 +21,15 @@ jobs:
         env:
           DATABASE_URL: "sqlite://resource-surveillance.sqlite.db?mode=rwc"
           WEB_ROOT: "./dev-src.auto"
-          ALLOW_EXEC: true
+          ALLOW_EXEC: "true"
           PORT: 9227
         run: |
           bash -x support/generate-qualityfolio-db.sh
           
       - name: Archive build artifacts
         run: |
-          cat support/services/qualityfolio/sqlpage/sqlpage.json
-          tar -czvf demo-netspective-hub-qualityfolio.tar.gz support/services/qualityfolio/resource-surveillance.sqlite.db support/services/qualityfolio/dev-src.auto support/services/qualityfolio/sqlpage
+          cat support/assurance/qualityfolio/sqlpage/sqlpage.json
+          tar -czvf demo-netspective-hub-qualityfolio.tar.gz support/assurance/qualityfolio/resource-surveillance.sqlite.db support/assurance/qualityfolio/dev-src.auto support/assurance/qualityfolio/sqlpage
 
       - name: Copy build artifacts to the production server
         run: |
