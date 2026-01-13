@@ -81,7 +81,7 @@ Generate complete test execution reports automatically.
 
 ```bash ingest --descr "Ingest Files"
 #!/usr/bin/env -S bash
-surveilr ingest files -r ./opsfolio && surveilr orchestrate transform-markdown
+surveilr ingest files -r ./test-artifacts && surveilr orchestrate transform-markdown
 ```
 # SQL query
 
