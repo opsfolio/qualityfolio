@@ -419,10 +419,10 @@ SELECT '## Test Plan Count' AS description_md,
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
 FROM qf_role_with_plan
 WHERE 
-  project_name = :project_name;
+  project_name = :project_name HAVING COUNT(planid) > 0;
 
 -- History test cases
-SELECT '## Test cases History' AS description_md,
+SELECT '## Test Cycle History' AS description_md,
        'white' AS background_color,
        'alert-circle' AS icon,
        'blue' AS color,
