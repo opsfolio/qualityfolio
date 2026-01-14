@@ -104,9 +104,8 @@ SELECT 'shell' AS component,
        'https://www.surveilr.com/assets/brand/qf-logo.png' AS image,
        'fluid' AS layout,
        true AS fixed_top_menu,
-       'index.sql' AS link,
-       '{"link":"/index.sql"}' AS menu_item,
-       JSON('{"title":"User: ' || sqlpage.user_info('name') || '","link":"#"}') as menu_item;
+       'index.sql' AS link,      
+       '/opsfolio-integration.js' AS javascript;
         
        
 SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
@@ -118,7 +117,10 @@ ${ctx.breadcrumbs()}
 
 ```
 
+```contribute sqlpage_files --base .
+./opsfolio-integration.js .
 
+```
 ---
 
 # Dashboard Routes
