@@ -104,7 +104,8 @@ SELECT 'shell' AS component,
        'https://www.surveilr.com/assets/brand/qf-logo.png' AS image,
        'fluid' AS layout,
        true AS fixed_top_menu,
-       'index.sql' AS link;      
+       'index.sql' AS link,
+       '/opsfolio-integration.js' AS javascript;    
 
         
        
