@@ -30,7 +30,7 @@
 **Simple rules:**
 
 1. Use headings to _suggest_ structure (none are required)
-2. Use GFM tasks (`- [ ]`, `- [x]`) for steps and expectations
+2. Use GFM tasks (`- [ ]`, `- [ ]`) for steps and expectations
 3. Add metadata with `@key value` annotations or YAML/JSON blocks
 
 **That's it.** The parser handles the rest.
@@ -56,18 +56,24 @@ All documentation is in the [docs/](https://docs.opsfolio.com/qualityfolio/getti
 
 ## 🎓 How It Works
 
-### The Axiom Pattern Philosophy
+### 🔄 The Axiom Pattern Philosophy
 
-Teams start simple and grow complexity over time. **Spry's Axiom pattern** supports all scales equally:
+**Start simple. Scale infinitely.** Teams naturally grow in complexity over time, and **Spry's Axiom pattern** adapts to your needs without forcing you to rewrite anything.
 
-| Project size | Typical content you write                                     | Example mapping (later at query time)                                                                                                                                                           |
-| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Small        | project or plan → case (+ steps) → evidence                   | `{ heading[depth="1"]: "project", heading[depth="2"]: "case", heading[depth="3"]: "evidence" }` or `{ heading[depth="1"]: "plan", heading[depth="2"]: "case", heading[depth="3"]: "evidence" }` |
-| Medium       | project → suite → case (+ steps) → evidence                   | `{ heading[depth="1"]: "project", heading[depth="2"]: "suite", heading[depth="3"]: "case", heading[depth="4"]: "evidence" }`                                                                    |
-| Large        | project → plan → suite → case (+ steps) → evidence            | `{ heading[depth="1"]: "project", heading[depth="2"]: "plan", heading[depth="3"]: "suite", heading[depth="4"]: "case", heading[depth="5"]: "evidence" }`                                        |
-| Complex      | project → strategy → plan → suite → case (+ steps) → evidence | `{ heading[depth="1"]: "project", heading[depth="2"]: "strategy", heading[depth="3"]: "plan", heading[depth="4"]: "suite", heading[depth="5"]: "case", heading[depth="6"]: "evidence" }`        |
+> 💡 **Key Insight**: You write Markdown with headings at any depth (1-6 levels). The parser reads the structure, but _role names_ (like "project", "suite", "case") are only applied **at query time** based on your chosen schema.
 
-> You decide the depth; **Spry's Axiom pattern** will parse headings, but role names are only applied later.
+#### 📊 Scaling Patterns
+
+Choose the complexity level that matches your project's current needs:
+
+| 🏷️ Scale                                                             | 📝 Heading Structure You Write                                                                                      | 🗂️ Query-Time Schema Mapping                                                                                                         |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **🌱 Small** <br/> _Perfect for simple projects or quick test plans_ | `# Project` <br/> `## Test Case` <br/> `### Evidence`                                                               | **3 Levels** <br/> H1 → `project` or `plan` <br/> H2 → `case` <br/> H3 → `evidence`                                                  |
+| **📦 Medium** <br/> _Growing teams with test suites_                 | `# Project` <br/> `## Suite` <br/> `### Test Case` <br/> `#### Evidence`                                            | **4 Levels** <br/> H1 → `project` <br/> H2 → `suite` <br/> H3 → `case` <br/> H4 → `evidence`                                         |
+| **🏢 Large** <br/> _Enterprise projects with multiple plans_         | `# Project` <br/> `## Plan` <br/> `### Suite` <br/> `#### Test Case` <br/> `##### Evidence`                         | **5 Levels** <br/> H1 → `project` <br/> H2 → `plan` <br/> H3 → `suite` <br/> H4 → `case` <br/> H5 → `evidence`                       |
+| **🏗️ Complex** <br/> _Full organizational test strategies_           | `# Project` <br/> `## Strategy` <br/> `### Plan` <br/> `#### Suite` <br/> `##### Test Case` <br/> `###### Evidence` | **6 Levels** <br/> H1 → `project` <br/> H2 → `strategy` <br/> H3 → `plan` <br/> H4 → `suite` <br/> H5 → `case` <br/> H6 → `evidence` |
+
+> ✨ **The Magic**: Start with 3 headings today. Add more levels tomorrow. Your existing Markdown stays valid. No refactoring needed.
 
 ## 📝 Authoring Patterns
 
@@ -108,12 +114,12 @@ Steps
 
 - [ ] Open "Forgot Password"
 - [ ] Submit email
-- [x] Receive reset email
+- [ ] Receive reset email
 - [ ] Set a new password
 
 Expected
 
-- [x] Confirmation screen
+- [ ] Confirmation screen
 - [ ] Login with new password succeeds
 
 ### Evidence
@@ -169,7 +175,7 @@ Context One or two sentences that explain the test suite.
 Steps
 
 - [ ] Enter valid credentials
-- [x] Submit
+- [ ] Submit
 
 Expected
 
@@ -243,16 +249,16 @@ Preconditions
 
 Steps
 
-- [x] Open `/signup`
-- [x] Submit
-- [x] Receive verification email
-- [x] Click verification link
-- [x] Login
+- [ ] Open `/signup`
+- [ ] Submit
+- [ ] Receive verification email
+- [ ] Click verification link
+- [ ] Login
 
 Expected
 
-- [x] User marked verified
-- [x] Login succeeds
+- [ ] User marked verified
+- [ ] Login succeeds
 
 ##### Evidence
 
@@ -308,16 +314,16 @@ Preconditions
 
 Steps
 
-- [x] Open `/signup`
-- [x] Submit
-- [x] Receive verification email
-- [x] Click verification link
-- [x] Login
+- [ ] Open `/signup`
+- [ ] Submit
+- [ ] Receive verification email
+- [ ] Click verification link
+- [ ] Login
 
 Expected
 
-- [x] User marked verified
-- [x] Login succeeds
+- [ ] User marked verified
+- [ ] Login succeeds
 
 ###### Evidence
 
@@ -356,16 +362,16 @@ Use checkboxes to make steps and expected results machine-readable:
 ```md
 Steps
 
-- [x] Navigate to `/login`
-- [x] Enter valid credentials
-- [x] Provide MFA code
-- [x] Redirect to `/home`
+- [ ] Navigate to `/login`
+- [ ] Enter valid credentials
+- [ ] Provide MFA code
+- [ ] Redirect to `/home`
 
 Expected
 
-- [x] Session cookie set
-- [x] CSRF token present
-- [x] Home shows display name
+- [ ] Session cookie set
+- [ ] CSRF token present
+- [ ] Home shows display name
 ```
 
 > Spry's Axiom pattern extracts each item with `checked` state, the text, and precise line numbers.
