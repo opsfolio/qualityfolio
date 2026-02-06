@@ -10,69 +10,69 @@
   <a href="https://qualityfolio.dev/"><img src="https://img.shields.io/badge/Website-06B6D4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Website"></a>
 </p>
 
-[**Qualityfolio**](https://qualityfolio.dev/) is a flexible test authoring framework powered by **Spry's Axiom pattern**. Author plain, human-friendly Markdown for tests that can be parsed into any structure later. Start simple, scale infinitely.
+[Qualityfolio](https://qualityfolio.dev/) is a flexible test authoring framework powered by Spry's Axiom pattern. Author plain, human-friendly Markdown for tests that can be parsed into any structure later. Start simple, scale infinitely.
 
-## ✨ Why Qualityfolio?
+## Why Qualityfolio?
 
-- ✍️ **Write Naturally** - Use Markdown the way you already do
-- 🎯 **Schema-Free** - No upfront structure required. Apply schemas at query time
-- 📊 **Infinite Flexibility** - Scale from 2 to 6 heading levels as your project grows
-- 🔄 **Git-First** - Version control your tests like code
-- 🚀 **Auto-Discovery** - Let the parser figure out your structure, or define it yourself
-- 📈 **Built-in Dashboard** - Generate test management dashboards with metrics & traceability
+- Write Naturally - Use Markdown the way you already do
+- Schema-Free - No upfront structure required. Apply schemas at query time
+- Infinite Flexibility - Scale from 2 to 6 heading levels as your project grows
+- Git-First - Version control your tests like code
+- Auto-Discovery - Let the parser figure out your structure, or define it yourself
+- Built-in Dashboard - Generate test management dashboards with metrics & traceability
 
-## 🔗 Works With Your Existing Workflow
+## Works With Your Existing Workflow
 
-**Qualityfolio doesn't replace your tools—it upgrades them.**
+Qualityfolio doesn't replace your tools - it upgrades them.
 
 Qualityfolio is built to complement your existing test management, automation frameworks, and documentation systems. Write tests in Markdown, execute with your current tools, and capture evidence in structured SQL for audit-ready traceability.
 
-### 💡 From Fragmented to Unified
+### From Fragmented to Unified
 
-**Instead of:**
+Instead of:
 
-- ❌ Tests scattered across multiple tools and formats
-- ❌ Evidence lost in screenshots and spreadsheets
-- ❌ Manual traceability matrices that break on every change
-- ❌ No version history or accountability trail
+- Tests scattered across multiple tools and formats
+- Evidence lost in screenshots and spreadsheets
+- Manual traceability matrices that break on every change
+- No version history or accountability trail
 
-**You get:**
+You get:
 
-- ✅ **Human-readable Markdown** - Version controlled, reviewable, and Git-native
-- ✅ **Structured SQL evidence** - Queryable, immutable, and audit-ready
-- ✅ **Automated traceability** - Requirements ↔ Tests ↔ Evidence ↔ Results
-- ✅ **Evidence-grade accountability** - Complete history of who tested what, when, and why
+- Human-readable Markdown - Version controlled, reviewable, and Git-native
+- Structured SQL evidence - Queryable, immutable, and audit-ready
+- Automated traceability - Requirements ↔ Tests ↔ Evidence ↔ Results
+- Evidence-grade accountability - Complete history of who tested what, when, and why
 
-> **Philosophy:** Quality is only provable when declared intent (tests) aligns with runtime reality (evidence). Qualityfolio enforces this rigorously.
+> Philosophy: Quality is only provable when declared intent (tests) aligns with runtime reality (evidence). Qualityfolio enforces this rigorously.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-**Simple rules:**
+Simple rules:
 
 - Use headings to _suggest_ structure (none are required)
 - Use GFM tasks (`- [ ]`, `- [ ]`) for steps and expectations
 - Add metadata with `@key value` annotations or YAML/JSON blocks
 
-**That's it.** The parser handles the rest.
+That's it. The parser handles the rest.
 
-### 🎯 What Do You Want To Do?
+### What Do You Want To Do?
 
-- **📖 [Learn the patterns](#-authoring-patterns)** - See examples from simple to complex
-- **🚀 [Start building](#-getting-started)** - Generate your database & dashboard
-- **📚 [See examples](#-example-files)** - View real test artifacts
-- **🔧 [Get help](#-troubleshooting)** - Common issues & solutions
+- [Learn the patterns](#-authoring-patterns) - See examples from simple to complex
+- [Start building](#-getting-started) - Generate your database & dashboard
+- [See examples](#-example-files) - View real test artifacts
+- [Get help](#-troubleshooting) - Common issues & solutions
 
-### 🌐 Try the Qualityfolio Demo
+### Try the Qualityfolio Demo
 
-**[View Live Dashboard ](https://demo.qualityfolio.dev/)**
+[View Live Dashboard ](https://demo.qualityfolio.dev/)
 
 Explore a fully functional Qualityfolio dashboard with sample test artifacts, metrics, and traceability views.
 
-## 🚀 Quick Start
+## Quick Start
 
-### 💻 Prerequisites
+### Prerequisites
 
 Before you begin, ensure you have the following:
 
@@ -80,17 +80,17 @@ Before you begin, ensure you have the following:
 - **Package Manager**: Homebrew (required)
 - **Tools**: Spry, Surveilr (required)
 
-### 🔧 Installation
+### Installation
 
 #### 1. Install Dependencies
 
 Ensure the following tools and files are available on your system:
 
-1. **Deno** – runtime required by Spry
-2. **Homebrew (brew)** – package manager for installing dependencies
-3. **Spry** – runbook and SQLPage orchestration engine
-4. **Surveilr** – ingestion and transformation engine
-5. **Qualityfolio Extension** – Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
+1. **Deno** - runtime required by Spry
+2. **Homebrew (brew)** - package manager for installing dependencies
+3. **Spry** - runbook and SQLPage orchestration engine
+4. **Surveilr** - ingestion and transformation engine
+5. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
 
 #### 2. Quick Install Commands
 
@@ -134,21 +134,21 @@ brew tap surveilr/tap && brew install surveilr
 
 To install Qualityfolio extension, download and install the pre-packaged extension for Visual Studio Code or Cursor IDE.
 
-> 💡 **Tip**: The Qualityfolio extension simplifies editing Evidence Block values directly within your IDE.
+> Tip: The Qualityfolio extension simplifies editing Evidence Block values directly within your IDE.
 
-### 📝 Authoring Tests in Markdown
+### Authoring Tests in Markdown
 
 Qualityfolio tests follow a structured Markdown hierarchy to ensure full traceability and machine-readable execution. Qualityfolio projects can range from simple to highly complex structures.
 
-An example test artifact file (`example-artifact.md`) for the project **OWASP - GLUE UP** (using Qualityfolio's Small pattern) demonstrates key concepts:
+An example test artifact file (`example-artifact.md`) for the project OWASP - GLUE UP (using Qualityfolio's Small pattern) demonstrates key concepts:
 
-- **Header-based Classification** - Structured metadata for test organization
-- **Hierarchical Test Design** - Nested test suites and cases
-- **Evidence Block Patterns** - Linking test results with execution evidence
+- Header-based Classification - Structured metadata for test organization
+- Hierarchical Test Design - Nested test suites and cases
+- Evidence Block Patterns - Linking test results with execution evidence
 
-👉 **View the example**: [example-artifact.md](https://raw.githubusercontent.com/opsfolio/qualityfolio/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
+View the example: [example-artifact.md](https://raw.githubusercontent.com/opsfolio/qualityfolio/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
 
-### 📊 Working with Qualityfolio
+### Working with Qualityfolio
 
 #### 1. Generate SQLite Database from Test Artifacts
 
@@ -173,13 +173,13 @@ spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md q
 EOH_INSTANCE=1 SQLPAGE_SITE_PREFIX=/netspective-qualityfolio PORT=9227 surveilr web-ui -d ./resource-surveillance.sqlite.db --port 9227 --host 0.0.0.0
 ```
 
-This will launch the **Test Management Dashboard** with test metrics, requirement traceability matrix, and test cycle–wise execution views at:
+This will launch the **Test Management Dashboard** with test metrics, requirement traceability matrix, and test cycle-wise execution views at:
 
 ```
 http://localhost:9227/
 ```
 
-### 🎯 Next Steps
+### Next Steps
 
 Once your database and dashboard are running, you can:
 
@@ -188,7 +188,7 @@ Once your database and dashboard are running, you can:
 - Add new test artifacts and execution evidence
 - Integrate Qualityfolio into CI/CD pipelines
 
-## 📖 Documentation
+## Documentation
 
 All documentation is in the [docs/](https://docs.opsfolio.com/qualityfolio/getting-started/quick-start) folder:
 
@@ -200,32 +200,32 @@ All documentation is in the [docs/](https://docs.opsfolio.com/qualityfolio/getti
 
 ---
 
-## 🎓 How It Works
+## How It Works
 
-### 🔄 The Axiom Pattern Philosophy
+### The Axiom Pattern Philosophy
 
-**Start simple. Scale infinitely.** Teams naturally grow in complexity over time, and **Spry's Axiom pattern** adapts to your needs without forcing you to rewrite anything.
+Start simple. Scale infinitely. Teams naturally grow in complexity over time, and Spry's Axiom pattern adapts to your needs without forcing you to rewrite anything.
 
-> 💡 **Key Insight**: You write Markdown with headings at any depth (1-6 levels). The parser reads the structure, but _role names_ (like "project", "suite", "case") are only applied **at query time** based on your chosen schema.
+> Key Insight: You write Markdown with headings at any depth (1-6 levels). The parser reads the structure, but _role names_ (like "project", "suite", "case") are only applied **at query time** based on your chosen schema.
 
-#### 📊 Scaling Patterns
+#### Scaling Patterns
 
 Choose the complexity level that matches your project's current needs:
 
-| 🏷️ Scale                                                             | 📝 Heading Structure You Write                                                                                      | 🗂️ Query-Time Schema Mapping                                                                                                         |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **🌱 Small** <br/> _Perfect for simple projects or quick test plans_ | `# Project` <br/> `## Test Case` <br/> `### Evidence`                                                               | **3 Levels** <br/> H1 → `project` or `plan` <br/> H2 → `case` <br/> H3 → `evidence`                                                  |
-| **📦 Medium** <br/> _Growing teams with test suites_                 | `# Project` <br/> `## Suite` <br/> `### Test Case` <br/> `#### Evidence`                                            | **4 Levels** <br/> H1 → `project` <br/> H2 → `suite` <br/> H3 → `case` <br/> H4 → `evidence`                                         |
-| **🏢 Large** <br/> _Enterprise projects with multiple plans_         | `# Project` <br/> `## Plan` <br/> `### Suite` <br/> `#### Test Case` <br/> `##### Evidence`                         | **5 Levels** <br/> H1 → `project` <br/> H2 → `plan` <br/> H3 → `suite` <br/> H4 → `case` <br/> H5 → `evidence`                       |
-| **🏗️ Complex** <br/> _Full organizational test strategies_           | `# Project` <br/> `## Strategy` <br/> `### Plan` <br/> `#### Suite` <br/> `##### Test Case` <br/> `###### Evidence` | **6 Levels** <br/> H1 → `project` <br/> H2 → `strategy` <br/> H3 → `plan` <br/> H4 → `suite` <br/> H5 → `case` <br/> H6 → `evidence` |
+| Scale                                                         | Heading Structure You Write                                                                                         | Query-Time Schema Mapping                                                                                                            |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Small <br/> _Perfect for simple projects or quick test plans_ | `# Project` <br/> `## Test Case` <br/> `### Evidence`                                                               | **3 Levels** <br/> H1 → `project` or `plan` <br/> H2 → `case` <br/> H3 → `evidence`                                                  |
+| Medium <br/> _Growing teams with test suites_                 | `# Project` <br/> `## Suite` <br/> `### Test Case` <br/> `#### Evidence`                                            | **4 Levels** <br/> H1 → `project` <br/> H2 → `suite` <br/> H3 → `case` <br/> H4 → `evidence`                                         |
+| Large <br/> _Enterprise projects with multiple plans_         | `# Project` <br/> `## Plan` <br/> `### Suite` <br/> `#### Test Case` <br/> `##### Evidence`                         | **5 Levels** <br/> H1 → `project` <br/> H2 → `plan` <br/> H3 → `suite` <br/> H4 → `case` <br/> H5 → `evidence`                       |
+| Complex <br/> _Full organizational test strategies_           | `# Project` <br/> `## Strategy` <br/> `### Plan` <br/> `#### Suite` <br/> `##### Test Case` <br/> `###### Evidence` | **6 Levels** <br/> H1 → `project` <br/> H2 → `strategy` <br/> H3 → `plan` <br/> H4 → `suite` <br/> H5 → `case` <br/> H6 → `evidence` |
 
-> ✨ **The Magic**: Start with 3 headings today. Add more levels tomorrow. Your existing Markdown stays valid. No refactoring needed.
+> The Magic: Start with 3 headings today. Add more levels tomorrow. Your existing Markdown stays valid. No refactoring needed.
 
-## 📝 Authoring Patterns
+## Authoring Patterns
 
 Pick one to start, mix and match as you grow. All patterns work seamlessly together.
 
-### 🌱 Pattern 1: Small (project/plan + cases + evidence)
+### Pattern 1: Small (project/plan + cases + evidence)
 
 ````md
 ---
@@ -287,7 +287,7 @@ status: passed
 > Parse-time: 3 headings.
 > Query-time: map `{ heading[depth="1"]: "project", heading[depth="2"]: "case", heading[depth="3"]: "evidence" }`.
 
-### 📦 Pattern 2: Medium (project + suite → case + evidence)
+### Pattern 2: Medium (project + suite → case + evidence)
 
 ```md
 ---
@@ -355,7 +355,7 @@ Expected
 > Query-time mapping: `{ heading[depth="1"]: "project", heading[depth="2"]: "suite", heading[depth="3"]: "case", heading[depth="4"]: "evidence" }` or
 > `{ heading[depth="1"]: "plan", heading[depth="2"]: "suite", heading[depth="3"]: "case", heading[depth="4"]: "evidence" }` - your choice.
 
-### 🏢 Pattern 3: Large (project → plan → suite → case + evidence)
+### Pattern 3: Large (project → plan → suite → case + evidence)
 
 ````md
 ---
@@ -416,7 +416,7 @@ Expected
 > Query-time mapping commonly used for this depth:
 > `{ heading[depth="1"]: "project", heading[depth="2"]: "plan", heading[depth="3"]: "suite", heading[depth="4"]: "case", heading[depth="5"]: "evidence" }`.
 
-### 🏗️ Pattern 4: Complex (project → strategy → plan → suite → case + evidence)
+### Pattern 4: Complex (project → strategy → plan → suite → case + evidence)
 
 ````md
 ---
@@ -481,7 +481,7 @@ Expected
 > Query-time mapping commonly used for this depth:
 > `{ heading[depth="1"]: "project", heading[depth="2"]: "strategy", heading[depth="3"]: "plan", heading[depth="4"]: "suite", heading[depth="5"]: "case", heading[depth="6"]: "evidence" }`.
 
-## 🏷️ Metadata: Annotations & Code Blocks
+## Metadata: Annotations & Code Blocks
 
 - Annotations: any line like `@key value` in a heading’s _own section_ (before child headings).
 - Fenced code blocks: use `yaml`, `json`, or `json5` for structured metadata;
@@ -501,7 +501,7 @@ objective: Lockout policy & reset email
 
 > Annotations do not inherit to children - add where you want them to apply.
 
-## ✅ Steps & Expectations (GFM Tasks)
+## Steps & Expectations (GFM Tasks)
 
 Use checkboxes to make steps and expected results machine-readable:
 
@@ -522,7 +522,7 @@ Expected
 
 > Spry's Axiom pattern extracts each item with `checked` state, the text, and precise line numbers.
 
-## 📄 Frontmatter (Optional)
+## Frontmatter (Optional)
 
 If you like, top-of-file frontmatter is parsed:
 
@@ -544,7 +544,7 @@ doc-classify:
 ---
 ```
 
-## 📁 File & Folder Naming
+## File & Folder Naming
 
 **Recommended conventions** (not required - use what fits your team):
 
@@ -579,11 +579,11 @@ qualifyfolio/
 
 > Remember: the parser does not require any folder layout. This is just for DX.
 
-## 📚 Example Files
+## Example Files
 
-👉 **See it in action:** [View example test artifacts](https://github.com/opsfolio/qualityfolio/tree/main/support/assurance/qualityfolio/test-artifacts)
+See it in action: [View example test artifacts](https://github.com/opsfolio/qualityfolio/tree/main/support/assurance/qualityfolio/test-artifacts)
 
-## ✅ Authoring Checklist
+## Authoring Checklist
 
 - Use whatever heading depth you need up to 6th level (none are required).
 - Prefer GFM tasks for steps & expected results.
@@ -592,16 +592,14 @@ qualifyfolio/
 - Link evidence files close to the doc.
 - Let schemas or discovery decide roles later.
 
-## ✅ Troubleshooting
+## Troubleshooting
 
 - “My evidence isn’t detected” → an evidence must be a leaf heading (no deeper headings beneath it).
 - “My annotations don’t show up” → ensure `@key value` is not inside a code block and is in the heading’s own section.
 - “Discovery chose odd roles” → either add minimal content to meaningful ancestors (so they’re “significant”) or apply an explicit schema when querying.
 
-## 📜 License
+## License
 
-Your docs are yours. **Spry's Axiom pattern** is designed to read Markdown respectfully and safely.
+Your docs are yours. Spry's Axiom pattern is designed to read Markdown respectfully and safely.
 
 ---
-
-**Made with 💜 for developers who love writing tests in Markdown.**
