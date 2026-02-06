@@ -47,7 +47,7 @@ Qualityfolio is built to complement your existing test management, automation fr
 
 ---
 
-## �🚀 Getting Started
+## 🚀 Getting Started
 
 **Simple rules:**
 
@@ -146,7 +146,7 @@ An example test artifact file (`example-artifact.md`) for the project **OWASP - 
 - **Hierarchical Test Design** - Nested test suites and cases
 - **Evidence Block Patterns** - Linking test results with execution evidence
 
-👉 **View the example**: [example-artifact.md](https://raw.githubusercontent.com/programmablemd/assurance-prime/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
+👉 **View the example**: [example-artifact.md](https://raw.githubusercontent.com/opsfolio/qualityfolio/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
 
 ### 📊 Working with Qualityfolio
 
@@ -188,7 +188,7 @@ Once your database and dashboard are running, you can:
 - Add new test artifacts and execution evidence
 - Integrate Qualityfolio into CI/CD pipelines
 
-## �📖 Documentation
+## 📖 Documentation
 
 All documentation is in the [docs/](https://docs.opsfolio.com/qualityfolio/getting-started/quick-start) folder:
 
@@ -553,7 +553,7 @@ doc-classify:
 - Typical repo layout (optional; use what fits your team):
 
 ```
-ASSURANCE-PRIME/
+qualifyfolio/
 ├── support/
 │   └── assurance/
 │       └── qualityfolio/
@@ -570,7 +570,7 @@ ASSURANCE-PRIME/
 │           ├── sqlpage/
 │           │   └── sqlpage.json                  # runtime configuration file for SQLPage
 │           ├── test-artifacts/
-│           │   └── example-artifact.md
+│           │   └── example-artifact.md           # example test artifact
 │           ├── qualityfolio-json-etl.sql         # SQL ETL script for Qualityfolio data
 │           ├── qualityfolio.md                   # SQLPage Markdown page (DB config + queries)
 │           └── resource-surveillance.sqlite.db   # Database generated
@@ -581,7 +581,7 @@ ASSURANCE-PRIME/
 
 ## 📚 Example Files
 
-👉 **See it in action:** [View example test artifacts](https://github.com/programmablemd/assurance-prime/tree/main/support/assurance/qualityfolio/test-artifacts)
+👉 **See it in action:** [View example test artifacts](https://github.com/opsfolio/qualityfolio/tree/main/support/assurance/qualityfolio/test-artifacts)
 
 ## ✅ Authoring Checklist
 
@@ -592,7 +592,7 @@ ASSURANCE-PRIME/
 - Link evidence files close to the doc.
 - Let schemas or discovery decide roles later.
 
-## Troubleshooting
+## ✅ Troubleshooting
 
 - “My evidence isn’t detected” → an evidence must be a leaf heading (no deeper headings beneath it).
 - “My annotations don’t show up” → ensure `@key value` is not inside a code block and is in the heading’s own section.
