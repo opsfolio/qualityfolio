@@ -1,0 +1,40 @@
+name: Generate Qualityfolio DB
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: main
+          fetch-depth: 0
+       
+
+      - name: Execute Environment variables
+        env:
+          DATABASE_URL: "sqlite://resource-surveillance.sqlite.db?mode=rwc"
+          WEB_ROOT: "./dev-src.auto"
+          ALLOW_EXEC: "true"
+          PORT: 9227
+        run: |
+          bash -x support/generate-qualityfolio-db.sh
+          
+      - name: Archive build artifacts
+        run: |
+          cat support/assurance/qualityfolio/sqlpage/sqlpage.json
+          #tar -czvf demo-netspective-hub-qualityfolio.tar.gz support/assurance/qualityfolio/resource-surveillance.sqlite.db support/assurance/qualityfolio/dev-src.auto support/assurance/qualityfolio/sqlpage
+          tar -czvf demo-netspective-hub-qualityfolio.tar.gz support/assurance/qualityfolio/resource-surveillance.sqlite.db
+      - name: Copy build artifacts to the production server
+        run: |
+          scp -P22 -o StrictHostKeyChecking=no demo-netspective-hub-qualityfolio.tar.gz "${{ secrets.PRODUCTION_DEPLOYMENT_USER }}@${{ secrets.PRODUCTION_DEPLOYMENT_SERVER_IP }}:"
+
+      - name: Deploy to production server
+        run: |
+          ssh -p22 -o StrictHostKeyChecking=no -t ${{ secrets.PRODUCTION_DEPLOYMENT_USER }}@${{ secrets.PRODUCTION_DEPLOYMENT_SERVER_IP }} "bash -i demo-netspective-hub-qualityfolio.sh"
