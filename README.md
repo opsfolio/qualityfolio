@@ -603,5 +603,3 @@ See it in action: [View example test artifacts](https://github.com/opsfolio/qual
 Your docs are yours. Spry's Axiom pattern is designed to read Markdown respectfully and safely.
 
 ---
-
-Made with 💜 for developers who love writing tests in Markdown.
