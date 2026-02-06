@@ -146,7 +146,7 @@ An example test artifact file (`example-artifact.md`) for the project **OWASP - 
 - **Hierarchical Test Design** - Nested test suites and cases
 - **Evidence Block Patterns** - Linking test results with execution evidence
 
-👉 **View the example**: [example-artifact.md](https://raw.githubusercontent.com/programmablemd/assurance-prime/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
+👉 **View the example**: [example-artifact.md](https://raw.githubusercontent.com/opsfolio/qualityfolio/refs/heads/main/support/assurance/qualityfolio/test-artifacts/example-artifact.md)
 
 ### 📊 Working with Qualityfolio
 
