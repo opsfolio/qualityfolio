@@ -129,8 +129,8 @@ spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md | sqlite3 r
 
 SELECT 'shell' AS component,
        NULL AS icon,
-       'https://www.surveilr.com/assets/brand/qf-logo.png' AS favicon,
-       'https://www.surveilr.com/assets/brand/qf-logo.png' AS image,
+       'https://qualityfolio.dev/_astro/qualityfolio-logo.CiYk51BF.png' AS favicon,
+       'https://qualityfolio.dev/_astro/qualityfolio-logo.CiYk51BF.png' AS image,
        'fluid' AS layout,
        true AS fixed_top_menu,
        'index.sql' AS link,
