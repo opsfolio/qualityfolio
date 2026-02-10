@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://qualityfolio.dev/">
-    <img src="assets/qualityfolio-logo.png" alt="Qualityfolio" width="250">
+    <img src="https://qualityfolio.dev/_astro/qualityfolio-logo.CiYk51BF.png" alt="Qualityfolio" width="250">
   </a>
 </p>
 
