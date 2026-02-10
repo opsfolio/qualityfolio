@@ -51,18 +51,6 @@ You get:
 
 Start by installing Qualityfolio, connecting your source repository, and creating your first Markdown-based test artifact. Follow the setup guides to begin building continuous, evidence-driven quality across your organization.
 
-## QA Progress & Performance Dashboard with Drill Down
-
-<img src="assets/qualityfolio-dashboard.png" alt="QA Progress & Performance Dashboard" width="100%">
-
-## Test Case Drill Down
-
-<img src="assets/qualityfolio-testcasedrill.png" alt="Test Case Drill Down" width="100%">
-
-## Assigeewise Test Case Details and Requirement Traceability
-
-<img src="assets/qualityfolio-assigneewise.png" alt="Assigeewise Test Case Details and Requirement Traceability" width="100%">
-
 ### Try the Qualityfolio Demo
 
 [View Live Dashboard ](https://demo.qualityfolio.dev/)
