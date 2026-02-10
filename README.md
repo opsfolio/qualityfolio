@@ -51,6 +51,18 @@ You get:
 
 Start by installing Qualityfolio, connecting your source repository, and creating your first Markdown-based test artifact. Follow the setup guides to begin building continuous, evidence-driven quality across your organization.
 
+## QA Progress & Performance Dashboard with Drill Down
+
+<img src="assets/qualityfolio-dashboard.png" alt="QA Progress & Performance Dashboard" width="100%">
+
+## Test Case Drill Down
+
+<img src="assets/qualityfolio-testcasedrill.png" alt="Test Case Drill Down" width="100%">
+
+## Assigeewise Test Case Details and Requirement Traceability
+
+<img src="assets/qualityfolio-assigneewise.png" alt="Assigeewise Test Case Details and Requirement Traceability" width="100%">
+
 ### Try the Qualityfolio Demo
 
 [View Live Dashboard ](https://demo.qualityfolio.dev/)
@@ -94,8 +106,8 @@ curl -fsSL https://deno.com/install.sh | sh
 brew install programmablemd/packages/spry
 
 # 4. Install Surveilr
-wget https://github.com/surveilr/packages/releases/download/3.23.0/surveilr_3.23.0_x86_64-unknown-linux-gnu.tar.gz
-tar -xzf surveilr_3.23.0_x86_64-unknown-linux-gnu.tar.gz
+wget https://github.com/surveilr/packages/releases/download/3.31.0/surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
+tar -xzf surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
 sudo mv surveilr /usr/local/bin/
 
 ```
