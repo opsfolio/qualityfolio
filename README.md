@@ -157,7 +157,7 @@ spry rb run qualityfolio.md
 
 spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
 
-EOH_INSTANCE=1 SQLPAGE_SITE_PREFIX=/netspective-qualityfolio PORT=9227 surveilr web-ui -d ./resource-surveillance.sqlite.db --port 9227 --host 0.0.0.0
+EOH_INSTANCE=1 PORT=9227 surveilr web-ui -d ./resource-surveillance.sqlite.db --port 9227 --host 0.0.0.0
 ```
 
 This will launch the **Test Management Dashboard** with test metrics, requirement traceability matrix, and test cycle-wise execution views at:
