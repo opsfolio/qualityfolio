@@ -49,20 +49,7 @@ You get:
 
 ## Getting Started
 
-Simple rules:
-
-- Use headings to _suggest_ structure (none are required)
-- Use GFM tasks (`- [ ]`, `- [ ]`) for steps and expectations
-- Add metadata with `@key value` annotations or YAML/JSON blocks
-
-That's it. The parser handles the rest.
-
-### What Do You Want To Do?
-
-- [Learn the patterns](#-authoring-patterns) - See examples from simple to complex
-- [Start building](#-getting-started) - Generate your database & dashboard
-- [See examples](#-example-files) - View real test artifacts
-- [Get help](#-troubleshooting) - Common issues & solutions
+Start by installing Qualityfolio, connecting your source repository, and creating your first Markdown-based test artifact. Follow the setup guides to begin building continuous, evidence-driven quality across your organization.
 
 ### Try the Qualityfolio Demo
 
