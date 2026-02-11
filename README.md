@@ -90,10 +90,13 @@ curl -fsSL https://deno.com/install.sh | sh
 # 2. Install Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# 3. Install Spry
+# 3. Install Sqlpage
+brew install sqlpage
+
+# 4. Install Spry
 brew install programmablemd/packages/spry
 
-# 4. Install Surveilr
+# 5. Install Surveilr
 wget https://github.com/surveilr/packages/releases/download/3.31.0/surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
 tar -xzf surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
 sudo mv surveilr /usr/local/bin/
@@ -109,10 +112,13 @@ curl -fsSL https://deno.com/install.sh | sh
 # 2. Install Homebrew
 curl -fsSL -o install.sh https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 
-# 3. Install Spry
+# 3. Install Sqlpage
+brew install sqlpage
+
+# 4. Install Spry
 brew install programmablemd/packages/spry
 
-# 4. Install Surveilr
+# 5. Install Surveilr
 brew tap surveilr/tap && brew install surveilr
 
 ```
@@ -140,7 +146,7 @@ View the example: [example-artifact.md](https://raw.githubusercontent.com/opsfol
 #### 1. Generate SQLite Database from Test Artifacts
 
 1. Create test artifact files and store them in a folder (for example, `test-artifacts`).
-2. Execute the following command in a terminal:
+2. Execute the following command in a terminal once the path of the folder updated in the qualityfolio.md file:
 
 ```bash
 spry rb run qualityfolio.md
@@ -153,7 +159,6 @@ This command ingests the test artifact files and generates the SQLite database `
 1. After creating your test artifacts, execute the following commands:
 
 ```bash
-spry rb run qualityfolio.md
 
 spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
 
