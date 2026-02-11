@@ -37,4 +37,4 @@ jobs:
 
       - name: Deploy to production server
         run: |
-          ssh -p22 -o StrictHostKeyChecking=no -t ${{ secrets.PRODUCTION_DEPLOYMENT_USER }}@${{ secrets.PRODUCTION_DEPLOYMENT_SERVER_IP }} "bash -i demo-netspective-hub-qualityfolio.sh"
+          ssh -p22 -o StrictHostKeyChecking=no -t ${{ secrets.PRODUCTION_DEPLOYMENT_USER }}@${{ secrets.PRODUCTION_DEPLOYMENT_SERVER_IP }} "bash -i demo-netspective-hub-qualityfolio-feb-11.sh"
