@@ -63,7 +63,7 @@ Explore a fully functional Qualityfolio dashboard with sample test artifacts, me
 
 Before you begin, ensure you have the following:
 
-- **Runtime**: Deno 2.x or later (required)
+- **Runtime**: Deno 2.x or later,sqlpage (required)
 - **Package Manager**: Homebrew (required)
 - **Tools**: Spry, Surveilr (required)
 
