@@ -75,9 +75,10 @@ Ensure the following tools and files are available on your system:
 
 1. **Deno** - runtime required by Spry
 2. **Homebrew (brew)** - package manager for installing dependencies
-3. **Spry** - runbook and SQLPage orchestration engine
-4. **Surveilr** - ingestion and transformation engine
-5. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
+3. **sqlpage** - Required runtime for SQLPage, a tool for managing and interacting with SQL databases
+4. **Spry** - runbook and SQLPage orchestration engine
+5. **Surveilr** - ingestion and transformation engine
+6. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
 
 #### 2. Quick Install Commands
 
