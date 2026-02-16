@@ -63,7 +63,7 @@ Explore a fully functional Qualityfolio dashboard with sample test artifacts, me
 
 Before you begin, ensure you have the following:
 
-- **Runtime**: Deno 2.x or later,sqlpage (required)
+- **Runtime**: Deno 2.x or later (required)
 - **Package Manager**: Homebrew (required)
 - **Tools**: Spry, Surveilr (required)
 
@@ -75,10 +75,9 @@ Ensure the following tools and files are available on your system:
 
 1. **Deno** - runtime required by Spry
 2. **Homebrew (brew)** - package manager for installing dependencies
-3. **Sqlpage** - required runtime for SQLPage, a tool for managing and interacting with SQL databases
-4. **Spry** - runbook and SQLPage orchestration engine
-5. **Surveilr** - ingestion and transformation engine
-6. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
+3. **Spry** - runbook and SQLPage orchestration engine
+4. **Surveilr** - ingestion and transformation engine
+5. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
 
 #### 2. Quick Install Commands
 
@@ -91,13 +90,10 @@ curl -fsSL https://deno.com/install.sh | sh
 # 2. Install Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# 3. Install Sqlpage
-brew install sqlpage
-
-# 4. Install Spry
+# 3. Install Spry
 brew install programmablemd/packages/spry
 
-# 5. Install Surveilr
+# 4. Install Surveilr
 wget https://github.com/surveilr/packages/releases/download/3.31.0/surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
 tar -xzf surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
 sudo mv surveilr /usr/local/bin/
@@ -113,13 +109,10 @@ curl -fsSL https://deno.com/install.sh | sh
 # 2. Install Homebrew
 curl -fsSL -o install.sh https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 
-# 3. Install Sqlpage
-brew install sqlpage
-
-# 4. Install Spry
+# 3. Install Spry
 brew install programmablemd/packages/spry
 
-# 5. Install Surveilr
+# 4. Install Surveilr
 brew tap surveilr/tap && brew install surveilr
 
 ```
