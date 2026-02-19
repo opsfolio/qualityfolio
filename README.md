@@ -73,53 +73,114 @@ Before you begin, ensure you have the following:
 
 Ensure the following tools and files are available on your system:
 
-1. **Deno** - runtime required by Spry
-2. **Homebrew (brew)** - package manager for installing dependencies
-3. **Spry** - runbook and SQLPage orchestration engine
-4. **Surveilr** - ingestion and transformation engine
-5. **Qualityfolio Extension** - Visual Studio Code Extension/Cursor IDE Extension which simplifies editing Evidence Block values
+1. **Spry** - runbook and SQLPage orchestration engine
+2. **Surveilr** - ingestion and transformation engine
+3. **Python 3.8+** - primary language for singer taps,only required if using Singer
 
 #### 2. Quick Install Commands
 
 **For Linux:**
 
 ```bash
-# 1. Install Deno
-curl -fsSL https://deno.com/install.sh | sh
-
-# 2. Install Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 3. Install Spry
+# 1. Install Spry
 brew install programmablemd/packages/spry
-
-# 4. Install Surveilr
-wget https://github.com/surveilr/packages/releases/download/3.31.0/surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
-tar -xzf surveilr_3.31.0_x86_64-unknown-linux-gnu.tar.gz
-sudo mv surveilr /usr/local/bin/
-
 ```
+
+For more details on Spry installation and usage, refer to the [official Spry documentation](https://docs.opsfolio.com/spry/getting-started/installation).
+
+```bash
+# 2. Install Surveilr
+brew tap surveilr/tap && brew install surveilr
+```
+
+For more details on Surveilr installation and usage, refer to the [official Surveilr documentation](https://docs.opsfolio.com/surveilr/core/installation).
 
 **For macOS:**
 
 ```bash
-# 1. Install Deno
-curl -fsSL https://deno.com/install.sh | sh
-
-# 2. Install Homebrew
-curl -fsSL -o install.sh https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
-
-# 3. Install Spry
+# 1. Install Spry
 brew install programmablemd/packages/spry
-
-# 4. Install Surveilr
-brew tap surveilr/tap && brew install surveilr
-
 ```
+
+For more details on Spry installation and usage, refer to the [official Spry documentation](https://docs.opsfolio.com/spry/getting-started/installation).
+
+```bash
+# 2. Install Surveilr
+brew tap surveilr/tap && brew install surveilr
+```
+
+For more details on Surveilr installation and usage, refer to the [official Surveilr documentation](https://docs.opsfolio.com/surveilr/core/installation).
 
 #### 3. Install Qualityfolio Extension (for Visual Studio Code/Cursor IDE)
 
-To install Qualityfolio extension, download and install the pre-packaged extension for Visual Studio Code or Cursor IDE.
+To install Qualityfolio extension, download and install the pre-packaged extension for Visual Studio Code or Cursor IDE from the links below:
+
+<details>
+<summary>View Extension Installation Steps</summary>
+
+**For Linux:**
+
+**For Visual Studio Code:**
+
+1. Download the **Qualityfolio** extension package:
+
+```bash
+wget https://github.com/opsfolio/qualityfolio/raw/refs/heads/main/extension/qualityfolio-extension-0.0.1.vsix
+```
+
+2. Install the extension package:
+
+```bash
+code --install-extension ./qualityfolio-extension-0.0.1.vsix
+```
+
+**For Cursor IDE:**
+
+1. Download the **Qualityfolio** extension package:
+
+```bash
+wget https://github.com/opsfolio/qualityfolio/raw/refs/heads/main/extension/qualityfolio-extension-0.0.1.vsix
+```
+
+2. Install the extension:
+
+```bash
+cursor --install-extension ./qualityfolio-extension-0.0.1.vsix
+```
+
+**For macOS:**
+
+**For Visual Studio Code:**
+
+1. Download the **Qualityfolio** extension package:
+
+```bash
+curl -L -o qualityfolio-extension-0.0.1.vsix \
+https://github.com/opsfolio/qualityfolio/raw/refs/heads/main/extension/qualityfolio-extension-0.0.1.vsix
+```
+
+2. Install the extension package:
+
+```bash
+code --install-extension ./qualityfolio-extension-0.0.1.vsix
+```
+
+**For Cursor IDE:**
+
+1. Download the **Qualityfolio** extension package:
+
+```bash
+curl -L -o qualityfolio-extension-0.0.1.vsix \
+https://github.com/opsfolio/qualityfolio/raw/refs/heads/main/extension/qualityfolio-extension-0.0.1.vsix
+```
+
+2. Install the extension:
+
+```bash
+cursor --install-extension qualityfolio-extension-0.0.1.vsix
+```
+
+</details>
 
 > Tip: The Qualityfolio extension simplifies editing Evidence Block values directly within your IDE.
 
