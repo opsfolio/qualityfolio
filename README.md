@@ -108,7 +108,7 @@ For more details on Spry installation and usage, refer to the [official Spry doc
 brew tap surveilr/tap && brew install surveilr
 ```
 
-For more details on Surveilr installation and usage, refer to the [official Surveilr documentation](https://docs.opsfolio.com/surveilr/core/installation).
+For more details on Surveilr installation and usage, refer to the [official Surveilr documentation](https://docs.opsfolio.com/surveilr/core/installation)
 
 #### 3. Install Qualityfolio Extension (for Visual Studio Code/Cursor IDE)
 
