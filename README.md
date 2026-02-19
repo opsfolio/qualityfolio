@@ -65,7 +65,6 @@ Before you begin, ensure you have the following:
 
 - **Runtime**: Deno 2.x or later (required)
 - **Package Manager**: Homebrew (required)
-- **Tools**: Spry, Surveilr (required)
 
 ### Installation
 
