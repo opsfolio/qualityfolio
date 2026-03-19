@@ -3,28 +3,32 @@ doc-classify:
   - select: heading[depth="1"]
     role: project
   - select: heading[depth="2"]
-    role: case
+    role: plan
   - select: heading[depth="3"]
+    role: suite
+  - select: heading[depth="4"]
+    role: case
+  - select: heading[depth="5"]
     role: evidence
 ---
 
-# OWASP Glue UP
+# Qualityfolio
 
 ```yaml HFM
-  tenantID: SampleTenant
+tenantID: Qualityfolio
 ```
 
-@id glueup-project
+@id Qualityfolio
 
-The OWASP GLUE application testing project focuses on validating the reliability, security, and usability of the OWASP GLUE platform, which supports user authentication, role-based access, event participation, and member interactions. The project aims to ensure that core user journeys—such as login, dashboard navigation, event discovery and registration, and profile management—function correctly and consistently across browsers and devices
+The Qualityfolio application testing project focuses on validating the reliability, security, and usability of the Qualityfolio  platform, which supports user authentication, role-based access, event participation, and member interactions. The project aims to ensure that core user journeys—such as login, function correctly and consistently across browsers and devices
 
 **Objectives**
 
-- Verify that valid users can log in successfully with correct credentials.  
-- Ensure invalid or empty credentials produce appropriate error messages.  
-- Confirm the system restricts login after a defined number of failed attempts.  
-- Validate that password fields and session cookies are handled securely.  
-- Confirm that logged-in users can log out safely, and sessions are terminated correctly.  
+- Verify that valid users can log in successfully with correct credentials.
+- Ensure invalid or empty credentials produce appropriate error messages.
+- Confirm the system restricts login after a defined number of failed attempts.
+- Validate that password fields and session cookies are handled securely.
+- Confirm that logged-in users can log out safely, and sessions are terminated correctly.
 - Ensure all authentication features conform to OWASP best practices.
 
 **Risks**
@@ -37,36 +41,133 @@ The OWASP GLUE application testing project focuses on validating the reliability
 - Session timeout or token expiration issues causing unexpected user logouts.
 - Automation instability caused by dynamic DOM elements or frequently changing IDs.
 
+## Qualityfolio Comprehensive Plan
 
-## Verify successful login using registered email and correct password
-
-@id TC-GLUE-001
+@id PLAN-REQ-SUR-001
 
 ```yaml HFM
-  requirementID: REQ-GLUE-01
-  priority: High
-  tags: ["Login", "Positive", "Authentication"]
-  scenario-type: Happy Path
-  Execution Type: Automation
+plan-name: qualityfolio-plan
+plan-date: 03-18-2026
+created-by: QA Team
+```
+
+**Objectives**
+
+- Execute all **2 test cases**.
+- Validate CLI help, admin, ingest, orchestrate, shell, merge, and IMAP.
+- Capture automated evidence for all test cases.
+
+**Cycle Goals**
+
+- Execute all **2 test cases** in cycle **1.0.1**.
+- All tests expected to pass with `ok` status.
+
+**Acceptance Criteria**
+
+- The **Solutions footer** contains all expected role-based links.
+- Clicking any role-based link in the footer navigates to the correct role landing page.
+- The breadcrumb displays the correct path (`Home / Role / [Role Name]`) and the **Home** segment is clickable.
+- All **CTA links** on each role-based page function as expected, leading to the correct target pages.
+- No broken links, 4xx/5xx errors, or unexpected redirects occur.
+- The UI/UX is consistent across all role-based landing pages.
+
+---
+
+**Qualityfolio Comprehensive Requirements**
+
+@id Qualityfolio-REQ-001
+
+```yaml HFM
+doc-classify:
+  role: requirement
+  requirementID: REQ-QUALITYFOLIO-01
+  title: Qualityfolio CLI and Engine Integrity
+  description: Defines the functional and operational requirements for Qualityfolio's CLI tools, ingestion engine, and orchestration capabilities, ensuring data integrity and correct SQL execution operations.
+```
+
+**Functional Requirements**
+
+- **CLI Functions**
+  - The system shall expose and reliably execute core CLI functions (`version`, `mask`, `eval`, `text`, `regexp`, `vsv`, `lines`).
+
+- **Execution Engine**
+  - The `eval` function shall execute raw SQL and correctly return string representations, supporting complex joins of multiple rows/values.
+  - Shell execution runs must produce equivalent parsing and execution outcomes against the internal engine.
+
+- **Ingestion and Administration**
+  - The database initialization (`init`), state merging (`merge`), and credential definitions must be secure and reliable.
+  - The ingestion engine shall support robust data loading, including CSV transformations, dry-run validations, stats reporting, and multi-tenant ingestion bounds.
+
+- **Orchestration & Mail**
+  - The system shall handle structured data transformations (HTML/XML processing) accurately.
+  - IMAP integrations must faithfully download, filter, and attachment-map emails to the surveillance targets.
+
+---
+
+**Acceptance Criteria**
+
+- Core SQL shell and CLI functions execute without runtime errors and produce matching reference outputs.
+- Ingestion dry-runs correctly predict the ingestion impact without altering the active state.
+- Execution pipelines correctly extract and transform the specified XML/HTML values.
+
+---
+
+### Qualityfolio Comprehensive Suite
+
+@id SUITE-REQ-SUR-001
+
+```yaml HFM
+suite-name: Qualityfolio-comprehensive-suite
+suite-date: 03-18-2026
+created-by: QA Team
+```
+
+**Scope**
+
+- CLI functions: version, mask, eval, text, regexp, lines, vsv.
+- Web UI server availability.
+- Admin operations: credentials, init, merge.
+- Doctor: system diagnostics.
+- File ingestion: dry-run, stats, multi-tenant, CSV auto-transform.
+- Orchestration: HTML, XML transforms.
+- Shell: SQL execution, engine comparison.
+- IMAP: account ingestion, attachments, filtering.
+
+**Test Cases**
+
+- **TC-QUALITYFOLIO-001** – Verify successful login using registered email and correct password
+- **TC-QUALITYFOLIO-002** – eval function: execute arbitrary SQL and returns the result as string
+
+---
+
+#### Verify successful login using registered email and correct password
+
+@id TC-QUALITYFOLIO-001
+
+```yaml HFM
+requirementID: REQ-QUALITYFOLIO-01
+priority: High
+tags: ["Login", "Positive", "Authentication"]
+scenario-type: Happy Path
+Execution Type: Automation
 ```
 
 **Description**
 
-Verify that a user can successfully log in using a registered email and the correct password in the OWASP GlueUp application.
+Verify that a user can successfully log in using a registered email and the correct password in the OWASP QUALITYFOLIOUp application.
 
 **Preconditions**
 
-- [x] User must have a valid registered account on https://owasp.glueup.com/.
+- [x] User must have a valid registered account on https://qualityfolio.dev/.
 - [x] The account must be active and not locked.
 
 **Steps**
 
-- [x] Navigate to https://owasp.glueup.com/.
+- [x] Navigate to https://qualityfolio.dev/.
 - [x] Click on the “Login” option.
 - [x] Enter a valid registered **email address**.
 - [x] Enter the correct **password**.
 - [x] Click on the **Login** or **Sign In** button.
-
 
 **Expected Results**
 
@@ -75,34 +176,33 @@ Verify that a user can successfully log in using a registered email and the corr
 - [x] The session is created and remains active until logout or timeout.
 - [x] No error messages are displayed.
 
-### Evidence
+##### Evidence
 
-@id TC-GLUE-001
+@id TC-QUALITYFOLIO-001
 
-```yaml META
-  cycle: 1.1
-  cycle-date: 12-12-2025
-  severity: Low
-  assignee: Emily Davis
-  status: passed
+```yaml HFM
+cycle: 1.0.1
+cycle-date: 03-18-2026
+severity: Low
+assignee: Emily Davis
+status: passed
 ```
 
 **Attachment**
 
-- [Results JSON](../evidence/TC-GLUE-001/1.1/result.auto.json)
-- [Run MD](../evidence/TC-GLUE-001/1.1/run.auto.md)
+- [Results JSON](../evidence/TC-QUALITYFOLIO-001/1.1/result.auto.json)
+- [Run MD](../evidence/TC-QUALITYFOLIO-001/1.1/run.auto.md)
 
+#### Verify login failure due to network timeout despite correct credentials
 
-## Verify login failure due to network timeout despite correct credentials
-
-@id TC-GLUE-002
+@id TC-QUALITYFOLIO-002
 
 ```yaml HFM
-  requirementID: REQ-GLUE-01
-  priority: High
-  tags: ["Login", "Network Timeout", "Negative", "Resilience"]
-  scenario-type: Happy Path
-  Execution Type: Manual
+requirementID: REQ-QUALITYFOLIO-01
+priority: High
+tags: ["Login", "Network Timeout", "Negative", "Resilience"]
+scenario-type: Happy Path
+Execution Type: Manual
 ```
 
 **Description**
@@ -112,57 +212,58 @@ This test case validates that when a user attempts to log in with **valid creden
 **Preconditions**
 
 - [x] User account already exists with valid credentials.
-- [x] Access to the login page of [https://owasp.glueup.com/](https://owasp.glueup.com/).
+- [x] Access to the login page of [https://qualityfolio.dev/](https://qualityfolio.dev/).
 - [x] Simulated or controlled network interruption setup (e.g., throttled or unstable network).
 
 **Steps**
 
-- [x] Navigate to the login page.  
-- [x] Enter valid user credentials (registered email and correct password).  
-- [x] Before clicking **Login**, simulate a network slowdown or disconnection.  
-- [x] Click on the **Login** button.  
-- [x] Observe the system response during the timeout or connection drop.  
-- [ ] Reconnect the network and check whether the session was created or access granted.  
+- [x] Navigate to the login page.
+- [x] Enter valid user credentials (registered email and correct password).
+- [x] Before clicking **Login**, simulate a network slowdown or disconnection.
+- [x] Click on the **Login** button.
+- [x] Observe the system response during the timeout or connection drop.
+- [ ] Reconnect the network and check whether the session was created or access granted.
 
 **Expected Results**
 
-- [x] The login request fails gracefully due to the network timeout.  
-- [x] The system displays an appropriate error message, such as:  
-   - [x] “Unable to connect. Please check your network connection and try again.”  
-   - [x] “Request timed out. Login could not be completed.”  
-- [x] User is **not logged in**, and **no active session** is created.  
-- [x] After restoring the network, the user can successfully log in again with the same credentials.  
+- [x] The login request fails gracefully due to the network timeout.
+- [x] The system displays an appropriate error message, such as:
+  - [x] “Unable to connect. Please check your network connection and try again.”
+  - [x] “Request timed out. Login could not be completed.”
+- [x] User is **not logged in**, and **no active session** is created.
+- [x] After restoring the network, the user can successfully log in again with the same credentials.
 
-### Evidence
+##### Evidence
 
-@id TC-GLUE-002
+@id TC-QUALITYFOLIO-002
 
-```yaml META
-  cycle: 1.1
-  cycle-date: 12-12-2025
-  assignee: John Carter
-  status: failed
+```yaml HFM
+cycle: 1.0.1
+cycle-date: 03-18-2026
+severity: Major
+assignee: John Carter
+status: failed
 ```
 
 **Attachment**
 
-- [Results JSON](../evidence/TC-GLUE-002/1.1/result.auto.json)
-- [Run MD](../evidence/TC-GLUE-002/1.1/run.auto..md)
-- [Screenshot](../evidence/TC-GLUE-002/1.1/loginButtonClick.png)
+- [Results JSON](../evidence/TC-QUALITYFOLIO-001/1.1/result.auto.json)
+- [Run MD](../evidence/TC-QUALITYFOLIO-001/1.1/run.auto..md)
+- [Screenshot](../evidence/TC-QUALITYFOLIO-001/1.1/loginButtonClick.png)
 
 **Issue**
 
 ```yaml HFM
 doc-classify:
   role: issue
-  issue_id: BUG-GLUE-001
+  issue_id: BUG-QUALITYFOLIO-001
   created_date: 12-18-2025
-  test_case_id: TC-GLUE-002
+  test_case_id: TC-QUALITYFOLIO-002
   title: "Login fails with timeout error even when valid credentials are used"
   status: open
 ```
 
 **Issue Details**
 
-- [Bug Details](https://github.com/surveilr/surveilr/issues/354)
-- [Screenshot](../evidence/TC-GLUE-002/1.1/loginButtonClick.png)
+- [Bug Details](https://github.com/Qualityfolio/Qualityfolio/issues/354)
+- [Screenshot](../evidence/TC-QUALITYFOLIO-002/1.1/loginButtonClick.png)

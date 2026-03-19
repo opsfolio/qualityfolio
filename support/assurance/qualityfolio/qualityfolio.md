@@ -3,8 +3,8 @@ sqlpage-conf:
   database_url: "sqlite://resource-surveillance.sqlite.db?mode=rwc"
   web_root: "./dev-src.auto"
   allow_exec: true
+  port: "9227"
 ---
- 
 
 ```code DEFAULTS
 sql * --interpolate --injectable
@@ -104,7 +104,7 @@ for v in "${required[@]}"; do
 done
 
 if (( ${#missing[@]} > 0 )); then
-  echo "SKIP: Singer Tap Ingestion (missing env: ${missing[*]})"
+  # echo "SKIP: Singer Tap Ingestion (missing env: ${missing[*]})"
   exit 0
 fi
 chmod +x github.surveilr[singer].py
@@ -112,7 +112,7 @@ surveilr ingest files -r "github.surveilr[singer].py"
 surveilr orchestrate adapt-singer --stream-prefix github
 ```
 
-# SQL query
+# SQL query 
 
 ```bash deploy -C --descr "Generate sqlpage_files table upsert SQL and push them to SQLite"
 surveilr shell qualityfolio-json-etl.sql
@@ -122,10 +122,13 @@ surveilr shell qualityfolio-json-etl.sql
 spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md | sqlite3 resource-surveillance.sqlite.db
 ```
 
+```bash destroy-devsrc --descr "Destroy the dev-src.auto directory"
+spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
+```
+
 # SQL Page
 
 ```sql PARTIAL global-layout.sql --inject *.sql*
-
 
 SELECT 'shell' AS component,
        NULL AS icon,
@@ -134,9 +137,92 @@ SELECT 'shell' AS component,
        'fluid' AS layout,
        true AS fixed_top_menu,
        'index.sql' AS link,
-       '/opsfolio-integration.js' AS javascript,     
-       '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;     
-       
+       '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;
+
+SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
+SET page_title  = json_extract($resource_json, '$.route.caption');
+SET page_description  = json_extract($resource_json, '$.route.description');
+SET page_path = json_extract($resource_json, '$.route.path');
+
+
+SELECT 'html' AS component;
+SELECT'
+<div style="
+  position: fixed;
+  top: 12px;
+  right: 20px;
+  z-index: 9999;
+  font-family: inherit;
+">
+  <details style="position: relative;">
+    <summary style="
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid #bdbb66;
+      border-radius: 10px;
+      background: rgb(255, 255, 255);
+      font-weight: 600;
+    ">
+      <span style="
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #2f10a0;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      ">
+        ' || substr(
+              COALESCE(
+                sqlpage.user_info('name'),
+                sqlpage.user_info('email'),
+                'U'
+              ),
+              1, 2
+            ) || '
+      </span>
+
+      <span>' || COALESCE(
+        sqlpage.user_info('name'),
+        sqlpage.user_info('email'),
+        'User'
+      ) || '</span>
+
+      <span style="opacity:0.6;">▾</span>
+    </summary>
+
+    <div style="
+      position: absolute;
+      right: 0;
+      margin-top: 8px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      min-width: 160px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.15);
+      overflow: hidden;
+    ">
+      <a href="' || sqlpage.oidc_logout_url() || '"
+         style="
+           display: block;
+           padding: 10px 14px;
+           color: #dc2626;
+           text-decoration: none;
+           font-weight: 600;
+         ">
+        ⎋ Logout
+      </a>
+    </div>
+  </details>
+</div>
+' AS html;
+
 SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
 SET page_title  = json_extract($resource_json, '$.route.caption');
 SET page_description  = json_extract($resource_json, '$.route.description');
@@ -145,12 +231,6 @@ SET page_path = json_extract($resource_json, '$.route.path');
 ${ctx.breadcrumbs()}
 
 ```
-
-```contribute sqlpage_files --base .
-./opsfolio-integration.js .
-
-```
----
 
 # Dashboard Routes
 
@@ -278,11 +358,11 @@ SELECT '## Total Passed Cases' AS description_md,
        '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
        'white' AS background_color,
        'check' AS icon,
-        'blue' AS color,
+        'green' AS color,
        'passed.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_case_status
-WHERE test_case_status IN ('passed','pending')
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) IN ('passed', 'ok')
   AND
   project_name = :project_name;
 
@@ -294,17 +374,17 @@ SELECT '## Total Failed Cases' AS description_md,
         'red' AS color,
        'failed.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_case_status
-WHERE test_case_status IN ('failed')
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) IN ('failed', 'not ok')
   AND
   project_name = :project_name;
 
 -- Failed Percentage
 WITH counts AS (
   SELECT COUNT(DISTINCT test_case_id) AS total_tests,
-         COUNT(DISTINCT CASE WHEN test_case_status IN ('reopen','failed')
+         COUNT(DISTINCT CASE WHEN LOWER(test_case_status) IN ('reopen', 'failed', 'not ok')
                THEN test_case_id END) AS total_defects
-  FROM qf_case_status
+  FROM qf_case_status_tap
   WHERE project_name = :project_name
 )
 SELECT '## Test Failure Rate (Percentage)' AS description_md,
@@ -318,16 +398,16 @@ FROM counts;
 -- Success Percentage
 WITH counts AS (
   SELECT COUNT(DISTINCT test_case_id) AS total_tests,
-         COUNT(DISTINCT CASE WHEN test_case_status IN ('reopen','failed')
-               THEN test_case_id END) AS total_defects
-  FROM qf_case_status
+         COUNT(DISTINCT CASE WHEN LOWER(test_case_status) IN ('passed', 'ok')
+               THEN test_case_id END) AS total_passed
+  FROM qf_case_status_tap
   WHERE project_name = :project_name
 )
 SELECT '## Test Success Rate (Percentage)' AS description_md,
        '# ' || CASE WHEN total_tests = 0 THEN '0%'
-                    ELSE ROUND(((total_tests - total_defects) * 100.0) / total_tests,2) || '%' END AS description_md,
+                    ELSE ROUND((total_passed * 100.0) / total_tests, 2) || '%' END AS description_md,
        'white' AS background_color,
-        'lime' as color,
+        'green' as color,
     'circle-dashed-check'       as icon
 FROM counts;
 
@@ -344,18 +424,6 @@ WHERE project_name  like   '%'|| $project_name || '%'
 AND state='open'
 ORDER BY testcase_id;
 
--- -- Reopened Defects
--- SELECT '## Reopened Defects' AS description_md,
---        '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
---        'white' AS background_color,
---        'blue' AS color,
---         'details-off'       as icon,
---        'reopen.sql?project_name=' ||
---            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
--- FROM qf_case_status
--- WHERE test_case_status = 'reopen'
---   AND project_name = :project_name;
-
 -- Closed Defects
 SELECT '## Closed Defects' AS description_md,
        '# ' || COALESCE(COUNT(testcase_id), 0) AS description_md,
@@ -369,28 +437,35 @@ WHERE project_name  like   '%'|| $project_name || '%'
 AND state='closed'
 ORDER BY testcase_id;
 
--- Todo Test cases
-SELECT '## Pending Test Cases (Cycle To-Do)' AS description_md,
-       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+
+-- Test Cycle Plan for the month
+SELECT '## Test Cycle Plan (Month)' AS description_md,
+       '# ' || COALESCE(COUNT(*), 0) AS description_md,
        'white' AS background_color,
-       'alert-circle' AS icon,
-       'yellow' AS color,
-       'todo-cycle.sql?project_name=' ||
-           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_case_status
-WHERE test_case_status IN ('pending','')
-  AND project_name = :project_name;
+       'calendar-stats' AS icon,
+       'orange' AS color,
+       'todo-cycle-month.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+FROM qf_role_with_evidence re
+WHERE (re.status IS NULL OR LOWER(re.status) IN ('todo', 'to-do', 'to do'))
+  AND re.project_name = :project_name
+  AND STRFTIME('%m-%Y', SUBSTR(re.cycledate, 7, 4) || '-' || SUBSTR(re.cycledate, 1, 2) || '-' || SUBSTR(re.cycledate, 4, 2)) = STRFTIME('%m-%Y', 'now', 'localtime')
+  AND NOT EXISTS (
+      SELECT 1 FROM qf_tap_results tr
+      WHERE UPPER(tr.test_case_id) = UPPER(re.testcaseid)
+        AND tr.tap_date = re.cycledate
+  );
 
 -- Un assigned test cases
 SELECT '## Unassigned Test Cases' AS description_md,
-       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       '# ' || COALESCE(COUNT(testcaseid), 0) AS description_md,
        'white' AS background_color,
        'alert-circle' AS icon,
-       'purple' AS color,
+       'orange' AS color,
        'non-assigned-test-cases.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_case_status
-WHERE (latest_assignee IS NULL OR latest_assignee = '')
+FROM qf_role_with_evidence
+WHERE (assignee IS NULL OR TRIM(assignee) = '')
   AND project_name = :project_name;
 
   -- Automation percentage
@@ -478,24 +553,14 @@ FROM qf_role_with_plan
 WHERE
   project_name = :project_name;
 
--- -- History test cases
--- SELECT
---        '## Test Cycle Execution History' AS description_md,       
---        'white' AS background_color,
---        'alert-circle' AS icon,
---        'blue' AS color,
---        'test-case-history.sql?project_name=' ||
---            REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
-
--- -- History test cases
--- SELECT
---        '## Team Productivity' AS description_md,      
---        'white' AS background_color,
---        'alert-circle' AS icon,
---        'green' AS color,
---        'productivity.sql?project_name=' ||
---            REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
-
+-- History test cases
+SELECT
+       '## Test Cycle Execution History' AS description_md,
+       'white' AS background_color,
+       'alert-circle' AS icon,
+       'blue' AS color,
+       'test-case-history.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
 
 -- Test Status Visualization
 SELECT 'divider' AS component,
@@ -572,20 +637,20 @@ SELECT
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
          "'&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL TEST CASES",
 
-    ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
+    ${md.link("SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
          "'&status=passed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL PASSED",
 
-    ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
+    ${md.link("SUM(CASE WHEN LOWER(test_case_status) IN ('failed', 'not ok') THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
          "'&status=failed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL FAILED",
 
 
-    ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
+    ${md.link("SUM(CASE WHEN LOWER(test_case_status) = 'closed' THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
          "'&status=closed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL CLOSED"
 
-FROM qf_case_status
+FROM qf_case_status_tap
 WHERE project_name = CASE
       WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
       THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))
@@ -617,6 +682,8 @@ SELECT 'table' AS component,
        "CYCLE" as markdown,
        "CYCLE DATE" as markdown,
        "TOTAL TEST CASES" as markdown,
+       "PASSED" as markdown,
+       "FAILED" as markdown,
        1 AS sort,
        1 AS search;
 
@@ -624,7 +691,11 @@ SELECT
   ${md.link("cycle",
         ["'cycletotaltestcase.sql?cycle='", "cycle","'&project_name='",":project_name"])} AS "CYCLE",
   cycledate as 'CYCLE DATE',
-  totalcases as 'TOTAL TEST CASES'
+  totalcases as 'TOTAL TEST CASES',
+  ${md.link("passed_cases",
+        ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=passed&project_name='",":project_name"])} AS "PASSED",
+  ${md.link("failed_cases",
+        ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=failed&project_name='",":project_name"])} AS "FAILED"
 FROM cycle_data_summary
 WHERE project_name = CASE
       WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
@@ -634,7 +705,22 @@ WHERE project_name = CASE
   AND (
       (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
       OR (:project_name IS NOT NULL AND :project_name <> '')
-  );
+  )
+  AND (totalcases > 0)
+  AND (
+      -- Show if it is not the earliest date
+      cycledate_sort > (
+          SELECT MIN(cycledate_sort)
+          FROM cycle_data_summary c3
+          WHERE c3.project_name = cycle_data_summary.project_name
+      )
+      OR
+      -- OR show if it IS the earliest date but it is also the ONLY date
+      (SELECT MIN(cycledate_sort) FROM cycle_data_summary c2 WHERE c2.project_name = cycle_data_summary.project_name) =
+      (SELECT MAX(cycledate_sort) FROM cycle_data_summary c4 WHERE c4.project_name = cycle_data_summary.project_name)
+  )
+GROUP BY cycle, cycledate
+ORDER BY cycledate_sort DESC;
 
 -- Requirement Traceability
 SELECT 'divider' AS component,
@@ -642,7 +728,7 @@ SELECT 'divider' AS component,
        5 AS size,
        'blue' AS color;
 
-${paginate("qf_case_status", "WHERE project_name = COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '')) GROUP BY requirement_ID")}
+${paginate("qf_requirement_summary", "WHERE project_name = :project_name")}
 
 SELECT 'table' AS component,
        "REQUIREMENT ID" AS markdown,
@@ -656,17 +742,16 @@ SELECT 'table' AS component,
 SELECT
    ${md.link("requirement_ID",
         ["'requirementdetails.sql?req='", "requirement_ID", "'&project_name='", ":project_name"])} AS "REQUIREMENT ID",
-    ${md.link("COUNT(test_case_id)",
+    ${md.link("total_test_cases",
         ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&project_name='", ":project_name"])} AS "TOTAL TEST CASES",
-    ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
+    ${md.link("total_passed",
         ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=passed&project_name='", ":project_name"])} AS "TOTAL PASSED",
-    ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
+    ${md.link("total_failed",
         ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=failed&project_name='", ":project_name"])} AS "TOTAL FAILED",
-    ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
+    ${md.link("total_closed",
         ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=closed&project_name='", ":project_name"])} AS "TOTAL CLOSED"
-FROM qf_case_status
+FROM qf_requirement_summary
 WHERE project_name = :project_name
-GROUP BY requirement_ID
 ${pagination.limit};
 ${pagination.navigation};
 
@@ -684,7 +769,7 @@ ${pagination.navigation};
 -- @route.description "An overview of all test cases showing the test case ID, title, current status, and the latest execution cycle, allowing quick review and tracking of test case progress."
 SELECT 'text' AS component,
 $page_description AS contents_md;
-${paginate("qf_case_status", "WHERE project_name = $project_name")}
+${paginate("qf_case_status_tap", "WHERE project_name = $project_name")}
 SELECT 'table' AS component,
        'Test Case ID' AS markdown,
        'Test Cases' AS title,
@@ -697,9 +782,9 @@ SELECT
     test_case_title AS "Title",
     test_case_status AS "Status",
     latest_cycle AS "Latest Cycle"
-FROM qf_case_status
+FROM qf_case_status_tap
 WHERE project_name = $project_name
-ORDER BY test_case_id
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER)
 ${pagination.limit};
 ${pagination.navWithParams("project_name")};
 ```
@@ -713,7 +798,7 @@ ${pagination.navWithParams("project_name")};
 
 SELECT 'text' AS component,
 $page_description AS contents_md;
-${paginate("qf_case_status", "WHERE project_name = $project_name")}
+${paginate("qf_case_status_tap", "WHERE project_name = $project_name")}
 
 SELECT 'table' AS component,
        'Test Case ID' AS markdown,
@@ -729,10 +814,10 @@ SELECT
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
-FROM qf_case_status
-WHERE test_case_status = 'passed'
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) IN ('passed', 'ok')
 AND project_name = $project_name
-ORDER BY test_case_id
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER)
 ${pagination.limit};
 ${pagination.navWithParams("project_name")};
 ```
@@ -757,10 +842,10 @@ SELECT
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
-FROM qf_case_status
-WHERE test_case_status = 'failed'
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) IN ('failed', 'not ok')
 AND project_name = $project_name
-ORDER BY test_case_id;
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
 ```
 
 ## Defects (Failed & Reopened)
@@ -784,10 +869,10 @@ SELECT
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
-FROM qf_case_status
-WHERE test_case_status IN ('reopen', 'failed')
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) IN ('reopen', 'failed', 'not ok')
 AND project_name = $project_name
-ORDER BY test_case_id;
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
 ```
 
 ## Closed Cases
@@ -901,15 +986,15 @@ SELECT
         ["'testcasedetails.sql?testcaseid='", "tbl1.testcaseid",
          "'&project_name='", "$project_name"])} AS "Test Case ID",
        tbl2.title  AS "Title",
-       tbl1.status AS "Status",
+       tbl1.status_refined AS "Status",
        tbl1.cycle AS "Latest Cycle"
-FROM qf_role_with_evidence tbl1
+FROM qf_role_with_evidence_refined tbl1
 inner join qf_role_with_case tbl2
 on tbl1.testcaseid=tbl2.testcaseid
 and tbl1.uniform_resource_id=tbl2.uniform_resource_id
 WHERE ($cycle IS NULL OR tbl1.cycle = $cycle)
-  AND ($status IS NULL OR tbl1.status = $status) AND tbl1.project_name=$project_name
-ORDER BY tbl1.testcaseid;
+  AND ($status IS NULL OR tbl1.status_refined = $status OR ($status='passed' AND tbl1.status_refined='ok') OR ($status='failed' AND tbl1.status_refined='not ok')) AND tbl1.project_name=$project_name
+ORDER BY CAST(SUBSTR(tbl1.testcaseid, INSTR(tbl1.testcaseid, ' ') + 1) AS INTEGER);
 ```
 
 ## Requirement-Filtered Test Cases
@@ -934,10 +1019,10 @@ SELECT
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle",
        requirement_ID AS "Requirement"
-FROM qf_case_status
+FROM qf_case_status_tap
 WHERE requirement_ID = $req
-  AND ($status IS NULL OR test_case_status = $status)
-ORDER BY test_case_id;
+  AND ($status IS NULL OR LOWER(test_case_status) = LOWER($status) OR (LOWER($status)='passed' AND LOWER(test_case_status)='ok') OR (LOWER($status)='failed' AND LOWER(test_case_status)='not ok'))
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
 ```
 
 ## Assignee-Filtered Test Cases
@@ -961,11 +1046,11 @@ SELECT
        test_case_title AS "Title",
        test_case_status AS "Status",
        latest_cycle AS "Latest Cycle"
-FROM qf_case_status
+FROM qf_case_status_tap
 WHERE ($assignee IS NULL OR latest_assignee = $assignee)
-  AND ($status IS NULL OR test_case_status = $status)
+  AND ($status IS NULL OR LOWER(test_case_status) = LOWER($status) OR (LOWER($status)='passed' AND LOWER(test_case_status)='ok') OR (LOWER($status)='failed' AND LOWER(test_case_status)='not ok'))
   AND project_name=$project_name
-ORDER BY test_case_id;
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
 ```
 
 ---
@@ -991,7 +1076,7 @@ SELECT
   'From date'  AS label,
   'date'       AS type,
   3 as width,
-  strftime('%Y-%m-%d', $from_date) AS value;
+  COALESCE(strftime('%Y-%m-%d', NULLIF($from_date, '')), date('now', 'localtime', 'start of month')) AS value;
 
 -- To date (retains value after submission)
 SELECT
@@ -999,7 +1084,7 @@ SELECT
   'To date'    AS label,
   'date'       AS type,
   3 as width,
-  $to_date AS value;
+  COALESCE(strftime('%Y-%m-%d', NULLIF($to_date, '')), date('now', 'localtime', 'start of month', '+1 month', '-1 day')) AS value;
 
   SELECT
   'project_name' AS name,
@@ -1012,27 +1097,27 @@ SELECT
   'TOTAL TEST CASES' AS markdown,
   'TOTAL PASSED' AS markdown,
   'TOTAL FAILED' AS markdown,
-  'TOTAL RE-OPEN' AS markdown,
-  'TOTAL CLOSED' AS markdown,
-  'TOTAL PENDING' AS markdown,
   1 AS sort,
   1 AS search;
 
 
 WITH tblevidence AS (
-  SELECT
+SELECT
   DISTINCT
     tbl.assignee,
     -- tbl.created_at,
     tbl.cycle,
     tbl.project_name,
-    tbl.status,
+  coalesce( (select  case when tap.test_case_status='not ok' then 'failed' when tap.test_case_status='ok' then 'passed' else tap.test_case_status end from qf_case_status_tap tap where tap.test_case_id= tbl.testcaseid
+    and   tap.latest_cycle=tbl.cycle),tbl.status)
+     as status,
+
     tbl.severity,
     tbl.testcaseid,
 
   tbl.cycledate
   FROM qf_role_with_evidence_history tbl
-  WHERE tbl.project_name = $project_name
+WHERE tbl.project_name = $project_name
 )
 
 SELECT
@@ -1063,31 +1148,7 @@ SELECT
         "'cycletotaltestcase.sql?cycle='", "tbl3.cycle",
         "'&status=failed&project_name='", "$project_name"
       ]
-  )} AS "TOTAL FAILED",
-
-  ${md.link(
-      "SUM(tbl3.reopen_cases)",
-      [
-        "'cycletotaltestcase.sql?cycle='", "tbl3.cycle",
-        "'&status=reopen&project_name='", "$project_name"
-      ]
-  )} AS "TOTAL RE-OPEN",
-
-  ${md.link(
-      "SUM(tbl3.closed_cases)",
-      [
-        "'cycletotaltestcase.sql?cycle='", "tbl3.cycle",
-        "'&status=closed&project_name='", "$project_name"
-      ]
-  )} AS "TOTAL CLOSED",
-
-  ${md.link(
-      "SUM(tbl3.pending_cases)",
-      [
-        "'cycletotaltestcase.sql?cycle='", "tbl3.cycle",
-        "'&status=pending&project_name='", "$project_name"
-      ]
-  )} AS "TOTAL PENDING"
+  )} AS "TOTAL FAILED"
 
 
 
@@ -1102,8 +1163,7 @@ FROM (
     0 AS passed_cases,
     0 AS failed_cases,
     0 AS reopen_cases,
-    0 AS closed_cases,
-    0 AS pending_cases
+    0 AS closed_cases
   FROM tblevidence tbl2
   GROUP BY tbl2.cycle, tbl2.cycledate, tbl2.project_name
 
@@ -1117,8 +1177,7 @@ FROM (
     SUM(CASE WHEN tbl2.status='passed'  THEN 1 ELSE 0 END) AS passed_cases,
     SUM(CASE WHEN tbl2.status='failed'  THEN 1 ELSE 0 END) AS failed_cases,
     SUM(CASE WHEN tbl2.status='reopen'  THEN 1 ELSE 0 END) AS reopen_cases,
-    SUM(CASE WHEN tbl2.status='closed'  THEN 1 ELSE 0 END) AS closed_cases,
-    SUM(CASE WHEN tbl2.status='pending' THEN 1 ELSE 0 END) AS pending_cases
+    SUM(CASE WHEN tbl2.status='closed'  THEN 1 ELSE 0 END) AS closed_cases
 
   FROM tblevidence tbl2
   GROUP BY tbl2.cycle, tbl2.cycledate, tbl2.project_name
@@ -1128,27 +1187,15 @@ FROM (
 WHERE
 (
   DATE(
-
     SUBSTR(tbl3.cycledate,7,4)||'-'||SUBSTR(tbl3.cycledate,1,2)||'-'||SUBSTR(tbl3.cycledate,4,2)
-  ) >= DATE(
-     DATE(SUBSTR($from_date,1,4)||'-'||SUBSTR($from_date,6,2)||'-'||SUBSTR($from_date,9,2))
-
-    )
+  ) >= DATE(COALESCE(NULLIF($from_date, ''), date('now', 'localtime', 'start of month')))
 )
 AND
-(DATE(
-
+(
+  DATE(
     SUBSTR(tbl3.cycledate,7,4)||'-'||SUBSTR(tbl3.cycledate,1,2)||'-'||SUBSTR(tbl3.cycledate,4,2)
-  ) <= DATE(
-    DATE(SUBSTR($to_date,1,4)||'-'||SUBSTR($to_date,6,2)||'-'||SUBSTR($to_date,9,2))
-
-   )
+  ) <= DATE(COALESCE(NULLIF($to_date, ''), date('now', 'localtime', 'start of month', '+1 month', '-1 day')))
 )
-AND
-    $from_date IS NOT NULL
-AND $from_date <> ''
-AND $to_date   IS NOT NULL
-AND $to_date   <> ''
 
 GROUP BY
   tbl3.cycle,
@@ -1230,19 +1277,31 @@ SELECT 'chart' AS component,
        'Test case execution status(%)' AS title,
        TRUE AS labels,
        'green' AS color,
+       'orange' AS color,
        'red' AS color,
        'chart-left' AS class;
 
 SELECT
-
-'Passed' AS label,
-       COALESCE( passedpercentage,0) AS value
+  'Passed' AS label,
+  COALESCE(passedpercentage, 0) AS value
 FROM qf_case_status_percentage
-where projectname =$project_name
+WHERE projectname = $project_name
 
- SELECT 'Failed' AS label,
-       COALESCE( failedpercentage ,0) AS value
-FROM qf_case_status_percentage where  projectname = $project_name ;
+UNION ALL
+
+SELECT
+  'To-do' AS label,
+  COALESCE(todopercentage, 0) AS value
+FROM qf_case_status_percentage
+WHERE projectname = $project_name
+
+UNION ALL
+
+SELECT
+  'Failed' AS label,
+  COALESCE(failedpercentage, 0) AS value
+FROM qf_case_status_percentage
+WHERE projectname = $project_name;
 ```
 
 ## Open Issues Age Chart
@@ -1267,34 +1326,28 @@ FROM qf_agewise_opencases where  projectname = $project_name ;
 -- @route.description "Provides the List of Unassigned Test Cases"
 
 SELECT 'table' AS component,
-       "TOTAL TEST CASES" AS markdown,
-       "TOTAL PASSED" AS markdown,
-       "TOTAL FAILED" AS markdown,
-       "TOTAL CLOSED" AS markdown,
+       'Test Case ID' AS markdown,
        1 AS search,
        1 AS sort;
 
 SELECT
-    ${md.link("COUNT(test_case_id)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&project_name='", "$project_name"])} AS "TOTAL TEST CASES",
-    ${md.link("SUM(CASE WHEN test_case_status = 'passed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=passed'","'&project_name='", "$project_name"])} AS "TOTAL PASSED",
-    ${md.link("SUM(CASE WHEN test_case_status = 'failed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=failed'","'&project_name='", "$project_name"])} AS "TOTAL FAILED",
-    ${md.link("SUM(CASE WHEN test_case_status = 'closed' THEN 1 ELSE 0 END)",
-        ["'assigneetotaltestcase.sql?assignee='", "latest_assignee", "'&status=closed'","'&project_name='", "$project_name"])} AS "TOTAL CLOSED"
-FROM qf_case_status
-WHERE latest_assignee IS NULL OR latest_assignee = ''
-GROUP BY latest_assignee;
+    ${md.link("testcaseid",
+        ["'testcasedetails.sql?testcaseid='", "testcaseid",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
+    cycle AS "Cycle",
+    cycledate AS "Cycle Date",
+    status AS "Status"
+FROM qf_role_with_evidence
+WHERE (assignee IS NULL OR TRIM(assignee) = '')
+  AND project_name = $project_name
+ORDER BY SUBSTR(cycledate, 7, 4) DESC, SUBSTR(cycledate, 1, 2) DESC, SUBSTR(cycledate, 4, 2) DESC;
 
 ```
 
-## TODO Test Cases
+```sql todo-cycle-month.sql { route: { caption: "Test Cycle Plan (Month)" } }
+-- @route.description "Provides the List of Test Cycle Plans for the current month with 'todo' status"
 
-```sql todo-cycle.sql{ route: { caption: "Pending Test Cases (Cycle To-Do)" } }
--- @route.description "Provides the List of Pending Test Cases (Cycle To-Do)"
-
-${paginate("qf_case_status")}
+${paginate("qf_role_with_evidence")}
 
 SELECT 'text' AS component,
 $page_description AS contents_md;
@@ -1305,16 +1358,26 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 SELECT
-  ${md.link("test_case_id",
-        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+  ${md.link("re.testcaseid",
+        ["'testcasedetails.sql?testcaseid='", "re.testcaseid",
          "'&project_name='", "$project_name"])} AS "Test Case ID",
-    test_case_title AS "Title",
-    test_case_status AS "Status",
-    latest_cycle AS "Latest Cycle"
-FROM qf_case_status
-WHERE project_name = $project_name
-AND test_case_status in('pending','')
-ORDER BY test_case_id;
+    re.cycle AS "Cycle",
+    re.cycledate AS "Cycle Date",
+    re.status AS "Status",
+    re.assignee AS "Assignee"
+FROM qf_role_with_evidence re
+WHERE re.project_name = $project_name
+  AND (re.status IS NULL OR LOWER(re.status) IN ('todo', 'to-do', 'to do'))
+  AND (
+    (re.cycledate IS NULL OR re.cycledate = '') OR
+    (STRFTIME('%m-%Y', SUBSTR(re.cycledate, 7, 4) || '-' || SUBSTR(re.cycledate, 1, 2) || '-' || SUBSTR(re.cycledate, 4, 2)) = STRFTIME('%m-%Y', 'now', 'localtime'))
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM qf_tap_results tr
+      WHERE UPPER(tr.test_case_id) = UPPER(re.testcaseid)
+        AND tr.tap_date = re.cycledate
+  )
+ORDER BY SUBSTR(re.cycledate, 7, 4) DESC, SUBSTR(re.cycledate, 1, 2) DESC, SUBSTR(re.cycledate, 4, 2) DESC;
 
 ```
 
@@ -1436,9 +1499,9 @@ SELECT '[' || test_case_id || '](testcasedetails.sql?testcaseid=' || test_case_i
        title AS "Title",
 
 FROM qf_role_with_case
-WHERE execution_type = 'failed'
+WHERE LOWER(execution_type) = 'failed'
 AND project_name = $project_name
-ORDER BY test_case_id;
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
 ```
 
 ```sql automation.sql { route: { caption: "Automation Test Cases" } }
@@ -1461,10 +1524,10 @@ SELECT
     qcs.test_case_status AS "Status",
     qcs.latest_cycle AS "Latest Cycle"
 FROM qf_role_with_case as qrc
-INNER JOIN qf_case_status as qcs ON qrc.testcaseid=qcs.test_case_id
+INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
 AND qcs.project_name=qrc.project_name
 WHERE qrc.project_name = $project_name AND UPPER(execution_type)='AUTOMATION'
-ORDER BY testcaseid;
+ORDER BY CAST(SUBSTR(testcaseid, INSTR(testcaseid, ' ') + 1) AS INTEGER);
 ```
 
 ```sql automationtestcasedetails.sql { route: { caption: "Automation Test Case Details" } }
@@ -1514,7 +1577,7 @@ FROM qf_case_master as qcm
 INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid
 WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name
 AND UPPER(qwc.execution_type)='AUTOMATION'
-ORDER BY test_case_id
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER)
 ${pagination.limit};
 ${pagination.navWithParams("project_name")};
 ```
@@ -1538,10 +1601,10 @@ SELECT
     qcs.test_case_status AS "Status",
     qcs.latest_cycle AS "Latest Cycle"
 FROM qf_role_with_case as qrc
-INNER JOIN qf_case_status as qcs ON qrc.testcaseid=qcs.test_case_id
+INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
 AND qcs.project_name=qrc.project_name
 WHERE qrc.project_name = $project_name AND UPPER(execution_type)='MANUAL'
-ORDER BY testcaseid
+ORDER BY CAST(SUBSTR(testcaseid, INSTR(testcaseid, ' ') + 1) AS INTEGER)
 ${pagination.limit};
 ${pagination.navWithParams("project_name")};
 ```
@@ -1859,30 +1922,24 @@ $page_description AS contents_md;
  select
     'html' as component;
 
- SELECT
-     case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-       and substring(rd.description,1,2)='**' then
-          case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-           and substring(rd.description,1,2)='**'
-           and length(rd.description) >  instr(substring(rd.description,3,length(rd.description)),'**')+3
-            then
-                '<p><b>'||replace(substring(rd.description,1,instr(substring(rd.description,3,length(rd.description)),'**')+2),'*','') ||  '</b><br>'  ||
-                ' '||substring(rd.description, instr(substring(rd.description,3,length(rd.description)),'**')+3,length(rd.description)) ||  '<br>'
-           else
-                '<p><b><h3>'|| replace(rd.description,'*','') ||  '</h3></b><br>'
-          end
-         else
-         '' || rd.description ||  '<br>'
-         end  as html
+    SELECT 'html' AS component;
+    SELECT DISTINCT
+        CASE
+            WHEN length(rd.description) < 50 AND (rd.description LIKE 'Requirement:%' OR rd.description LIKE 'Verification:%') THEN
+                '<h3 style="color: #2f10a0; margin-top: 16px; margin-bottom: 8px; font-weight: 600;">' || rd.description || '</h3>'
+            ELSE
+                '<div style="margin-bottom: 8px; color: #4b5563; line-height: 1.6; padding-left: 12px; border-left: 2px solid #f3f4f6;">' || rd.description || '</div>'
+        END as html
     FROM qf_plan_requirement_summary rs
     INNER JOIN qf_plan_requirement_details rd
         ON rs.rownum = rd.rownum
-    INNER JOIN qf_role rl
-        ON rl.rownum = rs.rownum
-    INNER JOIN qf_role_with_project prj
-        ON prj.uniform_resource_id = rl.uniform_resource_id
-    WHERE prj.title = $project_name
-      AND trim(rs.requirement_id) = $req
+    WHERE rs.uniform_resource_id = $uniform_resource_id
+      AND trim(rs.requirement_id) = trim($req)
+      AND EXISTS (
+          SELECT 1 FROM qf_role_with_project prj
+          WHERE prj.uniform_resource_id = rs.uniform_resource_id
+          AND prj.title = $project_name
+      )
     ORDER BY rd.rownumdetail;
 ```
 
@@ -1917,37 +1974,47 @@ ORDER BY
 
 SELECT 'text' AS component,
 $page_description AS contents_md;
-select
-    'html' as component;
 
-SELECT
-     case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-       and substring(rd.description,1,2)='**' then
-          case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-           and substring(rd.description,1,2)='**'
-           and length(rd.description) >  instr(substring(rd.description,3,length(rd.description)),'**')+3
-            then
-                '<p><b>'||replace(substring(rd.description,1,instr(substring(rd.description,3,length(rd.description)),'**')+2),'*','') ||  '</b><br>'  ||
-                ' '||substring(rd.description, instr(substring(rd.description,3,length(rd.description)),'**')+3,length(rd.description)) ||  '<br>'
-           else
-                '<p><b><h3>'|| replace(rd.description,'*','') ||  '</h3></b><br>'
-          end
-         else
-         '' || rd.description ||  '<br>'
-         end  as html
-    FROM qf_suite_description_summary rs
-    INNER JOIN qf_suite_description_details rd
-        ON rs.rownum = rd.rownum
-    INNER JOIN qf_role rl
-        ON rl.rownum = rs.rownum
-    INNER JOIN qf_role_with_project prj
-        ON prj.uniform_resource_id = rl.uniform_resource_id
-    INNER JOIN qf_role_with_suite sut
-        ON prj.uniform_resource_id = sut.uniform_resource_id
-        and trim(rs.suite_id) =trim(sut.suiteid)
-    WHERE prj.title = $project_name
-      AND trim(sut.rownum) = $id
-    ORDER BY rd.rownumdetail;
+SELECT 'html' AS component;
+SELECT DISTINCT
+    CASE
+        -- Known Main Headers (Bold, No bullet, Primary Color)
+        WHEN TRIM(rd.description) IN ('Scope', 'Test Cases') THEN
+            '<h2 style="font-size: 1.3rem; color: #2f10a0; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px; margin-top: 32px; margin-bottom: 16px; font-weight: 800;">' ||
+            rd.description || '</h2>'
+
+        -- Generic Headers or List Titles (Bold, No bullet)
+        WHEN (LENGTH(rd.description) < 40 AND (rd.description LIKE '%:%' OR rd.description NOT LIKE '% % %')) THEN
+            '<div style="font-weight: 700; color: #111827; margin-top: 16px; margin-bottom: 8px; font-size: 1.05rem;">' ||
+            rd.description || '</div>'
+
+        -- Test Case Cards
+        WHEN rd.description LIKE 'SURVEILR-REGRESSION-%' THEN
+            '<div class="tc-item" style="padding: 12px 16px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 4px solid #2f10a0; font-family: inherit;">' ||
+            '<span style="font-weight: 800; color: #111827; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; margin-right: 12px; border: 1px solid #e5e7eb;">' ||
+            CASE WHEN INSTR(rd.description, ' - ') > 0 THEN SUBSTR(rd.description, 1, INSTR(rd.description, ' - ') - 1) ELSE rd.description END || '</span>' ||
+            '<span style="color: #4b5563; font-weight: 500;">' ||
+            CASE WHEN INSTR(rd.description, ' - ') > 0 THEN SUBSTR(rd.description, INSTR(rd.description, ' - ') + 3) ELSE '' END || '</span>' ||
+            '</div>'
+
+        -- General Bullet Points
+        ELSE
+            '<div style="padding: 4px 0 4px 12px; color: #374151; line-height: 1.6; display: flex; align-items: flex-start; gap: 8px;">' ||
+            '<span style="color: #2f10a0; font-weight: 900; margin-top: 1px;">•</span>' ||
+            '<span>' || rd.description || '</span>' ||
+            '</div>'
+    END as html
+FROM qf_suite_description_summary rs
+INNER JOIN qf_suite_description_details rd
+    ON rs.rownum = rd.rownum
+WHERE trim(rs.rownum) = $id
+  AND rs.uniform_resource_id = $uniform_resource_id
+  AND EXISTS (
+      SELECT 1 FROM qf_role_with_project prj
+      WHERE prj.uniform_resource_id = rs.uniform_resource_id
+      AND prj.title = $project_name
+  )
+ORDER BY rd.rownumdetail;
 
 ```
 
@@ -1958,7 +2025,7 @@ $page_description AS contents_md;
 select
     'html' as component;
 
-SELECT
+SELECT distinct
      case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
        and substring(rd.description,1,2)='**' then
           case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
@@ -1976,14 +2043,13 @@ SELECT
     FROM qf_plan_summary rs
     INNER JOIN qf_plan_detail rd
         ON rs.rownum = rd.rownum
-    INNER JOIN qf_role rl
-        ON rl.rownum = rs.rownum
-    INNER JOIN qf_role_with_project prj
-        ON prj.uniform_resource_id = rl.uniform_resource_id
-    INNER JOIN qf_role_with_plan pln
-        ON prj.uniform_resource_id = pln.uniform_resource_id
-    WHERE prj.title = $project_name
-      AND trim(pln.rownum) = $id
+    WHERE trim(rs.rownum) = $id
+      AND rs.uniform_resource_id = $uniform_resource_id
+      AND EXISTS (
+          SELECT 1 FROM qf_role_with_project prj
+          WHERE prj.uniform_resource_id = rs.uniform_resource_id
+          AND prj.title = $project_name
+      )
     ORDER BY rd.rownumdetail ;
 
 ```
@@ -2043,3 +2109,30 @@ ${md.link(
 ;
 ```
 
+```sql trends.sql { route: { caption: "Test Case Trends Over Time" } }
+-- @route.description "Display metrics such as test case count, passed, failed"
+
+SELECT
+    'chart' AS component,
+    'ATest Case Trends Over Time (Total Count vs Passed vs Failed)' AS title,
+    'scatter' AS type,
+    'Passed Test Cases' AS xtitle,
+    'Failed Test Cases' AS ytitle,
+    500 AS height,
+    8 AS marker,
+    0 AS xmin,
+    50 AS xmax,
+    0 AS ymin,
+    50 AS ymax,
+    5 AS yticks;
+
+-- Data for each assignee
+SELECT
+    latest_assignee AS series,
+    COUNT(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1 END) AS x,  -- Passed test cases on the x-axis
+    COUNT(CASE WHEN LOWER(test_case_status) IN ('failed', 'not ok') THEN 1 END) AS y   -- Failed test cases on the y-axis
+FROM
+    qf_case_status_tap
+WHERE
+    project_name = $project_name
+```
