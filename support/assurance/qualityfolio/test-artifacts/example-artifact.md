@@ -47,7 +47,7 @@ The Qualityfolio application testing project focuses on validating the reliabili
 
 ```yaml HFM
 plan-name: qualityfolio-plan
-plan-date: 03-18-2026
+plan-date: 03-19-2026
 created-by: QA Team
 ```
 
@@ -118,7 +118,7 @@ doc-classify:
 
 ```yaml HFM
 suite-name: Qualityfolio-comprehensive-suite
-suite-date: 03-18-2026
+suite-date: 03-19-2026
 created-by: QA Team
 ```
 
@@ -182,10 +182,17 @@ Verify that a user can successfully log in using a registered email and the corr
 
 ```yaml HFM
 cycle: 1.0.1
-cycle-date: 03-18-2026
+cycle-date: 03-19-2026
 severity: Low
 assignee: Emily Davis
 status: passed
+```
+```yaml HFM
+cycle: 1.0.2
+cycle-date: 03-27-2026
+severity: Low
+assignee: Emily Davis
+status: to-do
 ```
 
 **Attachment**
@@ -239,10 +246,26 @@ This test case validates that when a user attempts to log in with **valid creden
 
 ```yaml HFM
 cycle: 1.0.1
-cycle-date: 03-18-2026
+cycle-date: 03-19-2026
 severity: Major
 assignee: John Carter
 status: failed
+```
+
+```yaml HFM
+cycle: 1.0.2
+cycle-date: 03-27-2026
+severity: Major
+assignee: John Carter
+status: to-do
+```
+
+```yaml HFM
+cycle: 1.0.3
+cycle-date: 03-29-2026
+severity: Major
+assignee: 
+status: to-do
 ```
 
 **Attachment**

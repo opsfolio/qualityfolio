@@ -2792,6 +2792,12 @@ select
   ) as failed_cases
 from
   qf_role_with_evidence_refined
+WHERE (
+    NULLIF(cycledate, '') IS NULL
+    OR DATE(
+      SUBSTR(cycledate, 7, 4) || '-' || SUBSTR(cycledate, 1, 2) || '-' || SUBSTR(cycledate, 4, 2)
+    ) <= DATE('now', 'localtime')
+  )
 group by
   cycle,
   project_name;
