@@ -1158,7 +1158,7 @@
       tabBarHTML() +
       // ── Preview tab (default active) ────────────────────────────────
       '<div id="qfg-tab-preview">' +
-      bulkToolbarHTML(cases, ctx, today, mOpts) +
+      //bulkToolbarHTML(cases, ctx, today, mOpts) +
       '<div id="qfg-cards-list" style="margin-bottom:12px;">' +
       hierarchyHTML(cases, ctx) +
       "</div>" +
@@ -1374,95 +1374,95 @@
     </style>`;
   }
 
-  function bulkToolbarHTML(cases, ctx, today, mOpts) {
-    const sel = (id, ph, opts, extraStyle = "") =>
-      `<select id="${id}" class="qfg-bulk-select" style="${extraStyle}">
-      <option value="">${ph}</option>${opts}
-    </select>`;
+  // function bulkToolbarHTML(cases, ctx, today, mOpts) {
+  //   const sel = (id, ph, opts, extraStyle = "") =>
+  //     `<select id="${id}" class="qfg-bulk-select" style="${extraStyle}">
+  //     <option value="">${ph}</option>${opts}
+  //   </select>`;
 
-    const inp = (id, ph, val, w) =>
-      `<input id="${id}" type="text" value="${val}" placeholder="${ph}" class="qfg-bulk-input" style="width:${w};"/>`;
+  //   const inp = (id, ph, val, w) =>
+  //     `<input id="${id}" type="text" value="${val}" placeholder="${ph}" class="qfg-bulk-input" style="width:${w};"/>`;
 
-    const btn = (id, label, extraStyle = "") =>
-      `<button id="${id}" class="btn btn-sm" style="font-weight:700;${extraStyle}">${label}</button>`;
+  //   const btn = (id, label, extraStyle = "") =>
+  //     `<button id="${id}" class="btn btn-sm" style="font-weight:700;${extraStyle}">${label}</button>`;
 
-    const priOpts = `<option>High</option><option>Medium</option><option>Low</option><option>Critical</option>`;
-    const scOpts = `<option>Happy Path</option><option>Negative</option><option>Edge Case</option><option>Boundary</option><option>Security</option><option>Performance</option>`;
-    const exOpts = `<option>Manual</option><option>Automated</option>`;
-    const stOpts = `<option>To-do</option><option>In Progress</option><option>Passed</option><option>Failed</option><option>Blocked</option><option>Skipped</option><option>Pending</option>`;
+  //   const priOpts = `<option>High</option><option>Medium</option><option>Low</option><option>Critical</option>`;
+  //   const scOpts = `<option>Happy Path</option><option>Negative</option><option>Edge Case</option><option>Boundary</option><option>Security</option><option>Performance</option>`;
+  //   const exOpts = `<option>Manual</option><option>Automated</option>`;
+  //   const stOpts = `<option>To-do</option><option>In Progress</option><option>Passed</option><option>Failed</option><option>Blocked</option><option>Skipped</option><option>Pending</option>`;
 
-    const tParts = today.split("-");
-    const todayFmt =
-      tParts.length === 3 ? `${tParts[1]}-${tParts[2]}-${tParts[0]}` : today;
+  //   const tParts = today.split("-");
+  //   const todayFmt =
+  //     tParts.length === 3 ? `${tParts[1]}-${tParts[2]}-${tParts[0]}` : today;
 
-    return `
+  //   return `
 
-     <!-- ROW 1: Permanent Controls (Select, File Name, Download, Reset) -->
-      
-    <div class="qfg-bulk-toolbar" style="padding:12px 16px;">      
+  //    <!-- ROW 1: Permanent Controls (Select, File Name, Download, Reset) -->
 
-      <!-- Bulk Update Section -->
-      <section class="bulk-section" style="margin-bottom:20px;">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-tools"></i> Bulk Update</h3>
-        <div style="display:flex; gap:25px; align-items:flex-end;">
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Scenario</span>
-            ${sel("bulkScenarioTypeSelect", "-- Type --", scOpts, "width:100%;")}
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Execution</span>
-            ${sel("bulkExecutionTypeSelect", "-- Type --", exOpts, "width:100%;")}
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Tags</span>
-            <input id="bulkTagsInput" type="text" value="" placeholder="+ Tag" class="qfg-bulk-input" style="width:100%;"/>
-          </div>
-          
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Assignee</span>
-            ${sel("bulkAssignSelect", "-- Assignee --", mOpts, "width:100%;")}
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Priority</span>
-            ${sel("bulkPrioritySelect", "-- Priority --", priOpts, "width:100%;")}
-          </div>
-          <div>
-            ${btn("applyBulkActions", "APPLY", "background:#169fb9;color:#fff;height:42px;padding:10px;margin-top:20px;width:150px;")}
-          </div>
-        </div>
-      </section>
+  //   <div class="qfg-bulk-toolbar" style="padding:12px 16px;">      
 
-      <!-- Run Config Section -->
-      <section class="run-section">
-        <h3 style="margin-bottom:10px;"><i class="fas fa-tools"></i> Run Config</h3>
-        <div style="display:flex; gap:25px; align-items:flex-end;">
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Cycle</span>
-            ${inp("bulkCycleName", "1.0", esc(ctx.cycle), "100%")}
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Date</span>
-            <div style="position:relative;display:flex;align-items:center;">
-              <input type="text" id="bulkCycleDateText" value="${todayFmt}" class="qfg-bulk-input qf-date" style="width:100%;cursor:pointer;padding-right:26px;" />
-              <input type="hidden" id="bulkCycleDate" value="${today}" />
-              <i class="fas fa-calendar-alt" style="position:absolute;right:8px;pointer-events:none;color:#94a3b8;font-size:0.8rem;"></i>
-            </div>
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Run Assignee</span>
-            ${sel("bulkCycleAssignee", "-- Assignee --", mOpts, "width:100%;")}
-          </div>
-          <div style="flex:1;">
-            <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Status</span>
-            ${sel("bulkCycleStatus", "-- Status --", stOpts, "width:100%;")}
-          </div>
-          <div>
-            ${btn("applyBulkCycle", "ADD RUN", "background:#169fb9;color:#fff;height:42px;padding:10px;margin-top:20px;width:150px;")}
-          </div>
-        </div>
-      </section>
-    </div>`;
-  }
+  //     <!-- Bulk Update Section -->
+  //     <section class="bulk-section" style="margin-bottom:20px;">
+  //       <h3 style="margin-bottom:10px;"><i class="fas fa-tools"></i> Bulk Update</h3>
+  //       <div style="display:flex; gap:25px; align-items:flex-end;">
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Scenario</span>
+  //           ${sel("bulkScenarioTypeSelect", "-- Type --", scOpts, "width:100%;")}
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Execution</span>
+  //           ${sel("bulkExecutionTypeSelect", "-- Type --", exOpts, "width:100%;")}
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Tags</span>
+  //           <input id="bulkTagsInput" type="text" value="" placeholder="+ Tag" class="qfg-bulk-input" style="width:100%;"/>
+  //         </div>
+
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Assignee</span>
+  //           ${sel("bulkAssignSelect", "-- Assignee --", mOpts, "width:100%;")}
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Priority</span>
+  //           ${sel("bulkPrioritySelect", "-- Priority --", priOpts, "width:100%;")}
+  //         </div>
+  //         <div>
+  //           ${btn("applyBulkActions", "APPLY", "background:#169fb9;color:#fff;height:42px;padding:10px;margin-top:20px;width:150px;")}
+  //         </div>
+  //       </div>
+  //     </section>
+
+  //     <!-- Run Config Section -->
+  //     <section class="run-section">
+  //       <h3 style="margin-bottom:10px;"><i class="fas fa-tools"></i> Run Config</h3>
+  //       <div style="display:flex; gap:25px; align-items:flex-end;">
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Cycle</span>
+  //           ${inp("bulkCycleName", "1.0", esc(ctx.cycle), "100%")}
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Date</span>
+  //           <div style="position:relative;display:flex;align-items:center;">
+  //             <input type="text" id="bulkCycleDateText" value="${todayFmt}" class="qfg-bulk-input qf-date" style="width:100%;cursor:pointer;padding-right:26px;" />
+  //             <input type="hidden" id="bulkCycleDate" value="${today}" />
+  //             <i class="fas fa-calendar-alt" style="position:absolute;right:8px;pointer-events:none;color:#94a3b8;font-size:0.8rem;"></i>
+  //           </div>
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Run Assignee</span>
+  //           ${sel("bulkCycleAssignee", "-- Assignee --", mOpts, "width:100%;")}
+  //         </div>
+  //         <div style="flex:1;">
+  //           <span style="font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;">Status</span>
+  //           ${sel("bulkCycleStatus", "-- Status --", stOpts, "width:100%;")}
+  //         </div>
+  //         <div>
+  //           ${btn("applyBulkCycle", "ADD RUN", "background:#169fb9;color:#fff;height:42px;padding:10px;margin-top:20px;width:150px;")}
+  //         </div>
+  //       </div>
+  //     </section>
+  //   </div>`;
+  // }
 
 
 
@@ -1481,7 +1481,7 @@
         </div>
 
         <div style="display:flex;">
-          <button id="bulkRunBtn" style="display:none; background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
+          <button id="bulkRunBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
           Run Cycle
           </button>
           <button id="bulkEditBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
@@ -1913,6 +1913,51 @@
         <div class="qfg-modal-footer">
           <button class="qfg-btn-reset"    id="bulkEditModalCancel">Cancel</button>
           <button class="qfg-btn-generate" id="bulkEditModalApply">Apply Changes</button>
+        </div>
+      </div>
+    </div>
+    <!-- Bulk Run Modal -->
+    <div class="qfg-modal-overlay" id="bulkRunModal" style="display:none">
+      <div class="qfg-modal" style="width:min(520px,96vw)">
+        <div class="qfg-modal-header">
+          <span>&#9654; Run Cycle — Selected Cases</span>
+          <button class="qfg-modal-close" id="bulkRunModalClose">&#10005;</button>
+        </div>
+        <p class="qfg-modal-hint">A new run entry will be added to all selected test cases using the config below.</p>
+        <div class="qfg-modal-grid">
+          <div class="qfg-field">
+            <label>Cycle <span style="color:#ef4444">*</span></label>
+            <input type="text" id="modalRunCycle" placeholder="e.g. 1.0" />
+          </div>
+          <div class="qfg-field">
+            <label>&#128197; Date</label>
+            <div style="position:relative;display:flex;align-items:center;">
+              <input type="text" id="modalRunCycleDateText" placeholder="MM-DD-YYYY"
+                style="width:100%;cursor:pointer;padding-right:28px;" />
+              <input type="hidden" id="modalRunCycleDate" />
+              <i class="fas fa-calendar-alt" style="position:absolute;right:8px;pointer-events:none;color:#94a3b8;font-size:.85rem;"></i>
+            </div>
+          </div>
+          <div class="qfg-field">
+            <label>Run Assignee</label>
+            <select id="modalRunAssignee">${memberOptions("-- Assignee --")}</select>
+          </div>
+          <div class="qfg-field">
+            <label>Status</label>
+            <select id="modalRunStatus">
+              <option value="To-do">To-do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Passed">Passed</option>
+              <option value="Failed">Failed</option>
+              <option value="Blocked">Blocked</option>
+              <option value="Skipped">Skipped</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        <div class="qfg-modal-footer">
+          <button class="qfg-btn-reset"    id="bulkRunModalCancel">Cancel</button>
+          <button class="qfg-btn-generate" id="bulkRunModalApply">&#9654; Add Run</button>
         </div>
       </div>
     </div>`;
@@ -2381,7 +2426,73 @@
       renderResults(_cases, _ctx);
     });
 
+    // Bulk run modal
+    on("bulkRunBtn", "click", () => {
+      if (!selectedIdx().length) {
+        showModal("No Test Cases Selected", `Select at least one test case first.`);
+        return;
+      }
+      // Pre-fill Cycle from toolbar value, Date from today
+      const runCycleEl = document.getElementById("modalRunCycle");
+      if (runCycleEl) runCycleEl.value = document.getElementById("bulkCycleName")?.value.trim() || _ctx.cycle || "1.0";
+      const today = new Date().toISOString().slice(0, 10);
+      qfDatePicker(
+        document.getElementById("modalRunCycleDateText"),
+        document.getElementById("modalRunCycleDate"),
+        document.getElementById("bulkCycleDate")?.value || today,
+      );
+      const runAsgn = document.getElementById("modalRunAssignee");
+      if (runAsgn) runAsgn.value = document.getElementById("bulkCycleAssignee")?.value || "";
+      const runStatus = document.getElementById("modalRunStatus");
+      if (runStatus) runStatus.value = document.getElementById("bulkCycleStatus")?.value || "To-do";
+      document.getElementById("bulkRunModal").style.display = "flex";
+    });
+    ["bulkRunModalClose", "bulkRunModalCancel"].forEach((id) =>
+      on(id, "click", () => {
+        document.getElementById("bulkRunModal").style.display = "none";
+      }),
+    );
+    on("bulkRunModalApply", "click", () => {
+      const ids = selectedIdx();
+      const cycle = document.getElementById("modalRunCycle")?.value.trim();
+      const date = document.getElementById("modalRunCycleDate")?.value || new Date().toISOString().slice(0, 10);
+      const asgn = document.getElementById("modalRunAssignee")?.value || _ctx.creator || "";
+      const status = document.getElementById("modalRunStatus")?.value || "To-do";
 
+      if (!ids.length) {
+        showModal("No Test Cases Selected", "Please select at least one test case before running.");
+        return;
+      }
+      if (!cycle) {
+        showModal("No Cycle Number", "Please enter a Cycle number.");
+        return;
+      }
+
+      // Validate: no duplicate cycle in selected cases
+      const duplicates = [];
+      ids.forEach((i) => {
+        const tc = _cases[i];
+        if (Array.isArray(tc.evidenceHistory) && tc.evidenceHistory.some((ev) => ev.cycle === cycle)) {
+          duplicates.push(tc.testCaseId || `TC-${i + 1}`);
+        }
+      });
+      if (duplicates.length > 0) {
+        showModal("Cycle Exists", `Cycle "${cycle}" already exists in: ${duplicates.join(", ")}.\nPlease use a different cycle number.`);
+        return;
+      }
+
+      let okCount = 0;
+      ids.forEach((i) => {
+        const tc = _cases[i];
+        if (!tc.evidenceHistory) tc.evidenceHistory = [];
+        tc.evidenceHistory.push({ cycle, date, assignee: asgn, status });
+        tc.run = tc.evidenceHistory[tc.evidenceHistory.length - 1];
+        okCount++;
+      });
+      document.getElementById("bulkRunModal").style.display = "none";
+      if (okCount > 0) showModal("Run Added", `Run cycle "${cycle}" added to ${okCount} case(s).`);
+      renderResults(_cases, _ctx);
+    });
 
     // Click-outside for all overlays
     document.querySelectorAll(".qfg-modal-overlay").forEach((ov) => {

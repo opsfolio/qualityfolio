@@ -1,0 +1,36 @@
+# unit testing and end-to-end testing tempory files
+sqla-sync-state.sqlite.db
+e2e-test-state.sqlite.db
+functional-test-state.sqlite.db
+./study-files.zip
+study-files*/
+
+# surveilr CLI testing
+resource-surveillance*.sqlite.db*
+surveilr_osqueryms_carves/
+osquery-input.json
+
+# rust-specific
+/target
+sqlpage/
+data/
+
+regression*.sqlite.db
+*.test-e2e.sql
+releases/
+admin-test/
+*.db
+
+.env
+*.pem
+
+# Deno configuration (local development only)
+deno.json
+
+# Claude Code related files and folders
+CLAUDE.md
+.claude/
+claude-*/
+*-claude-*
+claude_*
+*.claude

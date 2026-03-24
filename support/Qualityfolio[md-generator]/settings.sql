@@ -12,7 +12,8 @@ SELECT 'shell' AS component,
        ) AS menu_item,
         json_array(
              '/js/layout.js?v=' || CAST(STRFTIME('%s', 'now') AS TEXT),
-             '/js/chat.js?v=' || CAST(STRFTIME('%s', 'now') AS TEXT)
+             '/js/chat.js?v=' || CAST(STRFTIME('%s', 'now') AS TEXT),
+             '/js/settings.js?v=' || CAST(STRFTIME('%s', 'now') AS TEXT)
         ) AS javascript,
         json_array(
              '/css/theme.css?v=' || CAST(STRFTIME('%s', 'now') AS TEXT),
@@ -119,26 +120,19 @@ SELECT 'html' AS component, '
   .cfg-section-lbl-dark { font-size: 0.875rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
 
   /* ============================================
-     ADD FORM BLOCK (compact inline style)
+     ADD MEMBER BUTTON AREA
      ============================================ */
-  .cfg-add-block { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
-  .cfg-add-block-title { font-size: 0.8rem; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-  .cfg-add-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-  .cfg-add-row .cfg-field { flex: 1; min-width: 160px; margin-bottom: 0; }
-  .cfg-add-row .cfg-field-sm { width: 200px; flex-shrink: 0; margin-bottom: 0; }
+  .cfg-add-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .cfg-add-header-title { font-size: 0.875rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.1em; }
 
   /* ============================================
      BUTTONS (mirroring entries.sql button styles)
      ============================================ */
-  .btn btn-primary qfg-tc-btn { background: linear-gradient(135deg, #11a6aa, #043044); color: #ffffff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 0.875rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
+  .btn.btn-primary.qfg-tc-btn { color: #ffffff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 0.875rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
   .cfg-btn-secondary { background: var(--slate-100); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
   .cfg-btn-secondary:hover { background: var(--border); transform: translateY(-1px); }
   .cfg-btn-sm { padding: 6px 12px; font-size: 0.78rem; border-radius: 7px; border: 1px solid var(--border); background: #ffffff; color: var(--text-secondary); cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
   .cfg-btn-sm:hover { background: var(--slate-100); }
-  .cfg-btn-edit { padding: 5px 12px; border-radius: 6px; border: 1px solid #c7d2fe; background: var(--primary-light); color: var(--primary-dark); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
-  .cfg-btn-edit:hover { background: #e0e7ff; text-decoration: none; color: var(--primary-dark); }
-  .cfg-btn-del { padding: 5px 12px; border-radius: 6px; border: 1px solid #fca5a5; background: #fff0f0; color: #b91c1c; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
-  .cfg-btn-del:hover { background: #fee2e2; text-decoration: none; color: #991b1b; }
 
   /* ============================================
      DATA TABLE (matching entries.sql card aesthetics)
@@ -219,25 +213,25 @@ SELECT 'html' AS component, '
 
   <div class="cfg-tab-bar">
     <a href="settings.sql?tab=team_members"   class="cfg-tab-btn ' || CASE WHEN $tab = 'team_members'      OR $tab IS NULL THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">👥</span> Team Members
+    Team Members
     </a>
     <a href="settings.sql?tab=test_types"     class="cfg-tab-btn ' || CASE WHEN $tab = 'test_types'         THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">🧪</span> Test Types
+    Test Types
     </a>
     <a href="settings.sql?tab=scenario_types" class="cfg-tab-btn ' || CASE WHEN $tab = 'scenario_types'     THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">🗂️</span> Scenario Types
+    Scenario Types
     </a>
     <a href="settings.sql?tab=execution_types" class="cfg-tab-btn ' || CASE WHEN $tab = 'execution_types'   THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">⚙️</span> Execution Types
+    Execution Types
     </a>
     <a href="settings.sql?tab=tags"           class="cfg-tab-btn ' || CASE WHEN $tab = 'tags'               THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">🏷️</span> Tags
+    Tags
     </a>
     <a href="settings.sql?tab=test_case_statuses" class="cfg-tab-btn ' || CASE WHEN $tab = 'test_case_statuses' THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">📋</span> TC Status
+    TC Status
     </a>
     <a href="settings.sql?tab=id_formats"    class="cfg-tab-btn ' || CASE WHEN $tab = 'id_formats'          THEN 'active' ELSE '' END || '">
-      <span class="cfg-tab-icon">🔖</span> ID Formats
+    ID Formats
     </a>
   </div>
 </div>
@@ -249,26 +243,14 @@ SELECT 'html' AS component, '
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">👥 Team Members</div>
-    <div class="cfg-card-desc">Configure the team members available for test case assignment.</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Team Member</div>
-      <form action="/pages/settings/save_team_member.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Full Name <span class="req">*</span></label>
-            <input type="text" name="full_name" placeholder="e.g. Jane Smith" required />
-          </div>
-          <div class="cfg-field">
-            <label>Designation</label>
-            <input type="text" name="designation" placeholder="e.g. QA Engineer" />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="margin-bottom:0; flex-shrink:0;">
-            ✚ Add Member
-          </button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Team Members</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Configure the team members available for test case assignment.</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="team_members">
+        ＋ Add Member
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -293,13 +275,28 @@ WHERE $tab = 'team_members' OR $tab IS NULL;
 SELECT 'html' AS component,
   '<tr>
     <td><span class="cfg-id-badge">' || id || '</span></td>
-    <td class="cfg-name-cell">' || full_name || '</td>
-    <td>' || COALESCE(designation, '<span style="color:var(--slate-300)">—</span>') || '</td>
+    <td class="cfg-name-cell" data-field="full_name" data-value="' || REPLACE(full_name, '"', '&quot;') || '">' || full_name || '</td>
+    <td data-field="designation" data-value="' || COALESCE(REPLACE(designation, '"', '&quot;'), '') || '">' || COALESCE(designation, '<span style="color:var(--slate-300)">—</span>') || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td>
       <div class="cfg-actions-cell">
-        <a class="cfg-btn-edit" href="/pages/settings/edit_team_member.sql?id=' || id || '">✏️ Edit</a>
-        <a class="cfg-btn-del"  href="/pages/settings/delete_team_member.sql?id=' || id || '">🗑️ Delete</a>
+        <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+                data-action="editMember"
+                data-entity="team_members"
+                data-id="' || id || '"
+                data-full_name="' || REPLACE(full_name, '"', '&quot;') || '"
+                data-designation="' || COALESCE(REPLACE(designation, '"', '&quot;'), '') || '"
+                title="Edit ' || REPLACE(full_name, '"', '&quot;') || '">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+                data-action="deleteMember"
+                data-entity="team_members"
+                data-id="' || id || '"
+                data-name="' || REPLACE(full_name, '"', '&quot;') || '"
+                title="Delete ' || REPLACE(full_name, '"', '&quot;') || '">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
       </div>
     </td>
   </tr>'
@@ -323,20 +320,14 @@ WHERE $tab = 'team_members' OR $tab IS NULL;
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">🧪 Test Types</div>
-    <div class="cfg-card-desc">Configure the types of tests available in the system.</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Test Type</div>
-      <form action="/pages/settings/save_test_type.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Test Type Name <span class="req">*</span></label>
-            <input type="text" name="name" placeholder="e.g. Integration" required />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="flex-shrink:0;">✚ Add</button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Test Types</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Configure the types of tests available in the system.</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="test_types">
+        ＋ Add Test Type
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -356,8 +347,22 @@ SELECT 'html' AS component,
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <a class="cfg-btn-edit" href="/pages/settings/edit_test_type.sql?id=' || id || '">✏️ Edit</a>
-      <a class="cfg-btn-del"  href="/pages/settings/delete_test_type.sql?id=' || id || '">🗑️ Delete</a>
+      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+              data-action="editMember"
+              data-entity="test_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Edit ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+              data-action="deleteMember"
+              data-entity="test_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div></td>
   </tr>'
 AS html
@@ -380,20 +385,14 @@ WHERE $tab = 'test_types';
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">🗂️ Scenario Types</div>
-    <div class="cfg-card-desc">Configure the types of scenarios available for test cases.</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Scenario Type</div>
-      <form action="/pages/settings/save_scenario_type.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Scenario Type Name <span class="req">*</span></label>
-            <input type="text" name="name" placeholder="e.g. Happy Path" required />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="flex-shrink:0;">✚ Add</button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Scenario Types</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Configure the types of scenarios available for test cases.</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="scenario_types">
+        ＋ Add Scenario Type
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -413,8 +412,22 @@ SELECT 'html' AS component,
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <a class="cfg-btn-edit" href="/pages/settings/edit_scenario_type.sql?id=' || id || '">✏️ Edit</a>
-      <a class="cfg-btn-del"  href="/pages/settings/delete_scenario_type.sql?id=' || id || '">🗑️ Delete</a>
+      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+              data-action="editMember"
+              data-entity="scenario_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Edit ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+              data-action="deleteMember"
+              data-entity="scenario_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div></td>
   </tr>'
 AS html
@@ -437,20 +450,14 @@ WHERE $tab = 'scenario_types';
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">⚙️ Execution Types</div>
-    <div class="cfg-card-desc">Configure the execution types available (e.g., Manual, Automated).</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Execution Type</div>
-      <form action="/pages/settings/save_execution_type.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Execution Type Name <span class="req">*</span></label>
-            <input type="text" name="name" placeholder="e.g. Automated" required />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="flex-shrink:0;">✚ Add</button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Execution Types</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Configure the execution types available (e.g., Manual, Automated).</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="execution_types">
+        ＋ Add Execution Type
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -470,8 +477,22 @@ SELECT 'html' AS component,
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <a class="cfg-btn-edit" href="/pages/settings/edit_execution_type.sql?id=' || id || '">✏️ Edit</a>
-      <a class="cfg-btn-del"  href="/pages/settings/delete_execution_type.sql?id=' || id || '">🗑️ Delete</a>
+      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+              data-action="editMember"
+              data-entity="execution_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Edit ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+              data-action="deleteMember"
+              data-entity="execution_types"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div></td>
   </tr>'
 AS html
@@ -494,20 +515,14 @@ WHERE $tab = 'execution_types';
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">🏷️ Tags</div>
-    <div class="cfg-card-desc">Configure common tags for organising your test items.</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Tag</div>
-      <form action="/pages/settings/save_tag.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Tag Name <span class="req">*</span></label>
-            <input type="text" name="name" placeholder="e.g. Regression" required />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="flex-shrink:0;">✚ Add Tag</button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Tags</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Configure common tags for organising your test items.</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="tags">
+        ＋ Add Tag
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -529,8 +544,22 @@ SELECT 'html' AS component,
     </span></td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <a class="cfg-btn-edit" href="/pages/settings/edit_tag.sql?id=' || id || '">✏️ Edit</a>
-      <a class="cfg-btn-del"  href="/pages/settings/delete_tag.sql?id=' || id || '">🗑️ Delete</a>
+      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+              data-action="editMember"
+              data-entity="tags"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Edit ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+              data-action="deleteMember"
+              data-entity="tags"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div></td>
   </tr>'
 AS html
@@ -553,20 +582,14 @@ WHERE $tab = 'tags';
 SELECT 'html' AS component, '
 <div class="cfg-wrap" style="padding-top:0">
   <div class="cfg-card">
-    <div class="cfg-card-title">📋 Test Case Status</div>
-    <div class="cfg-card-desc">Manage the status values available for test cases (e.g., Open, Passed, Failed).</div>
-
-    <div class="cfg-add-block">
-      <div class="cfg-add-block-title">➕ Add New Status</div>
-      <form action="/pages/test_cases/save_status.sql" method="POST">
-        <div class="cfg-add-row">
-          <div class="cfg-field">
-            <label>Status Name <span class="req">*</span></label>
-            <input type="text" name="name" placeholder="e.g. Passed" required />
-          </div>
-          <button type="submit" class="btn btn-primary qfg-tc-btn" style="flex-shrink:0;">✚ Add Status</button>
-        </div>
-      </form>
+    <div class="cfg-add-header">
+      <div>
+        <div class="cfg-card-title">Test Case Status</div>
+        <div class="cfg-card-desc" style="margin-bottom:0;">Manage the status values available for test cases (e.g., Open, Passed, Failed).</div>
+      </div>
+      <button class="btn btn-primary qfg-tc-btn" data-action="addMember" data-entity="test_case_statuses">
+        ＋ Add Status
+      </button>
     </div>
 
     <div class="cfg-table-wrap">
@@ -584,8 +607,22 @@ SELECT 'html' AS component,
   '<tr>
     <td><span class="cfg-name-cell">' || name || '</span></td>
     <td><div class="cfg-actions-cell">
-      <a class="cfg-btn-edit" href="/pages/test_cases/edit_status.sql?id=' || id || '">✏️ Edit</a>
-      <a class="cfg-btn-del"  href="/pages/test_cases/delete_status.sql?id=' || id || '">🗑️ Delete</a>
+      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+              data-action="editMember"
+              data-entity="test_case_statuses"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Edit ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
+              data-action="deleteMember"
+              data-entity="test_case_statuses"
+              data-id="' || id || '"
+              data-name="' || REPLACE(name, '"', '&quot;') || '"
+              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
     </div></td>
   </tr>'
 AS html
@@ -692,18 +729,3 @@ SELECT 'html' AS component, '
 </div>
 ' AS html
 WHERE $tab = 'id_formats';
-
--- ============================================
--- CLIENT-SIDE TABLE FILTER HELPER
--- ============================================
-SELECT 'html' AS component, '
-<script>
-function filterTable(input, tableId) {
-  const q = input.value.toLowerCase();
-  const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
-  rows.forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
-  });
-}
-</script>
-' AS html;
