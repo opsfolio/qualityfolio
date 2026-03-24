@@ -1,0 +1,496 @@
+/* Modern Tree View Styling - CSS Only
+   Works with existing renderTreeView() JavaScript
+   Just add this CSS to your project */
+
+:root {
+  --primary-color: #06b6d4;
+  --primary-dark: #0891b2;
+  --primary-light: #cffafe;
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
+}
+
+#treeViewContent {
+  background: var(--neutral-50);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--neutral-700);
+}
+
+/* Tree Node Container */
+.tree-node {
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.tree-node.open > .tree-header {
+  border-left: 3px solid var(--primary-color);
+}
+
+.tree-node.open:hover {
+  background: rgba(6, 182, 212, 0.03);
+}
+
+/* Tree Header */
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  background: white;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.tree-header:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-200);
+}
+
+.tree-header i {
+  font-size: 12px;
+  min-width: 14px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  color: var(--neutral-500);
+}
+
+/* Expand/Collapse Icon Animation */
+.tree-header i:first-child {
+  transform: rotate(0deg);
+}
+
+.tree-node.open > .tree-header i:first-child {
+  transform: rotate(90deg);
+  color: var(--primary-color);
+}
+
+/* Icon Colors by Type */
+.tree-header i:nth-child(2) {
+  color: var(--neutral-600);
+}
+
+/* Strategy Level */
+.tree-node.open > .tree-header:has(i.fa-chess-knight) {
+  background: linear-gradient(135deg, #663399 0%, #8b5cf6 100%);
+  color: white;
+  border-left: none;
+}
+
+.tree-node.open > .tree-header:has(i.fa-chess-knight) i {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tree-node.open > .tree-header:has(i.fa-chess-knight):hover {
+  background: linear-gradient(135deg, #5a2d82 0%, #7c3aed 100%);
+}
+
+/* Plan/Project Level - Folder Icon */
+.tree-header:has(i.fa-folder) {
+  font-weight: 500;
+  background: white;
+}
+
+.tree-header:has(i.fa-folder) i:nth-child(2) {
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+/* Suite Level - Layer Group Icon */
+.tree-header:has(i.fa-layer-group) {
+  padding-left: 2rem;
+  background: var(--neutral-50);
+  border-left: 2px solid var(--neutral-300);
+  font-size: 12px;
+}
+
+.tree-header:has(i.fa-layer-group) i:nth-child(2) {
+  color: var(--primary-color);
+}
+
+/* Test Case Level - File Icon */
+.tree-header:has(i.fa-file-alt) {
+  padding-left: 3rem;
+  background: white;
+  border-left: 2px solid var(--neutral-200);
+  font-size: 12px;
+}
+
+.tree-header:has(i.fa-file-alt) i:nth-child(2) {
+  color: var(--neutral-600);
+}
+
+/* Test Case Content */
+.tree-header:has(i.fa-file-alt) span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.tree-header:has(i.fa-file-alt) strong {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: fit-content;
+}
+
+/* Evidence/Cycle Items - Leaf Nodes */
+.tree-node.leaf {
+  padding-left: 4rem;
+  margin-bottom: 0.25rem;
+  font-size: 11px;
+}
+
+.tree-node.leaf .tree-header {
+  padding: 6px 8px;
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-left: 3px solid;
+}
+
+/* Evidence Status Colors */
+.tree-node.leaf .tree-header {
+  border-left-color: var(--neutral-300);
+}
+
+/* Passed Status - Green */
+.tree-node.leaf:has(span:contains("Passed")) .tree-header,
+.tree-node.leaf:has(i.fa-check-circle) .tree-header {
+  border-left-color: var(--success);
+}
+
+.tree-node.leaf:has(i.fa-check-circle) i:nth-child(2) {
+  color: var(--success);
+}
+
+/* Failed Status - Red */
+.tree-node.leaf:has(i.fa-times-circle) .tree-header {
+  border-left-color: var(--error);
+}
+
+.tree-node.leaf:has(i.fa-times-circle) i:nth-child(2) {
+  color: var(--error);
+}
+
+/* Blocked Status - Orange */
+.tree-node.leaf:has(i.fa-ban) .tree-header {
+  border-left-color: var(--warning);
+}
+
+.tree-node.leaf:has(i.fa-ban) i:nth-child(2) {
+  color: var(--warning);
+}
+
+/* Skipped Status - Gray */
+.tree-node.leaf:has(i.fa-forward) .tree-header {
+  border-left-color: var(--neutral-400);
+}
+
+.tree-node.leaf:has(i.fa-forward) i:nth-child(2) {
+  color: var(--neutral-500);
+}
+
+/* To-do/Unexecuted Status - Blue */
+.tree-node.leaf:has(i.fa-clipboard-list) .tree-header {
+  border-left-color: #3b82f6;
+}
+
+.tree-node.leaf:has(i.fa-clipboard-list) i:nth-child(2) {
+  color: #3b82f6;
+}
+
+/* Tree Children Container */
+.tree-children {
+  display: block;
+  margin-left: 0.5rem;
+}
+
+.tree-node:not(.open) .tree-children {
+  display: none;
+}
+
+/* Evidence Item Text */
+.tree-node.leaf span {
+  display: inline-block;
+  color: var(--neutral-700);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* No Evidence State */
+.tree-node.leaf .tree-header span:contains("No evidence") {
+  color: var(--neutral-500);
+  font-style: italic;
+}
+
+/* Action Buttons */
+.tree-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.tree-actions span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  font-size: 11px;
+  border: none;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tree-actions span:hover {
+  background: var(--neutral-200);
+  color: var(--neutral-700);
+}
+
+/* Edit Button */
+.tree-actions span[data-action="editPlan"],
+.tree-actions span[data-action="editSuite"],
+.tree-actions span[data-action="editTestCase"] {
+  color: var(--primary-color);
+}
+
+.tree-actions span[data-action="editPlan"]:hover,
+.tree-actions span[data-action="editSuite"]:hover,
+.tree-actions span[data-action="editTestCase"]:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* Delete Button */
+.tree-actions span[data-action="deletePlan"],
+.tree-actions span[data-action="deleteSuite"],
+.tree-actions span[data-action="deleteTestCase"],
+.tree-actions span[data-action="deleteEvidence"] {
+  color: var(--error);
+}
+
+.tree-actions span[data-action="deletePlan"]:hover,
+.tree-actions span[data-action="deleteSuite"]:hover,
+.tree-actions span[data-action="deleteTestCase"]:hover,
+.tree-actions span[data-action="deleteEvidence"]:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Icons in Action Buttons */
+.tree-actions i {
+  font-size: 11px;
+}
+
+/* Assignee Display */
+span[style*="margin-left: 0.5rem"] {
+  background: var(--neutral-100);
+  color: var(--neutral-600);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .tree-header {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .tree-node.leaf {
+    font-size: 10px;
+  }
+
+  .tree-actions {
+    gap: 4px;
+  }
+
+  .tree-actions span {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  #treeViewContent {
+    padding: 0.75rem;
+  }
+
+  .tree-header {
+    padding: 8px 8px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .tree-header:has(i.fa-layer-group) {
+    padding-left: 1.5rem;
+  }
+
+  .tree-header:has(i.fa-file-alt) {
+    padding-left: 2.5rem;
+  }
+
+  .tree-node.leaf {
+    padding-left: 3rem;
+  }
+
+  .tree-header i:nth-child(2) {
+    font-size: 12px;
+  }
+
+  .tree-actions {
+    gap: 3px;
+  }
+
+  .tree-actions span {
+    padding: 2px 4px;
+  }
+
+  .tree-header:has(i.fa-file-alt) strong {
+    font-size: 9px;
+    padding: 1px 3px;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tree-children {
+  animation: slideIn 0.2s ease;
+}
+
+/* Print Styles */
+@media print {
+  .tree-actions {
+    display: none !important;
+  }
+
+  #treeViewContent {
+    background: white;
+    border: 1px solid #e5e7eb;
+  }
+
+  .tree-node:hover {
+    background: transparent;
+  }
+
+  .tree-header:hover {
+    background: white;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  #treeViewContent {
+    background: #111827;
+    color: #e5e7eb;
+  }
+
+  .tree-header {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .tree-header:hover {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .tree-node.open > .tree-header {
+    background: linear-gradient(135deg, #7c3aed 0%, #5a2d82 100%);
+  }
+
+  .tree-header:has(i.fa-layer-group) {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .tree-node.leaf .tree-header {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .tree-actions span {
+    color: #9ca3af;
+  }
+
+  .tree-actions span:hover {
+    background: #374151;
+    color: #e5e7eb;
+  }
+
+  span[style*="margin-left: 0.5rem"] {
+    background: #374151;
+    color: #d1d5db;
+  }
+}
+
+/* Accessibility */
+.tree-header:focus,
+.tree-actions span:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.tree-header:focus-visible,
+.tree-actions span:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.tree-header i {
+  transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.tree-children {
+  transition: all 0.3s ease;
+}

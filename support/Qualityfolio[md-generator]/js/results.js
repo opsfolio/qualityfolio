@@ -605,15 +605,15 @@ function renderTestCasesList() {
   html += `
     <div class="project-header" style=" padding-bottom: 1rem;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1 style="color: var(--text-primary); font-size: 1.2rem; margin: 0;">
-                <i class="fas fa-project-diagram" style="margin-right: 0.5rem; color: var(--primary-color);"></i>
+            <h1 style="color: #444;font-size: 0.9rem;margin: 0;">
+                <i class="fas fa-project-diagram" style="margin-right: 0.5rem; color: #444;"></i>
                 ${generatedTestCases.projectName}
             </h1>
-            <button class="btn btn-primary btn-sm" data-action="addPlan" data-stid="null">
+            <button class="btn btn-primary btn-sm qfg-tc-btn" data-action="addPlan" data-stid="null">
                 <i class="fas fa-plus"></i> Add ${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Project" : "Plan"}
             </button>
         </div>
-        <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+        <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
             Schema Level: ${generatedTestCases.schemaLevel} | Generated: ${new Date().toLocaleDateString()}
         </div>
     </div>
@@ -656,7 +656,7 @@ function renderTestCasesList() {
                             <button class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.75rem; margin-right: 0.5rem;" data-action="editPlan" data-stid="${validStIdx}" data-pid="${pIdx}">
                                 <i class="fas fa-edit"></i> Edit ${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Project" : "Plan"}
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" style="padding: 2px 8px; font-size: 0.75rem;" data-action="deletePlan" data-stid="${validStIdx}" data-pid="${pIdx}">
+                            <button class="btn btn-sm btn-outline-danger qfg-tc-btn" style="padding: 2px 8px; font-size: 0.75rem;" data-action="deletePlan" data-stid="${validStIdx}" data-pid="${pIdx}">
                                 <i class="fas fa-trash-can"></i> Delete ${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Project" : "Plan"}
                             </button>
                         </div>
@@ -681,7 +681,7 @@ function renderTestCasesList() {
                                 <button class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.75rem; margin-right: 0.5rem;" data-action="editSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">
                                     <i class="fas fa-edit"></i> Edit Suite
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger" style="padding: 2px 8px; font-size: 0.75rem;" data-action="deleteSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">
+                                <button class="btn btn-sm btn-outline-danger qfg-tc-btn" style="padding: 2px 8px; font-size: 0.75rem;" data-action="deleteSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">
                                     <i class="fas fa-trash-can"></i> Delete Suite
                                 </button>
                             </div>
@@ -715,10 +715,10 @@ function renderTestCasesList() {
 
           html += `
                     <div class="tc-card">
-                        <div style="padding-top: 0.25rem;">
+                        <div>
                             <input type="checkbox" class="tc-checkbox" 
                                 data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"
-                                style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;">
+                                style="accent-color: var(--primary-color); cursor: pointer;">
                         </div>
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -727,8 +727,8 @@ function renderTestCasesList() {
                             
                             <div style="display: flex; gap: 1.5rem; align-items: center; background: #fafafa; padding: 8px 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
                                 <div style="display: flex; gap: 0.65rem; flex-shrink: 0;">
-                                    <button class="btn btn-sm btn-primary" style="font-size: 0.6rem !important;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-pencil"></i></button>
-                                    <button class="btn btn-sm btn-danger" style="font-size: 0.6rem !important;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-pencil"></i></button>
+                                    <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-trash"></i></button>
                                 </div>
                                 <div style="height: 20px; width: 1px; background: #e2e8f0;"></div>
                                 <div> 

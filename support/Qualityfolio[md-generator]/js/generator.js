@@ -380,11 +380,9 @@
     const div = document.createElement("div");
     div.className = "qfg-plan-block";
     div.dataset.plan = pid;
-    div.style.cssText =
-      "border:2px solid #c7d2fe;border-radius:12px;padding:16px;margin-bottom:14px;background:#f8f7ff;position:relative;";
     div.innerHTML = `
       <button class="qfg-remove-suite qfg-remove-plan" title="Remove Plan" style="top:10px;right:12px">✕</button>
-      <div style="font-weight:700;font-size:.85rem;color:#6366f1;margin-bottom:12px">📌 Plan ${pid}</div>
+      <div style="font-weight:700;font-size:.85rem;color:#35a0d0;margin-bottom:12px"> Plan ${pid}</div>
       <div class="qfg-row" style="margin-bottom:10px">
         <div class="qfg-field"><label>Plan Name<span class="req">*</span></label><input type="text" class="plan-name" placeholder="e.g. Regression Plan ${pid}"/></div>
         <div class="qfg-field"><label>Plan ID<span class="req">*</span></label><input type="text" class="plan-id" value="${makeId(_planIdFormat, pid, getVal("qfg-project"))}" placeholder="e.g. PLAN-00${pid}"/></div>
@@ -400,7 +398,7 @@
         <div class="qfg-field"><label>Created By</label><select class="plan-creator"><option value="">-- Select --</option>${opts}</select></div>
       </div>
       <div style="border-top:1px dashed #c7d2fe;padding-top:12px;margin-top:4px">
-        <div style="font-size:.78rem;font-weight:700;color:#0ea5e9;margin-bottom:8px">📋 Suites for this Plan</div>
+        <div style="font-size:.78rem;font-weight:700;color:#35a0d0;margin-bottom:8px">📋 Suites for this Plan</div>
         <div class="plan-suite-list" data-plan="${pid}"></div>
         <button class="qfg-add-suite add-plan-suite-btn" data-plan="${pid}" style="margin-top:6px;font-size:.78rem;">+ Add Suite to Plan ${pid}</button>
       </div>
@@ -528,7 +526,7 @@
       "background:#fafafe;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:10px;position:relative;";
     div.innerHTML = `
       <button class="qfg-remove-suite" title="Remove Suite" style="top:8px;right:10px">✕</button>
-      <div style="font-weight:700;font-size:.82rem;color:#0ea5e9;margin-bottom:10px">📋 Suite ${sc}</div>
+      <div style="font-weight:700;font-size:.82rem;color:#35a0d0;margin-bottom:10px">Suite ${sc}</div>
       <div class="qfg-row">
         <div class="qfg-field"><label>Suite Name<span class="req">*</span></label><input type="text" class="suite-name" placeholder="e.g. Login Suite"/></div>
         <div class="qfg-field"><label>Suite ID<span class="req">*</span></label><input type="text" class="suite-id" value="${makeId(_suiteIdFormat, sc, getVal("qfg-project"))}" placeholder="e.g. SUITE-00${sc}"/></div>
@@ -1283,6 +1281,11 @@
   // ─── HTML builders ───────────────────────────────────────────────
 
   function headerHTML(cases, ctx) {
+    const inp = (id, ph, val, w) =>
+      `<input id="${id}" type="text" value="${val}" placeholder="${ph}" class="qfg-bulk-input" style="width:${w};"/>`;
+
+    const btn = (id, label, extraStyle = "") =>
+      `<button id="${id}" class="btn btn-sm" style="font-weight:700;${extraStyle}">${label}</button>`;
     return `
     <div class="qfg-results-header">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1305,6 +1308,18 @@
         <span>&#9881; ${esc(ctx.testType)}</span>
         <span>&#128197; Cycle ID: ${esc(ctx.cycle)}</span>
         <span>&#128196; Cycle Date: ${ctx.cycleDate}</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:nowrap;margin: 25px 0 12px 0;">
+        
+        <!-- File Settings (Outside) -->
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1.5;min-width:180px;">
+          <span style="font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.02em;">File Name</span>
+          ${inp("bulkFilename", "filename", esc(ctx.project.replace(/\s+/g, "_") + "_" + ctx.reqId), "100%")}
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          ${btn("bulkDownloadBtn", '<i class="fas fa-download"></i> Download .md', "font-size: 0.85rem !important; background: #169fb9; color: #fff;white-space: nowrap; gap:0 !important; padding:10px !important;")}
+        </div>
       </div>
     </div>`;
   }
@@ -1383,18 +1398,7 @@
     return `
 
      <!-- ROW 1: Permanent Controls (Select, File Name, Download, Reset) -->
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:nowrap;margin-bottom:12px;">
-        
-        <!-- File Settings (Outside) -->
-        <div style="display:flex;flex-direction:column;gap:4px;flex:1.5;min-width:180px;">
-          <span style="font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.02em;">File Name</span>
-          ${inp("bulkFilename", "filename", esc(ctx.project.replace(/\s+/g, "_") + "_" + ctx.reqId), "100%")}
-        </div>
-
-        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-          ${btn("bulkDownloadBtn", '<i class="fas fa-download"></i> Download .md', "font-size: 0.85rem !important; background: #169fb9; color: #fff;white-space: nowrap; gap:0 !important; padding:10px !important;")}
-        </div>
-      </div>
+      
     <div class="qfg-bulk-toolbar" style="padding:12px 16px;">      
 
       <!-- Bulk Update Section -->
@@ -1477,7 +1481,7 @@
         </div>
 
         <div style="display:flex;">
-          <button id="bulkRunBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
+          <button id="bulkRunBtn" style="display:none; background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
           Run Cycle
           </button>
           <button id="bulkEditBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
@@ -1570,8 +1574,8 @@
         <span class="qfg-case-title">${esc(c.title || "Untitled")}</span>
         <span class="qfg-case-pill ${priCls}">${esc(c.priority || "Medium")}</span>
         <span class="qfg-case-pill" style="background:#f1f5f9;color:#475569">${esc(c.scenarioType || c.scenario_type || "—")}</span>
-        ${c.tags && c.tags.length > 0 ? `<span class="qfg-case-pill" style="background:#f3e8ff;color:#7e22ce">&#127991; ${esc(Array.isArray(c.tags) ? c.tags.join(", ") : c.tags)}</span>` : ""}
-        <span class="qfg-case-pill" style="background:#eff6ff;color:#1e40af;margin-left:auto;margin-right:1rem;">${esc(displayAssignee || "Unassigned")}</span>
+        ${c.tags && c.tags.length > 0 ? `<span class="qfg-case-pill" style="background: #f3e8ff;color: #905fba;">&#127991; ${esc(Array.isArray(c.tags) ? c.tags.join(", ") : c.tags)}</span>` : ""}
+        <span class="qfg-case-pill" style="background:#eff6ff;color:#677cc1;margin-left:auto;margin-right:1rem;">${esc(displayAssignee || "Unassigned")}</span>
         <div class="tc-actions">
           <button class="qfg-tc-edit-btn tc-edit-btn" data-idx="${i}">&#128393;</button>
           <button class="qfg-tc-del-btn  tc-delete-btn" data-idx="${i}">&#128465;</button>

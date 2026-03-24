@@ -179,7 +179,7 @@ SELECT 'html' AS component, '
   .qfg-results-header { background: linear-gradient(135deg, #d3f7f9 0%, #e0f2fe 100%); color: #1d8397; padding: 24px; border-radius: 14px; margin-bottom: 24px; }
   .qfg-results-header h2 { margin: 0 0 6px; font-size: 1rem; font-weight:500; }
   .qfg-results-header p { margin: 0; opacity: 0.9; font-size: 0.85rem; }
-  .qfg-results-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .qfg-results-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
   .qfg-results-meta span { background: rgb(9 124 113 / 20%); border-radius: 20px;; padding: 4px 12px; font-size: 0.8125rem; font-weight: 600; }
 
   /* ============================================
@@ -188,7 +188,7 @@ SELECT 'html' AS component, '
   .qfg-case-card { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #ffffff; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
   .qfg-case-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
   .qfg-case-head { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--slate-50); }
-  .qfg-case-id { font-size: 0.75rem; font-weight: 800; background: var(--primary-light); color: #0e9289; border-radius: 6px; padding: 4px 10px; }
+  .qfg-case-id { font-size: 0.75rem; font-weight: 800; background: #8fdee1; color: #0e9289; border-radius: 6px; padding: 4px 10px; }
   .qfg-case-title { flex: 1; font-weight: 700; font-size: 0.8rem; color: #666; min-width: 200px; }
   .pri-high { background: #fee2e2; color: #991b1b; }
   .pri-medium { background: #fef3c7; color: #92400e; }
@@ -215,7 +215,7 @@ SELECT 'html' AS component, '
      ERROR & INFO
      ============================================ */
   .qfg-error { background: #fee2e2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 16px; color: #991b1b; font-size: 0.9375rem; }
-  .qfg-section-lbl { margin-bottom: 12px; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; color: var(--text-primary); }
+  .qfg-section-lbl { margin-bottom: 12px; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; color: #35a0d0; }
   .qfg-check-item { padding: 6px 0; font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.6; }
 
   /* ============================================
@@ -242,7 +242,7 @@ SELECT 'html' AS component, '
      ============================================ */
   .qfg-group-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; margin: 12px 0 8px; flex-wrap: wrap; background: var(--slate-50); border: 1px solid var(--border); transition: all 0.2s ease; }
   .qfg-group-header.plan-header { background: linear-gradient(90deg, var(--primary-light), #f0f9ff); border: 1.5px solid #93c5fd; }
-  .qfg-group-header.suite-header { background: var(--slate-50); border: 1px solid var(--border); margin-left: 10px; }
+  .qfg-group-header.suite-header {background: #b5cee7;    border: 1px solid var(--border);}
   .qfg-group-icon { font-size: 1rem; }
   .qfg-group-label { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); flex: 1; }
   .qfg-group-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -303,6 +303,9 @@ SELECT 'html' AS component, '
   .qfg-collapse-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease; pointer-events: none; padding: 0; }
   .qfg-collapse-content.open { max-height: 500px; opacity: 1; margin-bottom: 12px; pointer-events: auto; padding-top: 12px; }
 
+  .qfg-plan-block {
+  border:1px solid #f0f0f0;border-radius:12px;padding:16px;margin-bottom:14px;position:relative;
+  }
 @media (max-width: 480px) {
   .qfg-modal {
     width: 100vw;
@@ -348,15 +351,15 @@ SELECT 'html' AS component, '
 
       <!-- Plan section (5-level only) — multiple plans -->
       <div id="qfg-plan-section" style="display:none">
-        <div class="qfg-section-lbl" style="color:#6366f1">&#128204; Plan Details</div>
+        <div class="qfg-section-lbl" >&#128204; Plan Details</div>
         <div id="qfg-plan-list"></div>
-        <button class="qfg-add-suite" id="qfg-add-plan-btn" style="border-color:#6366f1;color:#6366f1;">&#43; Add Another Plan</button>
+        <button class="qfg-add-suite" id="qfg-add-plan-btn" >&#43; Add Another Plan</button>
         <div style="height:18px"></div>
       </div>
 
       <!-- Suite section (4-level only — standalone) -->
       <div id="qfg-suites-section" style="display:none">
-        <div class="qfg-section-lbl" style="color:#0ea5e9">&#9776; Suite Details</div>
+        <div class="qfg-section-lbl" >&#9776; Suite Details</div>
         <div id="qfg-suite-list"></div>
         <button class="qfg-add-suite" id="qfg-add-suite-btn">&#43; Add Another Suite</button>
         <div style="height:18px"></div>
@@ -364,7 +367,7 @@ SELECT 'html' AS component, '
 
       <!-- Requirements (only shown for 3-level; 4/5-level have per-suite req) -->
       <div id="qfg-req-section">
-        <div class="qfg-section-lbl" style="color:#334155">&#128196; Requirements</div>
+        <div class="qfg-section-lbl" style="color:#334155"> Requirements</div>
         <div class="qfg-row" style="margin-bottom:14px">
           <div class="qfg-field"><label>Requirement ID<span class="req">*</span></label><input type="text" id="qfg-req-id" placeholder="REQ-001" value="REQ-001" /></div>
           <div class="qfg-field"><label>Requirement Title</label><input type="text" id="qfg-req-title" placeholder="e.g. User Login Flow" /></div>

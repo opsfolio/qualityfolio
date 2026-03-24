@@ -24,6 +24,7 @@ SELECT 'shell' AS component,
             '/css/theme.css?v=' || CAST(STRFTIME('%s', 'now') AS TEXT),
             '/css/chat.css?v='  || CAST(STRFTIME('%s', 'now') AS TEXT),
             '/css/pikaday.css',
+            '/css/treeview.css',
             'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
         ) AS css;
         
@@ -614,14 +615,15 @@ SELECT 'html' AS component, '
             border:none!important;
             color: #666!important;
             cursor:pointer;
-            font-weight:700!important;
+            font-weight:600!important;
             background:transparent!important;
             box-shadow: none; 
             border-radius:0!important;
             margin-bottom:-2px; 
             text-transform: uppercase;
             letter-spacing: 0.05em; 
-            transition: all 0.2s;"
+            transition: all 0.2s;
+            font-size: 0.75rem;
         }
         #md-editor-tabs .tab-btn.active{
             color:#0ea5e9!important; 
@@ -640,7 +642,7 @@ SELECT 'html' AS component, '
         .tc-card h5 {
             color: #333;
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .qfg-bulk-action-head {
             display: flex;
@@ -661,6 +663,23 @@ SELECT 'html' AS component, '
         }
         .sidebar-btn-container .btn{
             color : #FFF !important;
+        }
+        .tc-card .fa{
+            margin-right:0 !important;
+            font-size: 0.6rem !important;
+        }
+        
+        .qfg-bulk-group .qfg-tc-btn.btn, .project-header .qfg-tc-btn.btn, .suite-preview-block  .qfg-tc-btn.btn,
+        .plan-preview-block .qfg-tc-btn.btn, .editor-header .btn.qfg-tc-btn{
+            padding: 6px 12px !important;
+            font-size: 0.8rem !important;
+        }
+        .qfg-bulk-group .btn {
+            padding: 0.5rem !important;
+        }
+        .qfg-bulk-group .fa {
+            margin-right: 0 !important;
+            font-size: 0.6rem !important;
         }
     </style>
 
@@ -753,13 +772,13 @@ SELECT 'html' AS component, '
 
                 <!-- Header Section: Fixed -->
                 <div class="editor-header" style="border-bottom: 1px solid rgba(226, 232, 240, 0.6); flex-shrink: 0; background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);">
-                    <h1 style="font-size:1rem;margin:0;font-weight:700;letter-spacing:-0.01em;display:flex;align-items:center;">
+                    <h1 style="font-size:0.9rem;margin:0;font-weight:700;letter-spacing:-0.01em;display:flex;align-items:center;color:#666 !important">
                         <i class="fas fa-file-invoice" style="margin-right:0.6rem;color:var(--primary-color);"></i>
                         <span id="editorFileTitle">Markdown Editor</span>
                     </h1>
                     <div style="display:flex;align-items:center;gap:1.5rem;">
                         <span id="totalTestCases" class="badge" style="padding: 0.3rem 0.9rem; font-size: 0.8rem;">0 Cases</span>
-                        <button id="btnSaveFileAction" class="btn btn-primary" style="background:linear-gradient(135deg,var(--primary-color),#0284c7); padding: 0.6rem 1.5rem; font-weight: 700;">
+                        <button id="btnSaveFileAction" class="btn btn-primary qfg-tc-btn" style="padding:0rem 0.5rem !important;background:linear-gradient(135deg,var(--primary-color),#0284c7); font-weight: 600;">
                             <i class="fas fa-save"></i> Save Changes
                         </button>
                     </div>
@@ -830,7 +849,7 @@ SELECT 'html' AS component, '
                               <option value="Medium">Medium</option>
                               <option value="Low">Low</option>
                             </select>
-                            <button id="applyBulkActions" class="btn btn-sm btn-primary" style="padding: 6px 16px; font-weight:800; background:linear-gradient(135deg,#2563eb,#0ea5e9); font-size: 0.8rem;">APPLY</button>
+                            <button id="applyBulkActions" class="btn btn-sm btn-primary qfg-tc-btn">APPLY</button>
                         </div>
                       </div>
 
@@ -849,12 +868,12 @@ SELECT 'html' AS component, '
                                 <input type="hidden" id="bulkCycleDate" />
                                 <i class="fas fa-calendar-alt" style="position: absolute; right: 10px; color: #94a3b8; font-size: 0.85rem; pointer-events: none;"></i>
                             </div>
-                            <button id="applyBulkCycle" class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; padding: 6px 18px; font-weight:700; font-size: 0.8rem;">ADD</button>
+                            <button id="applyBulkCycle" class="btn btn-sm btn-primary qfg-tc-btn">ADD</button>
                         </div>
 
 
                         <!-- Right: Reset Button -->
-                        <button id="resetBulkActions" class="btn btn-sm" style="background:linear-gradient(135deg, rgba(248,250,252,0.9), rgba(241,245,249,0.8)); border:1px solid rgba(226, 232, 240, 0.6); color:#64748b; padding: 6px 14px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;" title="Reset All Fields">
+                        <button id="resetBulkActions" class="btn btn-sm qfg-tc-btn" style="background:linear-gradient(135deg, rgba(248,250,252,0.9), rgba(241,245,249,0.8)); border:1px solid rgba(226, 232, 240, 0.6); color:#64748b; padding: 6px 14px; font-weight: 600; font-size: 0.8rem; transition: all 0.2s;" title="Reset All Fields">
                             <i class="fas fa-undo"></i> Reset
                         </button>
                       </div>
