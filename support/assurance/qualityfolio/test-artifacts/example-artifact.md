@@ -20,7 +20,7 @@ tenantID: Qualityfolio
 
 @id Qualityfolio
 
-The Qualityfolio application testing project focuses on validating the reliability, security, and usability of the Qualityfolio  platform, which supports user authentication, role-based access, event participation, and member interactions. The project aims to ensure that core user journeys—such as login, function correctly and consistently across browsers and devices
+The Qualityfolio application testing project focuses on validating the reliability, security, and usability of the Qualityfolio platform, which supports user authentication, role-based access, event participation, and member interactions. The project aims to ensure that core user journeys—such as login, function correctly and consistently across browsers and devices
 
 **Objectives**
 
@@ -47,19 +47,19 @@ The Qualityfolio application testing project focuses on validating the reliabili
 
 ```yaml HFM
 plan-name: qualityfolio-plan
-plan-date: 03-19-2026
+plan-date: 03-24-2026
 created-by: QA Team
 ```
 
 **Objectives**
 
-- Execute all **2 test cases**.
+- Execute all **3 test cases**.
 - Validate CLI help, admin, ingest, orchestrate, shell, merge, and IMAP.
 - Capture automated evidence for all test cases.
 
 **Cycle Goals**
 
-- Execute all **2 test cases** in cycle **1.0.1**.
+- Execute all **3 test cases** in cycle.
 - All tests expected to pass with `ok` status.
 
 **Acceptance Criteria**
@@ -118,7 +118,7 @@ doc-classify:
 
 ```yaml HFM
 suite-name: Qualityfolio-comprehensive-suite
-suite-date: 03-19-2026
+suite-date: 03-24-2026
 created-by: QA Team
 ```
 
@@ -137,6 +137,7 @@ created-by: QA Team
 
 - **TC-QUALITYFOLIO-001** – Verify successful login using registered email and correct password
 - **TC-QUALITYFOLIO-002** – eval function: execute arbitrary SQL and returns the result as string
+- **TC-QUALITYFOLIO-003** – Verify login failure when session token has expired
 
 ---
 
@@ -154,7 +155,7 @@ Execution Type: Automation
 
 **Description**
 
-Verify that a user can successfully log in using a registered email and the correct password in the OWASP QUALITYFOLIOUp application.
+Verify that a user can successfully log in using a registered email and the correct passwords in the QUALITYFOLIO application.
 
 **Preconditions**
 
@@ -164,10 +165,7 @@ Verify that a user can successfully log in using a registered email and the corr
 **Steps**
 
 - [x] Navigate to https://qualityfolio.dev/.
-- [x] Click on the “Login” option.
-- [x] Enter a valid registered **email address**.
-- [x] Enter the correct **password**.
-- [x] Click on the **Login** or **Sign In** button.
+
 
 **Expected Results**
 
@@ -181,18 +179,11 @@ Verify that a user can successfully log in using a registered email and the corr
 @id TC-QUALITYFOLIO-001
 
 ```yaml HFM
-cycle: 1.0.1
-cycle-date: 03-19-2026
-severity: Low
-assignee: Emily Davis
-status: passed
-```
-```yaml HFM
 cycle: 1.0.2
-cycle-date: 03-27-2026
-severity: Low
-assignee: Emily Davis
-status: to-do
+cycle-date: 03-24-2026
+severity: Critical
+assignee: John Doe
+status: passed
 ```
 
 **Attachment**
@@ -245,27 +236,11 @@ This test case validates that when a user attempts to log in with **valid creden
 @id TC-QUALITYFOLIO-002
 
 ```yaml HFM
-cycle: 1.0.1
-cycle-date: 03-19-2026
-severity: Major
-assignee: John Carter
-status: failed
-```
-
-```yaml HFM
 cycle: 1.0.2
-cycle-date: 03-27-2026
-severity: Major
-assignee: John Carter
-status: to-do
-```
-
-```yaml HFM
-cycle: 1.0.3
-cycle-date: 03-29-2026
-severity: Major
-assignee: 
-status: to-do
+cycle-date: 03-24-2026
+severity: Critical
+assignee: Sarah Kim
+status: failed
 ```
 
 **Attachment**
@@ -279,7 +254,7 @@ status: to-do
 ```yaml HFM
 doc-classify:
   role: issue
-  issue_id: BUG-QUALITYFOLIO-001
+  issue_id: BUG-QUALITYFOLIO-002
   created_date: 12-18-2025
   test_case_id: TC-QUALITYFOLIO-002
   title: "Login fails with timeout error even when valid credentials are used"
@@ -290,3 +265,58 @@ doc-classify:
 
 - [Bug Details](https://github.com/Qualityfolio/Qualityfolio/issues/354)
 - [Screenshot](../evidence/TC-QUALITYFOLIO-002/1.1/loginButtonClick.png)
+
+#### Verify login failure when session token has expired
+
+@id TC-QUALITYFOLIO-003
+
+```yaml HFM
+requirementID: REQ-QUALITYFOLIO-01
+priority: High
+tags: ["Login", "Session", "Negative", "Security"]
+scenario-type: Negative Path
+Execution Type: Manual
+```
+
+**Description**
+
+This test case validates that when a user attempts to access a protected page using an **expired session token**, the system correctly rejects the request, invalidates the session, and redirects the user to the login page without exposing any protected data.
+
+**Preconditions**
+
+- [x] User account already exists with valid credentials.
+- [x] Access to the login page of [https://qualityfolio.dev/](https://qualityfolio.dev/).
+- [x] An expired or manually invalidated session token is available for testing.
+
+**Steps**
+
+- [x] Log into the application with valid credentials.
+- [x] Allow the session to expire (or manually invalidate the token via browser devtools).
+- [x] Attempt to navigate to a protected page (e.g., dashboard).
+- [x] Observe the system response.
+- [ ] Verify that the user is redirected to the login page.
+
+**Expected Results**
+
+- [x] The system detects the expired session token.
+- [x] Access to the protected page is denied.
+- [ ] The user is redirected to the login page with a message such as "Your session has expired. Please log in again."
+- [ ] No protected data is visible or accessible during or after the redirect.
+
+##### Evidence
+
+@id TC-QUALITYFOLIO-003
+
+```yaml HFM
+cycle: 1.0.2
+cycle-date: 03-24-2026
+severity: Critical
+assignee: Sarah Kim
+status: closed
+```
+
+**Attachment**
+
+- [Results JSON](../evidence/TC-QUALITYFOLIO-003/1.1/result.auto.json)
+- [Run MD](../evidence/TC-QUALITYFOLIO-003/1.1/run.auto.md)
+- [Screenshot](../evidence/TC-QUALITYFOLIO-003/1.1/sessionExpiredRedirect.png)
