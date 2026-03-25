@@ -175,7 +175,7 @@
         <img src="${LOGO_SRC}" alt="QualityFolio" onerror="this.style.display='none'" />
       </a>
       <nav class="qf-nav">${navHTML}</nav>
-      <div class="qf-user">
+      <div class="qf-user" style="display:none">
         <div class="qf-user-avatar">${getInitials(USER_NAME)}</div>
         <div>
           <div class="qf-user-name">${USER_ROLE}</div>
@@ -201,7 +201,7 @@
         <div class="qf-page-title">${title}</div>
         ${subtitle ? `<div class="qf-page-subtitle">${subtitle}</div>` : ""}
       </div>
-      <div class="qf-topbar-right">
+      <div class="qf-topbar-right" style="display:none">
         <div class="qf-user-info">
           <div class="qf-user-info-name">${USER_NAME}</div>
           <div class="qf-user-info-status">${USER_STATUS}</div>

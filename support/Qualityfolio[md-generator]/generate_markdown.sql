@@ -8,7 +8,7 @@ WHERE NULLIF($project_name, '') IS NULL OR NULLIF($requirement_text, '') IS NULL
 
 -- Shell
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,

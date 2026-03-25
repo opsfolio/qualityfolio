@@ -1,6 +1,6 @@
 -- Settings page for managing master data - UI matching entries.sql design system
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,
@@ -256,12 +256,11 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Members</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''tm-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tm-table'')" />
       </div>
       <table class="cfg-table" id="tm-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Full Name</th>
             <th>Designation</th>
             <th>Created</th>
@@ -274,13 +273,12 @@ WHERE $tab = 'team_members' OR $tab IS NULL;
 
 SELECT 'html' AS component,
   '<tr>
-    <td><span class="cfg-id-badge">' || id || '</span></td>
     <td class="cfg-name-cell" data-field="full_name" data-value="' || REPLACE(full_name, '"', '&quot;') || '">' || full_name || '</td>
     <td data-field="designation" data-value="' || COALESCE(REPLACE(designation, '"', '&quot;'), '') || '">' || COALESCE(designation, '<span style="color:var(--slate-300)">—</span>') || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td>
       <div class="cfg-actions-cell">
-        <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+        <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
                 data-action="editMember"
                 data-entity="team_members"
                 data-id="' || id || '"
@@ -289,14 +287,11 @@ SELECT 'html' AS component,
                 title="Edit ' || REPLACE(full_name, '"', '&quot;') || '">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-                data-action="deleteMember"
-                data-entity="team_members"
-                data-id="' || id || '"
-                data-name="' || REPLACE(full_name, '"', '&quot;') || '"
-                title="Delete ' || REPLACE(full_name, '"', '&quot;') || '">
+        <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+           href="/pages/settings/delete_team_member.sql?id=' || id || '"
+           title="Delete ' || REPLACE(full_name, '"', '&quot;') || '">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
+        </a>
       </div>
     </td>
   </tr>'
@@ -333,21 +328,20 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Test Types</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''tt-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tt-table'')" />
       </div>
       <table class="cfg-table" id="tt-table">
-        <thead><tr><th>ID</th><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
 ' AS html
 WHERE $tab = 'test_types';
 
 SELECT 'html' AS component,
   '<tr>
-    <td><span class="cfg-id-badge">' || id || '</span></td>
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+      <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
               data-entity="test_types"
               data-id="' || id || '"
@@ -355,14 +349,11 @@ SELECT 'html' AS component,
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
-      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-              data-action="deleteMember"
-              data-entity="test_types"
-              data-id="' || id || '"
-              data-name="' || REPLACE(name, '"', '&quot;') || '"
-              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+      <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+         href="/pages/settings/delete_test_type.sql?id=' || id || '"
+         title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
+      </a>
     </div></td>
   </tr>'
 AS html
@@ -398,21 +389,20 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Scenario Types</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''sc-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''sc-table'')" />
       </div>
       <table class="cfg-table" id="sc-table">
-        <thead><tr><th>ID</th><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
 ' AS html
 WHERE $tab = 'scenario_types';
 
 SELECT 'html' AS component,
   '<tr>
-    <td><span class="cfg-id-badge">' || id || '</span></td>
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+      <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
               data-action="editMember"
               data-entity="scenario_types"
               data-id="' || id || '"
@@ -420,14 +410,11 @@ SELECT 'html' AS component,
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
-      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-              data-action="deleteMember"
-              data-entity="scenario_types"
-              data-id="' || id || '"
-              data-name="' || REPLACE(name, '"', '&quot;') || '"
-              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+      <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+         href="/pages/settings/delete_scenario_type.sql?id=' || id || '"
+         title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
+      </a>
     </div></td>
   </tr>'
 AS html
@@ -463,21 +450,20 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Execution Types</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''ex-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''ex-table'')" />
       </div>
       <table class="cfg-table" id="ex-table">
-        <thead><tr><th>ID</th><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
 ' AS html
 WHERE $tab = 'execution_types';
 
 SELECT 'html' AS component,
   '<tr>
-    <td><span class="cfg-id-badge">' || id || '</span></td>
     <td class="cfg-name-cell">' || name || '</td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+      <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
               data-action="editMember"
               data-entity="execution_types"
               data-id="' || id || '"
@@ -485,14 +471,11 @@ SELECT 'html' AS component,
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
-      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-              data-action="deleteMember"
-              data-entity="execution_types"
-              data-id="' || id || '"
-              data-name="' || REPLACE(name, '"', '&quot;') || '"
-              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+      <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+         href="/pages/settings/delete_execution_type.sql?id=' || id || '"
+         title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
+      </a>
     </div></td>
   </tr>'
 AS html
@@ -528,23 +511,22 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Tags</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''tg-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tg-table'')" />
       </div>
       <table class="cfg-table" id="tg-table">
-        <thead><tr><th>ID</th><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
 ' AS html
 WHERE $tab = 'tags';
 
 SELECT 'html' AS component,
   '<tr>
-    <td><span class="cfg-id-badge">' || id || '</span></td>
     <td><span style="display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--text-primary);">
       <span style="background:#fef3c7;color:#92400e;border-radius:5px;padding:2px 9px;font-size:0.82rem;font-weight:700;">🏷️ ' || name || '</span>
     </span></td>
     <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
-      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+      <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
               data-action="editMember"
               data-entity="tags"
               data-id="' || id || '"
@@ -552,14 +534,11 @@ SELECT 'html' AS component,
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
-      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-              data-action="deleteMember"
-              data-entity="tags"
-              data-id="' || id || '"
-              data-name="' || REPLACE(name, '"', '&quot;') || '"
-              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+      <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+         href="/pages/settings/delete_tag.sql?id=' || id || '"
+         title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
+      </a>
     </div></td>
   </tr>'
 AS html
@@ -595,7 +574,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Statuses</span>
-        <input class="cfg-table-search" type="text" placeholder="🔍 Search…" oninput="filterTable(this, ''st-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''st-table'')" />
       </div>
       <table class="cfg-table" id="st-table">
         <thead><tr><th>Name</th><th>Actions</th></tr></thead>
@@ -607,7 +586,7 @@ SELECT 'html' AS component,
   '<tr>
     <td><span class="cfg-name-cell">' || name || '</span></td>
     <td><div class="cfg-actions-cell">
-      <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;"
+      <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
               data-action="editMember"
               data-entity="test_case_statuses"
               data-id="' || id || '"
@@ -615,14 +594,11 @@ SELECT 'html' AS component,
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
-      <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;"
-              data-action="deleteMember"
-              data-entity="test_case_statuses"
-              data-id="' || id || '"
-              data-name="' || REPLACE(name, '"', '&quot;') || '"
-              title="Delete ' || REPLACE(name, '"', '&quot;') || '">
+      <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
+         href="/pages/test_cases/delete_status.sql?id=' || id || '"
+         title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
+      </a>
     </div></td>
   </tr>'
 AS html

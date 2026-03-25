@@ -8,7 +8,7 @@ SELECT 'redirect' AS component, 'plans.sql?project_id=' || $project_id AS link
 WHERE (SELECT schema_level FROM project_metadata WHERE project_id = $project_id) = '5_level' AND $plan_id IS NULL;
 
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,

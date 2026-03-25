@@ -16,7 +16,7 @@ SET _suite_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'sui
 SET _req_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'req_id_format'), 'RQ-{NUM}');
 
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,
@@ -136,13 +136,13 @@ SELECT 'html' AS component, '
   /* ============================================
      SCHEMA BANNER
      ============================================ */
-  #qfg-schema-banner { display: none; background: linear-gradient(135deg, #d3f7f9 0%, #e0f2fe 100%); border: 1.5px solid #93c5fd; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; font-size: 0.875rem; font-weight: 600; color: #169fb9; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #qfg-schema-banner { display: none;background: #F4F9FC;border: 1.5px solid color-mix(in oklab, var(--primary) 20%, transparent);border-radius: 10px;padding: 12px 16px;margin-bottom: 18px;font-size: 0.875rem;font-weight: 600;align-items: center;gap: 10px;flex-wrap: wrap; color: oklch(0.65 0.06 235.9); }
   #qfg-schema-banner.show { display: flex; }
 
   /* ============================================
      BADGES & PILLS
      ============================================ */
-  .qfg-badge { background: #169fb9; color: #ffffff; border-radius: 9999px; padding: 4px 12px; font-size: 0.75rem; font-weight: 700; }
+  .qfg-badge { background: oklch(0.65 0.06 235.9); color: #ffffff; border-radius: 9999px; padding: 4px 12px; font-size: 0.75rem; font-weight: 700; }
   .qfg-sep { color: #1d8397; }
 
   /* ============================================
@@ -158,15 +158,8 @@ SELECT 'html' AS component, '
   /* ============================================
      BUTTONS
      ============================================ */
-  .qfg-refine-btn { float: right; background: linear-gradient(135deg, #11a6aa, #043044); color: #ffffff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 0.8125rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-bottom:10px}
-  .qfg-refine-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .qfg-refine-btn { float: right; margin-bottom:10px}
   .qfg-footer-btns { display: flex; justify-content: flex-end; gap: 12px; align-items: center; padding-top: 20px; flex-shrink: 0; border-top: 1px solid var(--border); margin-top: 24px; }
-  .qfg-btn-reset { background: var(--slate-100); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 7px 15px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-  .qfg-btn-reset:hover { background: var(--border); transform: translateY(-2px); }
-  .qfg-btn-generate { background: linear-gradient(135deg, #11a6aa, #043044); color: #ffffff; border: none; border-radius: 10px; padding: 7px 15px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-md); transition: all 0.2s ease; }
-  .qfg-btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-  .qfg-btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
-
   /* ============================================
      SPINNER
      ============================================ */
@@ -188,7 +181,7 @@ SELECT 'html' AS component, '
   .qfg-case-card { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #ffffff; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
   .qfg-case-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
   .qfg-case-head { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--slate-50); }
-  .qfg-case-id { font-size: 0.75rem; font-weight: 800; background: #8fdee1; color: #0e9289; border-radius: 6px; padding: 4px 10px; }
+  .qfg-case-id { font-size: 0.75rem; font-weight: 800; background: #8fdee1; color: #0e9289; border-radius: 6px; padding: 4px 10px;cursor: pointer; }
   .qfg-case-title { flex: 1; font-weight: 700; font-size: 0.8rem; color: #666; min-width: 200px; }
   .pri-high { background: #fee2e2; color: #991b1b; }
   .pri-medium { background: #fef3c7; color: #92400e; }
@@ -378,7 +371,7 @@ SELECT 'html' AS component, '
         </div>
         <div class="qfg-field">
           <label>Requirement Details<span class="req">*</span>
-            <button class="qfg-refine-btn " id="qfg-refine-btn">&#10024; AI Refine</button>
+            <button class="btn btn-primary qfg-refine-btn " id="qfg-refine-btn">&#10024; AI Refine</button>
           </label>
           <textarea id="qfg-req-text" name="requirement_text" rows="5" placeholder="Enter your requirements here (one per line or separated by bullets)..."></textarea>
           <div class="hint">&#128161; Requirement Details will be used to generate test cases.</div>
@@ -417,8 +410,8 @@ SELECT 'html' AS component, '
     </div><!-- /reveal -->
     <!-- Buttons -->
       <div class="qfg-footer-btns">
-        <button class="qfg-btn-reset" id="qfg-reset-btn">Reset</button>
-        <button class="qfg-btn-generate" id="qfg-gen-btn">
+        <button class="btn btn-secondary qfg-btn-reset" id="qfg-reset-btn">Reset</button>
+        <button class="btn btn-primary qfg-btn-generate" id="qfg-gen-btn">
           <span id="qfg-btn-icon">&#10024;</span>
           <span id="qfg-btn-text">Create Test Cases</span>
         </button>

@@ -1,93 +1,93 @@
 // js/settings.js — QualityFolio Settings Page Modal Handler
 // CSP-compliant: all event listeners attached programmatically, no inline handlers.
 (function () {
-    "use strict";
+  "use strict";
 
-    // ── Modal Registry ──────────────────────────────────────────────────
-    // Maps tab / entity names to their config:
-    //   addUrl    – POST endpoint for add
-    //   editUrl   – POST endpoint for edit
-    //   deleteUrl – POST endpoint for delete
-    //   fields    – array of field descriptors for the modal form
-    const ENTITY_CONFIG = {
-        team_members: {
-            label: "Team Member",
-            addUrl: "/pages/settings/save_team_member.sql",
-            editUrl: "/pages/settings/update_team_member.sql",
-            deleteUrl: "/pages/settings/delete_team_member.sql",
-            fields: [
-                { name: "full_name", label: "Full Name", type: "text", placeholder: "e.g. Jane Smith", required: true },
-                { name: "designation", label: "Designation", type: "text", placeholder: "e.g. QA Engineer", required: false }
-            ]
-        },
-        test_types: {
-            label: "Test Type",
-            addUrl: "/pages/settings/save_test_type.sql",
-            editUrl: "/pages/settings/update_test_type.sql",
-            deleteUrl: "/pages/settings/delete_test_type.sql",
-            fields: [
-                { name: "name", label: "Test Type Name", type: "text", placeholder: "e.g. Integration", required: true }
-            ]
-        },
-        scenario_types: {
-            label: "Scenario Type",
-            addUrl: "/pages/settings/save_scenario_type.sql",
-            editUrl: "/pages/settings/update_scenario_type.sql",
-            deleteUrl: "/pages/settings/delete_scenario_type.sql",
-            fields: [
-                { name: "name", label: "Scenario Type Name", type: "text", placeholder: "e.g. Happy Path", required: true }
-            ]
-        },
-        execution_types: {
-            label: "Execution Type",
-            addUrl: "/pages/settings/save_execution_type.sql",
-            editUrl: "/pages/settings/update_execution_type.sql",
-            deleteUrl: "/pages/settings/delete_execution_type.sql",
-            fields: [
-                { name: "name", label: "Execution Type Name", type: "text", placeholder: "e.g. Automated", required: true }
-            ]
-        },
-        tags: {
-            label: "Tag",
-            addUrl: "/pages/settings/save_tag.sql",
-            editUrl: "/pages/settings/update_tag.sql",
-            deleteUrl: "/pages/settings/delete_tag.sql",
-            fields: [
-                { name: "name", label: "Tag Name", type: "text", placeholder: "e.g. Regression", required: true }
-            ]
-        },
-        test_case_statuses: {
-            label: "Status",
-            addUrl: "/pages/test_cases/save_status.sql",
-            editUrl: "/pages/test_cases/update_status.sql",
-            deleteUrl: "/pages/test_cases/delete_status.sql",
-            fields: [
-                { name: "name", label: "Status Name", type: "text", placeholder: "e.g. Passed", required: true }
-            ]
-        }
-    };
-
-    // ── Helpers ─────────────────────────────────────────────────────────
-    function esc(str) {
-        return String(str || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+  // ── Modal Registry ──────────────────────────────────────────────────
+  // Maps tab / entity names to their config:
+  //   addUrl    – POST endpoint for add
+  //   editUrl   – POST endpoint for edit
+  //   deleteUrl – POST endpoint for delete
+  //   fields    – array of field descriptors for the modal form
+  const ENTITY_CONFIG = {
+    team_members: {
+      label: "Team Member",
+      addUrl: "/pages/settings/save_team_member.sql",
+      editUrl: "/pages/settings/update_team_member.sql",
+      deleteUrl: "/pages/settings/delete_team_member.sql",
+      fields: [
+        { name: "full_name", label: "Full Name", type: "text", placeholder: "e.g. Jane Smith", required: true },
+        { name: "designation", label: "Designation", type: "text", placeholder: "e.g. QA Engineer", required: false }
+      ]
+    },
+    test_types: {
+      label: "Test Type",
+      addUrl: "/pages/settings/save_test_type.sql",
+      editUrl: "/pages/settings/update_test_type.sql",
+      deleteUrl: "/pages/settings/delete_test_type.sql",
+      fields: [
+        { name: "name", label: "Test Type Name", type: "text", placeholder: "e.g. Integration", required: true }
+      ]
+    },
+    scenario_types: {
+      label: "Scenario Type",
+      addUrl: "/pages/settings/save_scenario_type.sql",
+      editUrl: "/pages/settings/update_scenario_type.sql",
+      deleteUrl: "/pages/settings/delete_scenario_type.sql",
+      fields: [
+        { name: "name", label: "Scenario Type Name", type: "text", placeholder: "e.g. Happy Path", required: true }
+      ]
+    },
+    execution_types: {
+      label: "Execution Type",
+      addUrl: "/pages/settings/save_execution_type.sql",
+      editUrl: "/pages/settings/update_execution_type.sql",
+      deleteUrl: "/pages/settings/delete_execution_type.sql",
+      fields: [
+        { name: "name", label: "Execution Type Name", type: "text", placeholder: "e.g. Automated", required: true }
+      ]
+    },
+    tags: {
+      label: "Tag",
+      addUrl: "/pages/settings/save_tag.sql",
+      editUrl: "/pages/settings/update_tag.sql",
+      deleteUrl: "/pages/settings/delete_tag.sql",
+      fields: [
+        { name: "name", label: "Tag Name", type: "text", placeholder: "e.g. Regression", required: true }
+      ]
+    },
+    test_case_statuses: {
+      label: "Status",
+      addUrl: "/pages/test_cases/save_status.sql",
+      editUrl: "/pages/test_cases/update_status.sql",
+      deleteUrl: "/pages/test_cases/delete_status.sql",
+      fields: [
+        { name: "name", label: "Status Name", type: "text", placeholder: "e.g. Passed", required: true }
+      ]
     }
+  };
 
-    function getEntityType() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("tab") || "team_members";
-    }
+  // ── Helpers ─────────────────────────────────────────────────────────
+  function esc(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 
-    // ── Modal Infrastructure ─────────────────────────────────────────────
-    function createModals() {
-        if (document.getElementById("cfg-modal-overlay")) return; // already created
+  function getEntityType() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") || "team_members";
+  }
 
-        const overlay = document.createElement("div");
-        overlay.id = "cfg-modal-overlay";
-        overlay.innerHTML = `
+  // ── Modal Infrastructure ─────────────────────────────────────────────
+  function createModals() {
+    if (document.getElementById("cfg-modal-overlay")) return; // already created
+
+    const overlay = document.createElement("div");
+    overlay.id = "cfg-modal-overlay";
+    overlay.innerHTML = `
       <style>
         #cfg-modal-overlay {
           display: none; position: fixed; inset: 0; z-index: 9999;
@@ -214,50 +214,50 @@
         </div>
       </div>
     `;
-        document.body.appendChild(overlay);
+    document.body.appendChild(overlay);
 
-        // ── Close handlers ──────────────────────────────────────────────
-        function closeAll() {
-            overlay.classList.remove("open");
-            document.getElementById("cfg-edit-modal").style.display = "none";
-            document.getElementById("cfg-del-modal").style.display = "none";
-        }
-
-        document.getElementById("cfg-edit-modal-close").addEventListener("click", closeAll);
-        document.getElementById("cfg-edit-modal-cancel").addEventListener("click", closeAll);
-        document.getElementById("cfg-del-modal-close").addEventListener("click", closeAll);
-        document.getElementById("cfg-del-modal-cancel").addEventListener("click", closeAll);
-
-        overlay.addEventListener("click", function (e) {
-            if (e.target === overlay) closeAll();
-        });
-
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape") closeAll();
-        });
+    // ── Close handlers ──────────────────────────────────────────────
+    function closeAll() {
+      overlay.classList.remove("open");
+      document.getElementById("cfg-edit-modal").style.display = "none";
+      document.getElementById("cfg-del-modal").style.display = "none";
     }
 
-    // ── Open Add Modal ───────────────────────────────────────────────────
-    function openAddModal(entityType) {
-        const cfg = ENTITY_CONFIG[entityType];
-        if (!cfg) return;
+    document.getElementById("cfg-edit-modal-close").addEventListener("click", closeAll);
+    document.getElementById("cfg-edit-modal-cancel").addEventListener("click", closeAll);
+    document.getElementById("cfg-del-modal-close").addEventListener("click", closeAll);
+    document.getElementById("cfg-del-modal-cancel").addEventListener("click", closeAll);
 
-        const overlay = document.getElementById("cfg-modal-overlay");
-        const editModal = document.getElementById("cfg-edit-modal");
-        const delModal = document.getElementById("cfg-del-modal");
-        const form = document.getElementById("cfg-edit-form");
-        const body = document.getElementById("cfg-edit-modal-body");
-        const title = document.getElementById("cfg-edit-modal-title");
-        const saveLbl = document.getElementById("cfg-edit-modal-save-lbl");
-        const idInput = document.getElementById("cfg-edit-id");
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeAll();
+    });
 
-        title.textContent = "Add " + cfg.label;
-        saveLbl.textContent = "Add " + cfg.label;
-        form.action = cfg.addUrl;
-        idInput.value = "";
-        idInput.name = ""; // don't send id for new records
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeAll();
+    });
+  }
 
-        body.innerHTML = cfg.fields.map(f => `
+  // ── Open Add Modal ───────────────────────────────────────────────────
+  function openAddModal(entityType) {
+    const cfg = ENTITY_CONFIG[entityType];
+    if (!cfg) return;
+
+    const overlay = document.getElementById("cfg-modal-overlay");
+    const editModal = document.getElementById("cfg-edit-modal");
+    const delModal = document.getElementById("cfg-del-modal");
+    const form = document.getElementById("cfg-edit-form");
+    const body = document.getElementById("cfg-edit-modal-body");
+    const title = document.getElementById("cfg-edit-modal-title");
+    const saveLbl = document.getElementById("cfg-edit-modal-save-lbl");
+    const idInput = document.getElementById("cfg-edit-id");
+
+    title.textContent = "Add " + cfg.label;
+    saveLbl.textContent = "Add " + cfg.label;
+    form.action = cfg.addUrl;
+    idInput.value = "";
+    idInput.name = ""; // don't send id for new records
+
+    body.innerHTML = cfg.fields.map(f => `
       <div class="cfg-field">
         <label>${esc(f.label)}${f.required ? '<span class="req">*</span>' : ''}</label>
         <input type="${esc(f.type)}" name="${esc(f.name)}" placeholder="${esc(f.placeholder)}"
@@ -265,36 +265,36 @@
       </div>
     `).join("");
 
-        delModal.style.display = "none";
-        editModal.style.display = "block";
-        overlay.classList.add("open");
+    delModal.style.display = "none";
+    editModal.style.display = "block";
+    overlay.classList.add("open");
 
-        // Focus first input
-        const first = body.querySelector("input");
-        if (first) setTimeout(() => first.focus(), 80);
-    }
+    // Focus first input
+    const first = body.querySelector("input");
+    if (first) setTimeout(() => first.focus(), 80);
+  }
 
-    // ── Open Edit Modal ──────────────────────────────────────────────────
-    function openEditModal(entityType, id, currentData) {
-        const cfg = ENTITY_CONFIG[entityType];
-        if (!cfg) return;
+  // ── Open Edit Modal ──────────────────────────────────────────────────
+  function openEditModal(entityType, id, currentData) {
+    const cfg = ENTITY_CONFIG[entityType];
+    if (!cfg) return;
 
-        const overlay = document.getElementById("cfg-modal-overlay");
-        const editModal = document.getElementById("cfg-edit-modal");
-        const delModal = document.getElementById("cfg-del-modal");
-        const form = document.getElementById("cfg-edit-form");
-        const body = document.getElementById("cfg-edit-modal-body");
-        const title = document.getElementById("cfg-edit-modal-title");
-        const saveLbl = document.getElementById("cfg-edit-modal-save-lbl");
-        const idInput = document.getElementById("cfg-edit-id");
+    const overlay = document.getElementById("cfg-modal-overlay");
+    const editModal = document.getElementById("cfg-edit-modal");
+    const delModal = document.getElementById("cfg-del-modal");
+    const form = document.getElementById("cfg-edit-form");
+    const body = document.getElementById("cfg-edit-modal-body");
+    const title = document.getElementById("cfg-edit-modal-title");
+    const saveLbl = document.getElementById("cfg-edit-modal-save-lbl");
+    const idInput = document.getElementById("cfg-edit-id");
 
-        title.textContent = "Edit " + cfg.label;
-        saveLbl.textContent = "Save Changes";
-        form.action = cfg.editUrl;
-        idInput.name = "edit_id";
-        idInput.value = id;
+    title.textContent = "Edit " + cfg.label;
+    saveLbl.textContent = "Save Changes";
+    form.action = cfg.editUrl;
+    idInput.name = "edit_id";
+    idInput.value = id;
 
-        body.innerHTML = cfg.fields.map(f => `
+    body.innerHTML = cfg.fields.map(f => `
       <div class="cfg-field">
         <label>${esc(f.label)}${f.required ? '<span class="req">*</span>' : ''}</label>
         <input type="${esc(f.type)}" name="${esc(f.name)}" placeholder="${esc(f.placeholder)}"
@@ -303,111 +303,104 @@
       </div>
     `).join("");
 
-        delModal.style.display = "none";
-        editModal.style.display = "block";
-        overlay.classList.add("open");
+    delModal.style.display = "none";
+    editModal.style.display = "block";
+    overlay.classList.add("open");
 
-        const first = body.querySelector("input");
-        if (first) setTimeout(() => first.focus(), 80);
-    }
+    const first = body.querySelector("input");
+    if (first) setTimeout(() => first.focus(), 80);
+  }
 
-    // ── Open Delete Confirmation Modal ───────────────────────────────────
-    function openDeleteModal(entityType, id, itemName) {
-        const cfg = ENTITY_CONFIG[entityType];
-        if (!cfg) return;
+  // ── Open Delete Confirmation Modal ───────────────────────────────────
+  function openDeleteModal(entityType, id, itemName) {
+    const cfg = ENTITY_CONFIG[entityType];
+    if (!cfg) return;
 
-        const overlay = document.getElementById("cfg-modal-overlay");
-        const editModal = document.getElementById("cfg-edit-modal");
-        const delModal = document.getElementById("cfg-del-modal");
-        const delForm = document.getElementById("cfg-del-form");
-        const delIdInp = document.getElementById("cfg-del-id");
-        const delMsg = document.getElementById("cfg-del-modal-msg");
+    const overlay = document.getElementById("cfg-modal-overlay");
+    const editModal = document.getElementById("cfg-edit-modal");
+    const delModal = document.getElementById("cfg-del-modal");
+    const delForm = document.getElementById("cfg-del-form");
+    const delIdInp = document.getElementById("cfg-del-id");
+    const delMsg = document.getElementById("cfg-del-modal-msg");
 
-        delForm.action = cfg.deleteUrl;
-        delIdInp.value = id;
-        delMsg.innerHTML = `Are you sure you want to delete<br><strong>${esc(itemName)}</strong>?<br><span style="font-size:0.82rem;color:#ef4444;margin-top:6px;display:inline-block;">This action cannot be undone.</span>`;
+    delForm.action = cfg.deleteUrl;
+    delIdInp.value = id;
+    delMsg.innerHTML = `Are you sure you want to delete<br><strong>${esc(itemName)}</strong>?<br><span style="font-size:0.82rem;color:#ef4444;margin-top:6px;display:inline-block;">This action cannot be undone.</span>`;
 
-        editModal.style.display = "none";
-        delModal.style.display = "block";
-        overlay.classList.add("open");
-    }
+    editModal.style.display = "none";
+    delModal.style.display = "block";
+    overlay.classList.add("open");
+  }
 
-    // ── Wire up "Add" buttons on the page ───────────────────────────────
-    function wireAddButtons() {
-        document.querySelectorAll("[data-action='addMember']").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const entity = this.dataset.entity || getEntityType();
-                openAddModal(entity);
-            });
-        });
-    }
+  // ── Wire up "Add" buttons on the page ───────────────────────────────
+  function wireAddButtons() {
+    document.querySelectorAll("[data-action='addMember']").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const entity = this.dataset.entity || getEntityType();
+        openAddModal(entity);
+      });
+    });
+  }
 
-    // ── Event Delegation for Edit / Delete ──────────────────────────────
-    function wireTableActions() {
-        document.addEventListener("click", function (e) {
-            // Edit button
-            const editBtn = e.target.closest("[data-action='editMember']");
-            if (editBtn) {
-                e.preventDefault();
-                const entity = editBtn.dataset.entity || getEntityType();
-                const id = editBtn.dataset.id;
-                // Build currentData from sibling cells
-                const row = editBtn.closest("tr");
-                const data = {};
-                if (row) {
-                    // Read data-* attributes set by the SQL on the button itself as the primary source
-                    Object.keys(editBtn.dataset).forEach(k => {
-                        if (k !== "action" && k !== "entity" && k !== "id") {
-                            data[k] = editBtn.dataset[k];
-                        }
-                    });
-                    // Fallback: read named cells from the row
-                    row.querySelectorAll("td[data-field]").forEach(td => {
-                        data[td.dataset.field] = td.dataset.value || td.textContent.trim();
-                    });
-                }
-                openEditModal(entity, id, data);
-                return;
+  // ── Event Delegation for Edit / Delete ──────────────────────────────
+  function wireTableActions() {
+    document.addEventListener("click", function (e) {
+      // Edit button
+      const editBtn = e.target.closest("[data-action='editMember']");
+      if (editBtn) {
+        e.preventDefault();
+        const entity = editBtn.dataset.entity || getEntityType();
+        const id = editBtn.dataset.id;
+        // Build currentData from sibling cells
+        const row = editBtn.closest("tr");
+        const data = {};
+        if (row) {
+          // Read data-* attributes set by the SQL on the button itself as the primary source
+          Object.keys(editBtn.dataset).forEach(k => {
+            if (k !== "action" && k !== "entity" && k !== "id") {
+              data[k] = editBtn.dataset[k];
             }
+          });
+          // Fallback: read named cells from the row
+          row.querySelectorAll("td[data-field]").forEach(td => {
+            data[td.dataset.field] = td.dataset.value || td.textContent.trim();
+          });
+        }
+        openEditModal(entity, id, data);
+        return;
+      }
 
-            // Delete button
-            const delBtn = e.target.closest("[data-action='deleteMember']");
-            if (delBtn) {
-                e.preventDefault();
-                const entity = delBtn.dataset.entity || getEntityType();
-                const id = delBtn.dataset.id;
-                const itemName = delBtn.dataset.name || "this item";
-                openDeleteModal(entity, id, itemName);
-            }
-        });
-    }
+      // Delete buttons are now plain <a> links pointing to each entity's
+      // SQLPage confirmation page (delete_*.sql?id=X). No JS interception needed.
+    });
+  }
 
-    // ── Table filter (kept from original settings.sql inline script) ────
-    window.filterTable = function (input, tableId) {
-        const q = input.value.toLowerCase();
-        const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
-        rows.forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
-        });
-    };
+  // ── Table filter (kept from original settings.sql inline script) ────
+  window.filterTable = function (input, tableId) {
+    const q = input.value.toLowerCase();
+    const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
+    rows.forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
+    });
+  };
 
-    // ── Public API ────────────────────────────────────────────────────────
-    window.CFGSettings = {
-        openAddModal,
-        openEditModal,
-        openDeleteModal
-    };
+  // ── Public API ────────────────────────────────────────────────────────
+  window.CFGSettings = {
+    openAddModal,
+    openEditModal,
+    openDeleteModal
+  };
 
-    // ── Boot ──────────────────────────────────────────────────────────────
-    function init() {
-        createModals();
-        wireAddButtons();
-        wireTableActions();
-    }
+  // ── Boot ──────────────────────────────────────────────────────────────
+  function init() {
+    createModals();
+    wireAddButtons();
+    wireTableActions();
+  }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-    } else {
-        init();
-    }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

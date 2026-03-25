@@ -560,7 +560,7 @@ textarea {
 .btn-primary,
 .btn-default {
   /*background: linear-gradient(135deg, var(--primary), var(--accent)) !important;*/
-  background-color: oklch(67.66% .1481 238.14) !important;
+  background: linear-gradient(135deg, #1bbac8, #439e8c) !important;
   color: #ffffff !important;
   border: none !important;
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
@@ -590,9 +590,8 @@ textarea {
 
 .btn-primary:hover,
 .btn-default:hover {
-  /*transform: translateY(-1px) !important;*/
-  box-shadow: none !important;
-  background-color: oklch(72% .1481 238.14) !important; /* Slightly lighter */
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3) !important;
 }
 
 .btn-secondary,
@@ -605,16 +604,17 @@ textarea {
 .btn-secondary:hover,
 .btn-light:hover {
   background: #e2e8f0 !important;
+  transform: translateY(-1px) !important;
 }
 
-.btn-danger,
+.btn-delete-action,
 .btn-outline-danger {
   background: #cf3535 !important;
   color: #ffffff !important;
   border: none !important;
 }
 
-.btn-danger:hover,
+.btn-delete-action:hover,
 .btn-outline-danger:hover {
   opacity: 0.9 !important;
   transform: translateY(-1px) !important;

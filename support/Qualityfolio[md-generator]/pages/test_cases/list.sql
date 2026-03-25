@@ -40,7 +40,7 @@ WHERE $suite_id IS NOT NULL AND $suite_id != ''
 -- STEP 2: Shell (first component output — after all redirects)
 -- ============================================================
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,

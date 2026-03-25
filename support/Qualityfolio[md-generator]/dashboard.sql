@@ -19,7 +19,7 @@ SET _suite_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'sui
 SET _req_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'req_id_format'), 'RQ-{NUM}');
 
 SELECT 'shell' AS component,
-       '' AS title,
+       'Qualityfolio AI' AS title,
        'logo.png' AS image,
        '/' AS link,
        'Rahul Raj' AS user_name,

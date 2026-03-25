@@ -1193,6 +1193,7 @@
     }
     modalsContainer.innerHTML =
       editCaseModalHTML(mOpts) +
+      viewCaseModalHTML() +
       editSuiteModalHTML() +
       editPlanModalHTML();
 
@@ -1570,7 +1571,7 @@
     <div class="qfg-case-card" data-idx="${i}">
       <div class="qfg-case-head">
         <input type="checkbox" class="tc-checkbox" data-idx="${i}"/>
-        <span class="qfg-case-id">${esc(c.testCaseId || `TC-${String(i + 1).padStart(2, "0")}`)}</span>
+        <button class="qfg-case-id tc-view-btn" data-idx="${i}" title="View test case details">${esc(c.testCaseId || `TC-${String(i + 1).padStart(2, "0")}`)}</button>
         <span class="qfg-case-title">${esc(c.title || "Untitled")}</span>
         <span class="qfg-case-pill ${priCls}">${esc(c.priority || "Medium")}</span>
         <span class="qfg-case-pill" style="background:#f1f5f9;color:#475569">${esc(c.scenarioType || c.scenario_type || "—")}</span>
@@ -1717,7 +1718,7 @@
     <div class="qfg-modal-overlay" id="editCaseModal" style="display:none">
       <div class="qfg-modal" style="width:min(680px,96vw)">
         <div class="qfg-modal-header">
-          <span>&#9998; Edit Test Case</span>
+          <span id="editCaseModalTitle">&#9998; Edit Test Case</span>
           <button class="qfg-modal-close" id="editCaseModalClose">&#10005;</button>
         </div>
         <div class="qfg-modal-body" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
@@ -1816,10 +1817,71 @@
         </div>
         <div class="qfg-modal-footer" style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:0.5rem; border-radius: 0 0 8px 8px;">
           <button class="qfg-btn-reset" id="editCaseModalCancel" style="padding: 8px 16px; border-radius: 6px;">Cancel</button>
-          <button class="qfg-btn-generate" id="editCaseModalSave" style="padding: 8px 16px; border-radius: 6px;">Save Changes</button>
+          <button class="qfg-btn-generate" id="editCaseModalSave" style="padding: 8px 16px; border-radius: 6px;"><span id="editCaseModalSaveLabel">Save Changes</span></button>
         </div>
       </div>
     </div>`;
+  }
+
+  // ── View (Detail) Modal HTML ─────────────────────────────────────
+  function viewCaseModalHTML() {
+    return `
+    <div class="qfg-modal-overlay" id="viewCaseModal" style="display:none">
+      <div class="qfg-modal" style="width:min(720px,96vw);max-height:92vh;display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div class="qfg-modal-header" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <span id="vcModalTcId" style="font-size:.78rem;font-weight:800;padding:3px 10px;border-radius:6px;background:#e0f2fe;color:#0369a1;letter-spacing:.03em;"></span>
+          <span id="vcModalTitle" style="font-size:.95rem;font-weight:700;color:#0f172a;flex:1;line-height:1.4;"></span>
+          <button class="qfg-modal-close" id="viewCaseModalClose">&#10005;</button>
+        </div>
+        <!-- Meta ribbon -->
+        <div id="vcMetaRibbon" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;"></div>
+        <!-- Body -->
+        <div style="overflow-y:auto;flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:18px;">
+          <!-- Description -->
+          <div id="vcDescBlock" style="display:none">
+            <div class="vc-section-label">📋 Description</div>
+            <div id="vcDescription" class="vc-prose"></div>
+          </div>
+          <!-- Pre-conditions -->
+          <div id="vcPreBlock" style="display:none">
+            <div class="vc-section-label">⚙️ Pre-conditions</div>
+            <ol id="vcPreConditions" class="vc-list"></ol>
+          </div>
+          <!-- Steps -->
+          <div id="vcStepsBlock" style="display:none">
+            <div class="vc-section-label">🪜 Steps</div>
+            <ol id="vcSteps" class="vc-list vc-steps-list"></ol>
+          </div>
+          <!-- Expected Result -->
+          <div id="vcExpBlock" style="display:none">
+            <div class="vc-section-label">✅ Expected Result</div>
+            <ol id="vcExpected" class="vc-list"></ol>
+          </div>
+          <!-- Evidence History -->
+          <div id="vcEvBlock" style="display:none">
+            <div class="vc-section-label">📎 Evidence History</div>
+            <div id="vcEvidenceList" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div class="qfg-modal-footer" style="padding:12px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;">
+          <button class="qfg-btn-reset" id="viewCaseModalEdit" style="padding:8px 16px;border-radius:6px;">✏️ Edit</button>
+          <button class="qfg-btn-reset" id="viewCaseModalClose2" style="padding:8px 16px;border-radius:6px;">Close</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      .vc-section-label{font-size:.72rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid #e2e8f0;}
+      .vc-prose{font-size:.875rem;color:#334155;line-height:1.7;white-space:pre-wrap;}
+      .vc-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;}
+      .vc-list li{font-size:.875rem;color:#334155;line-height:1.6;padding:4px 0;}
+      .vc-steps-list li{background:#f8fafc;border-left:3px solid #0ea5e9;border-radius:0 6px 6px 0;padding:7px 12px;list-style:decimal;margin-left:4px;}
+      .vc-meta-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:700;}
+      .vc-ev-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 14px;border-radius:8px;border-left:3px solid #94a3b8;background:#f8fafc;}
+      .qfg-case-id.tc-view-btn{background:none;border:none;cursor:pointer;font-weight:800;font-size:.72rem;padding:2px 8px;border-radius:5px;background:#e0f2fe;color:#0369a1;letter-spacing:.04em;transition:background .15s;}
+      .qfg-case-id.tc-view-btn:hover{background:#bae6fd;text-decoration:underline;}
+    </style>`;
   }
 
   function editSuiteModalHTML() {
@@ -2145,6 +2207,7 @@
 
       // Per-card Edit/Delete (including plan-level for 5-level)
       cardList.addEventListener("click", (e) => {
+        const viewBtn = e.target.closest(".tc-view-btn");
         const editBtn = e.target.closest(".tc-edit-btn");
         const delBtn = e.target.closest(".tc-delete-btn");
         const suiteEditBtn = e.target.closest(".edit-suite-results-btn");
@@ -2153,6 +2216,7 @@
         const planEditBtn = e.target.closest(".edit-plan-results-btn");
         const planDelBtn = e.target.closest(".delete-plan-results-btn");
 
+        if (viewBtn) openViewCaseModal(parseInt(viewBtn.dataset.idx));
         if (editBtn) openEditCaseModal(parseInt(editBtn.dataset.idx));
         if (delBtn) {
           const i = parseInt(delBtn.dataset.idx);
@@ -2604,6 +2668,19 @@
       }),
     );
 
+    // View modal close + edit
+    ["viewCaseModalClose", "viewCaseModalClose2"].forEach((id) =>
+      on(id, "click", () => {
+        document.getElementById("viewCaseModal").style.display = "none";
+      }),
+    );
+    on("viewCaseModalEdit", "click", () => {
+      const mo = document.getElementById("viewCaseModal");
+      const idx = parseInt(mo.dataset.idx);
+      mo.style.display = "none";
+      openEditCaseModal(idx);
+    });
+
     // Evidence row add
     on("ecAddEvidenceRow", "click", () => {
       const uInp = document.getElementById("qfg-creator")?.value || "";
@@ -2690,6 +2767,10 @@
     mo.dataset.pi = pi;
 
     const isNew = i === null;
+    const titleEl = document.getElementById("editCaseModalTitle");
+    if (titleEl) titleEl.innerHTML = isNew ? "&#10133; Add New Test Case" : "&#9998; Edit Test Case";
+    const saveLabelEl = document.getElementById("editCaseModalSaveLabel");
+    if (saveLabelEl) saveLabelEl.textContent = isNew ? "Add Test Case" : "Save Changes";
     const c = isNew
       ? {
         testCaseId: makeId(_tcIdFormat, _cases.length + 1, getVal("qfg-project")),
@@ -2776,6 +2857,95 @@
           assignee: document.getElementById("qfg-creator")?.value || "",
         });
       }
+    }
+
+    mo.style.display = "flex";
+  }
+
+  // ── Open view (detail) modal ────────────────────────────────────
+  function openViewCaseModal(i) {
+    const c = _cases[i];
+    if (!c) return;
+
+    const mo = document.getElementById("viewCaseModal");
+    mo.dataset.idx = i;
+
+    const tcId = c.testCaseId || `TC-${String(i + 1).padStart(2, "0")}`;
+    const title = Array.isArray(c.title) ? c.title.join(" ") : (c.title || "Untitled");
+
+    // Header
+    document.getElementById("vcModalTcId").textContent = tcId;
+    document.getElementById("vcModalTitle").textContent = title;
+
+    // Meta ribbon
+    const priColor = (p) => p === "High" ? "#ef4444" : p === "Low" ? "#22c55e" : p === "Critical" ? "#7c3aed" : "#f59e0b";
+    const evHist = c.evidenceHistory && c.evidenceHistory.length > 0 ? c.evidenceHistory[c.evidenceHistory.length - 1] : null;
+    const assignee = evHist ? evHist.assignee : (c.assignee || "Unassigned");
+    const status = evHist ? (evHist.status || "To-do") : "To-do";
+    const statusColor = status === "Passed" ? "#16a34a" : status === "Failed" ? "#dc2626" : status === "In Progress" ? "#2563eb" : status === "Blocked" ? "#9333ea" : "#64748b";
+
+    const pills = [
+      `<span class="vc-meta-pill" style="background:${priColor(c.priority || "Medium")}18;color:${priColor(c.priority || "Medium")};border:1px solid ${priColor(c.priority || "Medium")}44">⚡ ${esc(c.priority || "Medium")}</span>`,
+      c.scenarioType ? `<span class="vc-meta-pill" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1">🎯 ${esc(c.scenarioType)}</span>` : "",
+      c.executionType ? `<span class="vc-meta-pill" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe">🔧 ${esc(c.executionType)}</span>` : "",
+      c.reqId || _ctx.reqId ? `<span class="vc-meta-pill" style="background:#fefce8;color:#a16207;border:1px solid #fef08a">📌 ${esc(c.reqId || _ctx.reqId)}</span>` : "",
+      assignee ? `<span class="vc-meta-pill" style="background:#faf5ff;color:#6d28d9;border:1px solid #e9d5ff">👤 ${esc(assignee)}</span>` : "",
+      `<span class="vc-meta-pill" style="background:${statusColor}18;color:${statusColor};border:1px solid ${statusColor}44">● ${esc(status)}</span>`,
+      c.tags && c.tags.length > 0 ? `<span class="vc-meta-pill" style="background:#f3e8ff;color:#7c3aed;border:1px solid #e9d5ff">🏷️ ${esc(Array.isArray(c.tags) ? c.tags.join(", ") : c.tags)}</span>` : "",
+    ].filter(Boolean).join("");
+    document.getElementById("vcMetaRibbon").innerHTML = pills;
+
+    // Description
+    const desc = Array.isArray(c.description) ? c.description.join("\n") : (c.description || "");
+    const descBlock = document.getElementById("vcDescBlock");
+    if (desc.trim()) {
+      document.getElementById("vcDescription").textContent = desc;
+      descBlock.style.display = "";
+    } else {
+      descBlock.style.display = "none";
+    }
+
+    // Helper: render array to <li> list
+    const fillList = (elId, blockId, val) => {
+      const items = toArr(val).filter(Boolean);
+      const block = document.getElementById(blockId);
+      if (items.length) {
+        document.getElementById(elId).innerHTML = items.map(s => `<li>${esc(String(s))}</li>`).join("");
+        block.style.display = "";
+      } else {
+        block.style.display = "none";
+      }
+    };
+
+    fillList("vcPreConditions", "vcPreBlock", c.preConditions || c.pre_conditions);
+    fillList("vcSteps", "vcStepsBlock", c.steps);
+    fillList("vcExpected", "vcExpBlock", c.expectedResult || c.expected_result);
+
+    // Evidence history
+    const evBlock = document.getElementById("vcEvBlock");
+    const evList = document.getElementById("vcEvidenceList");
+    const history = c.evidenceHistory || [];
+    if (history.length > 0) {
+      const statusCol = (s) => s === "Passed" ? "#16a34a" : s === "Failed" ? "#dc2626" : s === "In Progress" ? "#2563eb" : s === "Blocked" ? "#9333ea" : "#64748b";
+      evList.innerHTML = history.map((ev) => {
+        const s = ev.status || "To-do";
+        const sc = statusCol(s);
+        return `<div class="vc-ev-row" style="border-left-color:${sc}">
+          <span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:2px 9px;font-size:.75rem;font-weight:700;color:#1d4ed8">
+            CYCLE ${esc(ev.cycle || "—")}
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:2px 9px;font-size:.75rem;color:#15803d">
+            📅 ${esc(ev.cycleDate || ev.date || "—")}
+          </span>
+          <span style="font-size:.73rem;font-weight:700;padding:2px 10px;border-radius:999px;background:${sc}18;color:${sc};border:1px solid ${sc}44">${esc(s)}</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:6px;padding:2px 9px;font-size:.75rem;color:#6d28d9">
+            👤 ${esc(ev.assignee || "Unassigned")}
+          </span>
+        </div>`;
+      }).join("");
+      evBlock.style.display = "";
+    } else {
+      evBlock.style.display = "none";
     }
 
     mo.style.display = "flex";
