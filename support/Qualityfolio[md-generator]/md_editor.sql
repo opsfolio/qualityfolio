@@ -319,7 +319,7 @@ SELECT 'html' AS component, '
             padding: 7px 10px;
             cursor: pointer;
             border-radius: 8px;
-            color: oklch(67.66% .1481 238.14) !important;
+            color: #666 !important;
             font-size: 0.75rem;
             transition: all 0.2s ease;
             white-space: nowrap;

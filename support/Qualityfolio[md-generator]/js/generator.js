@@ -624,6 +624,42 @@
     }
   }
 
+  // ── AI Refine for individual case modal (Pre-conditions, Steps, Expected) ──
+  async function aiRefineCaseField(fieldId, btnEl) {
+    const ta = document.getElementById(fieldId);
+    if (!ta || !ta.value.trim()) {
+      if (ta) ta.focus();
+      return;
+    }
+
+    // Gather context from the modal fields
+    const title = document.getElementById("ecTitle")?.value.trim() || "";
+    const description = document.getElementById("ecDescription")?.value.trim() || "";
+
+    const fieldLabels = {
+      ecPreConditions: "pre-conditions",
+      ecSteps: "test steps",
+      ecExpected: "expected results",
+    };
+    const fieldLabel = fieldLabels[fieldId] || "content";
+
+    const originalText = btnEl.textContent;
+    btnEl.textContent = "⏳ Refining…";
+    btnEl.disabled = true;
+
+    try {
+      ta.value = await callGroq(
+        `You are refining the "${fieldLabel}" section of a test case.\n\nTest Case Title: ${title}\nDescription: ${description}\n\nCurrent ${fieldLabel}:\n${ta.value}\n\nImprove clarity, completeness, and professional quality. Keep one item per line. Return only the improved content, no commentary.`,
+        "You are a Senior QA Engineer. Return only the improved content with no preamble, labels, or markdown."
+      );
+    } catch (e) {
+      showModal("Refine failed", e.message);
+    } finally {
+      btnEl.textContent = originalText;
+      btnEl.disabled = false;
+    }
+  }
+
   // ── Groq API ─────────────────────────────────────────────────────
   async function callGroq(userMsg, sysMsg) {
     if (!_apiKey)
@@ -1749,6 +1785,7 @@
 
           <div class="qfg-field" style="margin-bottom: 1rem;">
               <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">Pre-conditions <span style="font-size:0.75rem;color:#94a3b8">(one per line)</span></label>
+<button type="button" id="ecAiRefineBtn" class="qfg-refine-btn btn btn-primary suite-refine-btn" style="float:right">✨ AI Refine</button>
               <textarea id="ecPreConditions" rows="3" placeholder="e.g. User is logged in" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; resize:vertical; font-family: inherit; font-size:0.85rem; color: #1e293b;"></textarea>
           </div>
 
@@ -1820,8 +1857,8 @@
 
         </div>
         <div class="qfg-modal-footer" style="padding: 1rem 1.5rem; background: #f8fafc; border-top: 1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:0.5rem; border-radius: 0 0 8px 8px;">
-          <button class="qfg-btn-reset" id="editCaseModalCancel" style="padding: 8px 16px; border-radius: 6px;">Cancel</button>
-          <button class="qfg-btn-generate" id="editCaseModalSave" style="padding: 8px 16px; border-radius: 6px;"><span id="editCaseModalSaveLabel">Save Changes</span></button>
+          <button class="btn btn-secondary qfg-btn-reset" id="editCaseModalCancel" style="padding: 8px 16px; border-radius: 6px;">Cancel</button>
+          <button class="btn btn-primary qfg-btn-generate" id="editCaseModalSave" style="padding: 8px 16px; border-radius: 6px;"><span id="editCaseModalSaveLabel">Save Changes</span></button>
         </div>
       </div>
     </div>`;
@@ -1870,8 +1907,8 @@
         </div>
         <!-- Footer -->
         <div class="qfg-modal-footer" style="padding:12px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;">
-          <button class="qfg-btn-reset" id="viewCaseModalEdit" style="padding:8px 16px;border-radius:6px;">✏️ Edit</button>
-          <button class="qfg-btn-reset" id="viewCaseModalClose2" style="padding:8px 16px;border-radius:6px;">Close</button>
+          <button class="btn btn-secondary qfg-btn-reset" id="viewCaseModalEdit" style="padding:8px 16px;border-radius:6px;">✏️ Edit</button>
+          <button class="btn btn-primary qfg-btn-reset" id="viewCaseModalClose2" style="padding:8px 16px;border-radius:6px;">Close</button>
         </div>
       </div>
     </div>
@@ -1910,8 +1947,8 @@
           </div>
         </div>
         <div class="qfg-modal-footer">
-          <button class="qfg-btn-reset"    id="editSuiteModalCancel">Cancel</button>
-          <button class="qfg-btn-generate" id="editSuiteModalSave">Save Suite</button>
+          <button class="btn btn-secondary qfg-btn-reset"    id="editSuiteModalCancel">Cancel</button>
+          <button class="btn btn-primary qfg-btn-generate" id="editSuiteModalSave">Save Suite</button>
         </div>
       </div>
     </div>`;
@@ -1939,8 +1976,8 @@
           </div>
         </div>
         <div class="qfg-modal-footer">
-          <button class="qfg-btn-reset"    id="editPlanModalCancel">Cancel</button>
-          <button class="qfg-btn-generate" id="editPlanModalSave">Save Plan</button>
+          <button class="btn btn-secondary qfg-btn-reset"    id="editPlanModalCancel">Cancel</button>
+          <button class="btn btn-primary qfg-btn-generate" id="editPlanModalSave">Save Plan</button>
         </div>
       </div>
     </div>
@@ -1977,8 +2014,8 @@
           <div style="color:#1d8397;font-size:.72rem;margin-top:4px">New tags will be appended to existing ones.</div>
         </div>
         <div class="qfg-modal-footer">
-          <button class="qfg-btn-reset"    id="bulkEditModalCancel">Cancel</button>
-          <button class="qfg-btn-generate" id="bulkEditModalApply">Apply Changes</button>
+          <button class="btn btn-secondary qfg-btn-reset"    id="bulkEditModalCancel">Cancel</button>
+          <button class="btn btn-primary qfg-btn-generate" id="bulkEditModalApply">Apply Changes</button>
         </div>
       </div>
     </div>
@@ -2706,6 +2743,13 @@
         date: new Date().toISOString().split("T")[0],
         assignee: uInp,
       });
+    });
+
+    // AI Refine button inside editCaseModal
+    on("ecAiRefineBtn", "click", function () {
+      // Refines whichever textarea is most relevant — defaults to pre-conditions.
+      // You can make this smarter (e.g. refine whichever field was last focused).
+      aiRefineCaseField("ecPreConditions", this);
     });
 
     // Suite modal save

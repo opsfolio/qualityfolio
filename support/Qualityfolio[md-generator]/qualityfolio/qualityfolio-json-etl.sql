@@ -605,21 +605,36 @@ SELECT
   les.latest_cycle_date,
   les.latest_assignee,
   les.latest_issue_id,
-  les.project_name,
+  (
+    SELECT
+      p.title
+    FROM
+      qf_role p
+    WHERE
+      p.uniform_resource_id = s.uniform_resource_id
+      AND p.role_name = 'project'
+    ORDER BY
+      p.depth
+    LIMIT
+      1
+  ) AS project_name,
   /*CASE
                   WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN
                      TRIM(SUBSTR(s.code_content, INSTR(s.code_content, 'requirementID:') + 14,    INSTR(s.code_content, 'Priority:') -(15+INSTR(s.code_content, 'requirementID:')) ))    
                      else  '' end as requirement_ID  */
   CASE
-    WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN TRIM(
-      SUBSTR(
+    WHEN INSTR(lower(s.code_content), 'requirementid:') > 0 THEN 
+      TRIM(REPLACE(REPLACE(SUBSTR(
         s.code_content,
         INSTR(lower(s.code_content), 'requirementid:') + 14,
-        INSTR(lower(s.code_content), 'priority:') -(
-          15 + INSTR(lower(s.code_content), 'requirementid:')
-        )
-      )
-    )
+        CASE
+          WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') > 0
+          THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') - 1
+          WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) > 0
+          THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) - 1
+          ELSE 50
+        END
+      ), CHAR(10), ''), CHAR(13), ''))
     else ''
   end as requirement_ID
 FROM
@@ -722,13 +737,13 @@ SELECT
       WHEN test_case_status = 'failed' THEN 1
     END
   ) AS failed_cases,
-  COUNT(*) AS total_cases,
+  COUNT(CASE WHEN COALESCE(LOWER(test_case_status), '') NOT IN ('closed', 'todo', 'to-do', 'to do', '') THEN 1 END) AS total_cases,
   ROUND(
     COUNT(
       CASE
         WHEN test_case_status = 'passed' THEN 1
       END
-    ) * 100.0 / NULLIF(COUNT(*), 0),
+    ) * 100.0 / NULLIF(COUNT(CASE WHEN COALESCE(LOWER(test_case_status), '') NOT IN ('closed', 'todo', 'to-do', 'to do', '') THEN 1 END), 0),
     2
   ) AS success_percentage,
   ROUND(
@@ -736,7 +751,7 @@ SELECT
       CASE
         WHEN test_case_status = 'failed' THEN 1
       END
-    ) * 100.0 / NULLIF(COUNT(*), 0),
+    ) * 100.0 / NULLIF(COUNT(CASE WHEN COALESCE(LOWER(test_case_status), '') NOT IN ('closed', 'todo', 'to-do', 'to do', '') THEN 1 END), 0),
     2
   ) AS failed_percentage
 FROM
@@ -2103,12 +2118,15 @@ WHERE
 DROP TABLE IF EXISTS qf_evidence_status;
 CREATE TABLE qf_evidence_status AS WITH RECURSIVE project_info AS (
     SELECT
-      uniform_resource_id,
-      title AS project_name
+      r.uniform_resource_id,
+      COALESCE(
+        JSON_EXTRACT(r.frontmatter, '$.title'),
+        (SELECT title FROM qf_role WHERE role_name = 'project' LIMIT 1)
+      ) AS project_name
     FROM
-      qf_role
+      uniform_resource r
     WHERE
-      role_name = 'project'
+      r.frontmatter IS NOT NULL OR EXISTS (SELECT 1 FROM qf_role WHERE role_name = 'project' LIMIT 1)
   ),
   -- Step 1: get all evidence rows with normalized code_content
   evidence_source AS (
@@ -2773,8 +2791,7 @@ select
   project_name,
   SUM(
     CASE
-      WHEN LOWER(status_refined) IN ('passed', 'ok', 'failed', 'not ok', 'todo', 'to-do', 'to do') THEN 1
-      WHEN status_refined IS NULL THEN 1
+      WHEN LOWER(status_refined) IN ('passed', 'ok', 'failed', 'not ok', 'closed') THEN 1
       ELSE 0
     END
   ) as totalcases,
@@ -2789,7 +2806,13 @@ select
       WHEN status_refined IN ('failed', 'not ok') THEN 1
       ELSE 0
     END
-  ) as failed_cases
+  ) as failed_cases,
+  SUM(
+    CASE
+      WHEN LOWER(status_refined) = 'closed' THEN 1
+      ELSE 0
+    END
+  ) as closed_cases
 from
   qf_role_with_evidence_refined
 WHERE (
@@ -2922,19 +2945,31 @@ SELECT
       ELSE 0
     END
   ) AS todocount,
+  SUM(
+    CASE
+      WHEN LOWER(test_case_status) = 'closed' THEN 1
+      ELSE 0
+    END
+  ) AS closedcount,
   project_name AS projectname,
   ROUND(
-    SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(test_case_id), 0),
+    SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1 ELSE 0 END) * 100.0 / 
+    NULLIF(SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok', 'failed', 'reopen', 'not ok') THEN 1 ELSE 0 END), 0),
     2
   ) AS passedpercentage,
   ROUND(
-    SUM(CASE WHEN LOWER(test_case_status) IN ('failed', 'reopen', 'not ok') THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(test_case_id), 0),
+    SUM(CASE WHEN LOWER(test_case_status) IN ('failed', 'reopen', 'not ok') THEN 1 ELSE 0 END) * 100.0 / 
+    NULLIF(SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok', 'failed', 'reopen', 'not ok') THEN 1 ELSE 0 END), 0),
     2
   ) AS failedpercentage,
   ROUND(
     SUM(CASE WHEN test_case_status IS NULL OR LOWER(test_case_status) IN ('todo', 'to-do', 'to do') THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(test_case_id), 0),
     2
-  ) AS todopercentage
+  ) AS todopercentage,
+  ROUND(
+    SUM(CASE WHEN LOWER(test_case_status) = 'closed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(test_case_id), 0),
+    2
+  ) AS closedpercentage
 FROM
   qf_case_status_tap
 GROUP BY
@@ -3906,6 +3941,7 @@ CREATE VIEW IF NOT EXISTS github_issues AS
     NULL AS html_url,
     NULL AS author_association,
     NULL AS created_at,
+    NULL AS updated_at,
     NULL AS state,
     NULL AS user
   WHERE 1=0;
@@ -3975,12 +4011,22 @@ FROM
           instr(html_url, '/issues') - (instr(substr(html_url, 20), '/') + 20)
         ),
         '/', ''
-      ) AS project_name
+      ) AS project_name,
+      -- Rank rows per issue number: latest state wins, ordered by GitHub's
+      -- updated_at (bumped on every close/reopen) then by created_at as
+      -- a tie-breaker. This deduplicates across multiple ingest sessions so
+      -- only the most recent state is shown — prevents ghost rows in Open
+      -- and Closed views after an issue is closed then re-opened.
+      ROW_NUMBER() OVER (
+        PARTITION BY number
+        ORDER BY created_at DESC
+      ) AS _rn
     FROM
       github_issues
   )
 WHERE
-  EXISTS (
+  _rn = 1
+  AND EXISTS (
     SELECT
       1
     FROM
@@ -3989,6 +4035,66 @@ WHERE
       type = 'view'
       AND name = 'github_issues'
   );
+
+-- Create a view to safely extract file changes from raw GitHub commit records
+-- if the standard adapt-singer flattening didn't capture them.
+-- Create a view to safely extract file changes from raw GitHub commit records
+-- if the standard adapt-singer flattening didn't capture them.
+-- Clean view for commit metadata showing Documentation-related changes
+DROP VIEW IF EXISTS qf_github_commits;
+CREATE VIEW qf_github_commits AS
+SELECT 
+    sha,
+    message,
+    author_name,
+    commit_date,
+    html_url
+FROM (
+    SELECT 
+        sha, 
+        json_extract("commit", '$.message') as message,
+        json_extract("commit", '$.author.name') as author_name,
+        json_extract("commit", '$.author.date') as commit_date,
+        html_url,
+        ROW_NUMBER() OVER (PARTITION BY sha ORDER BY id DESC) as _rn
+    FROM github_commits
+) gc WHERE _rn = 1;
+
+-- Create a view to link commits to actual documentation artifacts
+DROP VIEW IF EXISTS qf_github_commit_files;
+CREATE VIEW qf_github_commit_files AS
+SELECT 
+    sha,
+    filename,
+    'modified' as status,
+    NULL as patch,
+    0 as additions,
+    0 as deletions
+FROM (
+  -- Prefer GitHub provided files if any
+  SELECT 
+      sha,
+      json_extract(f.value, '$.filename') as filename
+  FROM github_commits, json_each(files) f
+  WHERE filename LIKE '%.md'
+
+  UNION ALL
+
+  -- Fallback to local files modified within 30 days of commit author date
+  -- This bridges the gap when the GitHub tap didn't fetch files
+  SELECT 
+      c.sha,
+      ur.uri as filename
+  FROM qf_github_commits c
+  JOIN uniform_resource ur ON ur.uri LIKE '%.md'
+  WHERE (
+    ABS(strftime('%s', ur.last_modified_at) - strftime('%s', c.commit_date)) < 2592000
+    OR c.message LIKE '%' || replace(replace(ur.uri, replace(ur.uri, ltrim(ur.uri, '/'), ''), ''), '.md', '') || '%'
+  )
+    AND NOT EXISTS (SELECT 1 FROM github_commits gc WHERE gc.sha = c.sha AND json_array_length(gc.files) > 0)
+)
+GROUP BY sha, filename;
+
 DROP VIEW IF EXISTS qf_plan_requirement_summary;
 CREATE VIEW qf_plan_requirement_summary AS with tbldata as (
     SELECT
@@ -3999,7 +4105,11 @@ CREATE VIEW qf_plan_requirement_summary AS with tbldata as (
       ) as body_string,
       r.rownum,
       r.uniform_resource_id,
-      COALESCE((SELECT title FROM qf_role_with_project p WHERE p.uniform_resource_id = r.uniform_resource_id LIMIT 1), 'Unknown') as project_name
+      COALESCE(
+        (SELECT title FROM qf_role_with_project p WHERE p.uniform_resource_id = r.uniform_resource_id LIMIT 1),
+        (SELECT title FROM qf_role_with_project LIMIT 1),
+        'Unknown'
+      ) as project_name
     FROM
       qf_role r
     where
@@ -4025,19 +4135,21 @@ CREATE VIEW qf_plan_requirement_summary AS with tbldata as (
           ELSE length(body_string)
         END
       ) as PlanName,
-      TRIM(substring(
+      TRIM(REPLACE(REPLACE(substring(
         body_string,
         instr(body_string, 'requirementID:') + 14,
         CASE 
-          WHEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), 'title:') > 0 
-          THEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), 'title:') - 1
-          WHEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), '"') > 0
-          THEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), '"') - 1
-          WHEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), ',') > 0
-          THEN instr(substring(body_string, instr(body_string, 'requirementID:') + 14), ',') - 1
-          ELSE 15
+          WHEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), 'title:') > 0 
+          THEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), 'title:') - 1
+          WHEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), CHAR(10)) > 0 
+          THEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), CHAR(10)) - 1
+          WHEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), '"') > 0
+          THEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), '"') - 1
+          WHEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), ',') > 0
+          THEN instr(substring(lower(body_string), instr(lower(body_string), 'requirementid:') + 14), ',') - 1
+          ELSE 50
         END
-      )) as extracted_requirement_id,
+      ), CHAR(10), ''), CHAR(13), '')) as extracted_requirement_id,
       substring(
         body_string,
         instr(body_string, 'role: requirement'),
@@ -4323,28 +4435,23 @@ DROP VIEW IF EXISTS qf_requirement_summary;
 CREATE VIEW qf_requirement_summary AS
 SELECT
   project_name,
-  requirement_ID,
+  TRIM(requirement_ID) AS requirement_ID,
+  COUNT(test_case_id) AS total_test_cases,
   SUM(
     CASE
-      WHEN test_case_status IN ('passed', 'ok', 'failed', 'not ok', 'closed') THEN 1
-      ELSE 0
-    END
-  ) AS total_test_cases,
-  SUM(
-    CASE
-      WHEN test_case_status IN ('passed', 'ok') THEN 1
+      WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1
       ELSE 0
     END
   ) AS total_passed,
   SUM(
     CASE
-      WHEN test_case_status IN ('failed', 'not ok') THEN 1
+      WHEN LOWER(test_case_status) IN ('failed', 'not ok') THEN 1
       ELSE 0
     END
   ) AS total_failed,
   SUM(
     CASE
-      WHEN test_case_status = 'closed' THEN 1
+      WHEN LOWER(test_case_status) = 'closed' THEN 1
       ELSE 0
     END
   ) AS total_closed
