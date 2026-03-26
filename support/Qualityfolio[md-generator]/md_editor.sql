@@ -488,9 +488,9 @@ SELECT 'html' AS component, '
         input::placeholder, textarea::placeholder { color: rgba(148, 163, 184, 0.7); }
 
         .tab-btn.active {
-            color: var(--primary-color) !important;
-            border-bottom-color: var(--primary-color) !important;
-            font-weight: 600;
+            color: #FFF !important;
+            background: oklch(67.66% .1481 238.14) !important;
+            border-radius: 10px 10px 0 0 !important;
         }
         .tab-content { display: none !important; }
         .tab-content.active { display: block !important; }
@@ -606,7 +606,7 @@ SELECT 'html' AS component, '
         #md-save-toast.error { background: linear-gradient(135deg,#f43f5e,#e11d48); }
         #md-save-toast.info { background: linear-gradient(135deg,#6366f1,#4f46e5); }
         #md-editor-tabs .tab-btn{
-            padding:0.5rem 0rem!important;
+            padding:0.5rem 0.8rem!important;
             border:none!important;
             color: #666!important;
             cursor:pointer;
@@ -621,8 +621,9 @@ SELECT 'html' AS component, '
             font-size: 0.75rem;
         }
         #md-editor-tabs .tab-btn.active{
-            color:#0ea5e9!important; 
-            border-bottom: 3px solid #0ea5e9!important;
+           color: #FFF !important;
+            background: oklch(67.66% .1481 238.14) !important;
+            border-radius: 10px 10px 0 0 !important;
         }
         .tc-list .tc-card {
             background: var(--bg-primary);
@@ -780,7 +781,7 @@ SELECT 'html' AS component, '
                 </div>
 
                 <!-- Tabs Section: Fixed -->
-                <div id="md-editor-tabs" class="tabs" style="display:flex;gap:2rem;padding:0 1rem;background:#fff;align-items:center;flex-wrap:wrap; border-bottom: 2px solid rgba(226, 232, 240, 0.6); flex-shrink: 0;">
+                <div id="md-editor-tabs" class="tabs" style="display:flex;padding:0 1rem;background:#fff;align-items:center;flex-wrap:wrap; border-bottom: 2px solid rgba(226, 232, 240, 0.6); flex-shrink: 0;margin: 1rem 0 0 0;">
                     <button class="tab-btn active" data-tab="preview"><i class="fa fa-eye"></i>Preview</button>
                     <button class="tab-btn" data-tab="treeView"><i class="fa fa-sitemap"></i>Hierarchy</button>
                     <button class="tab-btn" data-tab="markdown"><i class="fa fa-code"></i>Markdown</button>
