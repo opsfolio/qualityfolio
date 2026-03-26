@@ -624,7 +624,7 @@
     }
   }
 
-  // ── AI Refine for individual case modal (Pre-conditions, Steps, Expected) ──
+  // ── AI Refine for individual case modal fields ───────────────────
   async function aiRefineCaseField(fieldId, btnEl) {
     const ta = document.getElementById(fieldId);
     if (!ta || !ta.value.trim()) {
@@ -635,11 +635,17 @@
     // Gather context from the modal fields
     const title = document.getElementById("ecTitle")?.value.trim() || "";
     const description = document.getElementById("ecDescription")?.value.trim() || "";
+    const reqId = document.getElementById("ecReqId")?.value.trim() || "";
+
+    // ecReqDetails uses a BA-style requirement refinement prompt;
+    // all other QA fields use the test-case-focused prompt.
+    const isReqField = fieldId === "ecReqDetails";
 
     const fieldLabels = {
       ecPreConditions: "pre-conditions",
       ecSteps: "test steps",
       ecExpected: "expected results",
+      ecReqDetails: "requirement details",
     };
     const fieldLabel = fieldLabels[fieldId] || "content";
 
@@ -648,10 +654,25 @@
     btnEl.disabled = true;
 
     try {
-      ta.value = await callGroq(
-        `You are refining the "${fieldLabel}" section of a test case.\n\nTest Case Title: ${title}\nDescription: ${description}\n\nCurrent ${fieldLabel}:\n${ta.value}\n\nImprove clarity, completeness, and professional quality. Keep one item per line. Return only the improved content, no commentary.`,
-        "You are a Senior QA Engineer. Return only the improved content with no preamble, labels, or markdown."
-      );
+      if (isReqField) {
+        // Requirement-focused refinement — same approach as the main aiRefineReq
+        ta.value = await callGroq(
+          `Expand and improve the following requirement details into professional, comprehensive statements.\n\n` +
+          `Test Case ID context: ${reqId || "N/A"}\n` +
+          `Test Case Title: ${title || "N/A"}\n\n` +
+          `Current Requirement Details:\n${ta.value}\n\n` +
+          `Return only the improved requirements text, no commentary or labels.`,
+          "You are a senior Business Analyst. Return only the improved requirements text with no preamble, labels, or markdown fences."
+        );
+      } else {
+        ta.value = await callGroq(
+          `You are refining the "${fieldLabel}" section of a test case.\n\n` +
+          `Test Case Title: ${title}\nDescription: ${description}\n\n` +
+          `Current ${fieldLabel}:\n${ta.value}\n\n` +
+          `Improve clarity, completeness, and professional quality. Keep one item per line. Return only the improved content, no commentary.`,
+          "You are a Senior QA Engineer. Return only the improved content with no preamble, labels, or markdown."
+        );
+      }
     } catch (e) {
       showModal("Refine failed", e.message);
     } finally {
@@ -1785,10 +1806,13 @@
 
           <div class="qfg-field" style="margin-bottom: 1rem;">
               <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">Pre-conditions <span style="font-size:0.75rem;color:#94a3b8">(one per line)</span></label>
-<button type="button" id="ecAiRefineBtn" class="qfg-refine-btn btn btn-primary suite-refine-btn" style="float:right">✨ AI Refine</button>
               <textarea id="ecPreConditions" rows="3" placeholder="e.g. User is logged in" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; resize:vertical; font-family: inherit; font-size:0.85rem; color: #1e293b;"></textarea>
           </div>
-
+          <div class="qfg-field" style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">Requirements </label>
+                    <button type="button" id="ecAiRefineBtn" class="qfg-refine-btn btn btn-primary suite-refine-btn" style="float:right">✨ AI Refine</button>
+                        <textarea id="ecReqDetails" rows="3" placeholder="e.g. User is logged in" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; resize:vertical; font-family: inherit; font-size:0.85rem; color: #1e293b;"></textarea>
+                    </div>
           <div class="qfg-field" style="margin-bottom: 1rem;">
               <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">Steps</label>
               <textarea id="ecSteps" rows="5" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; resize:vertical; font-family: inherit; font-size: 0.85rem; color: #1e293b;"></textarea>
@@ -2665,6 +2689,7 @@
           .map((s) => s.trim())
           .filter(Boolean),
         description: get("ecDescription"),
+        reqDetails: get("ecReqDetails"),
         preConditions: get("ecPreConditions").split("\n").filter(Boolean),
         steps: get("ecSteps").split("\n").filter(Boolean),
         expectedResult: get("ecExpected").split("\n").filter(Boolean),
@@ -2749,7 +2774,7 @@
     on("ecAiRefineBtn", "click", function () {
       // Refines whichever textarea is most relevant — defaults to pre-conditions.
       // You can make this smarter (e.g. refine whichever field was last focused).
-      aiRefineCaseField("ecPreConditions", this);
+      aiRefineCaseField("ecReqDetails", this);
     });
 
     // Suite modal save
@@ -2889,6 +2914,7 @@
 
     set("ecTags", Array.isArray(c.tags) ? c.tags.join(", ") : c.tags || "");
     set("ecDescription", Array.isArray(c.description) ? c.description.join("\n") : c.description || "");
+    set("ecReqDetails", c.reqDetails || "");
     set("ecPreConditions", toArr(c.preConditions || c.pre_conditions).join("\n"));
     set("ecSteps", toArr(c.steps).join("\n"));
     set("ecExpected", toArr(c.expectedResult || c.expected_result).join("\n"));
@@ -3402,6 +3428,9 @@
       s += `  Tags: ${JSON.stringify(c.tags || [])}${nl}  Scenario Type: ${c.scenarioType || c.scenario_type || "Happy Path"}${nl}`;
       s += `  Execution Type: ${c.executionType || c.execution_type || "Manual"}${nl}\`\`\`${nl}${nl}`;
       s += `**Description**${nl}${nl}${str(c.description || "—")}${nl}${nl}`;
+      if (c.reqDetails && String(c.reqDetails).trim()) {
+        s += `**Requirements**${nl}${nl}${str(c.reqDetails)}${nl}${nl}`;
+      }
       s += `**Preconditions**${nl}${nl}${chk(c.preConditions || c.pre_conditions || ["—"])}${nl}${nl}`;
       s += `**Steps**${nl}${nl}${chk(c.steps || ["—"], true)}${nl}${nl}`;
       s += `**Expected Results**${nl}${nl}${chk(c.expectedResult || c.expected_result || ["—"])}${nl}${nl}`;

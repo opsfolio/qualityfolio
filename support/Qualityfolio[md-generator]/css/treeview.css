@@ -141,10 +141,8 @@
 
 /* Test Case Content */
 .tree-header:has(i.fa-file-alt) span {
-  display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
 }
 
 .tree-header:has(i.fa-file-alt) strong {

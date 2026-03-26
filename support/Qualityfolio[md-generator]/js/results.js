@@ -804,8 +804,35 @@ function renderTreeView() {
   if (!generatedTestCases || !elements.treeViewContent) return;
 
   let html = "";
-  const isLevel3 = generatedTestCases.schemaLevel === "3";
-  const isLevel6 = generatedTestCases.schemaLevel === "6";
+  const level = generatedTestCases.schemaLevel || "3";
+  const isLevel3 = level === "3";
+  const isLevel6 = level === "6";
+
+  // ── Schema label for the root node ──────────────────────────────────────
+  const schemaLabelMap = {
+    "3": "3-Level  ·  Project → Test Cases → Evidence",
+    "4": "4-Level  ·  Project → Suite → Test Cases → Evidence",
+    "5": "5-Level  ·  Project → Plan → Suite → Test Cases → Evidence",
+    "6": "6-Level  ·  Project → Strategy → Plan → Suite → Test Cases → Evidence",
+  };
+  const schemaLabel = schemaLabelMap[level] || `Level ${level}`;
+  const projectName = generatedTestCases.projectName || "Project";
+
+  // ── Root: Project node ───────────────────────────────────────────────────
+  html += `
+    <div class="tree-node open" style="margin-left:0; border-left:none; padding-left:0;">
+      <div class="tree-header" style="background:linear-gradient(135deg,rgba(37,99,235,0.07),rgba(14,165,233,0.04)); border-radius:10px; padding:8px 12px; margin-bottom:4px;">
+        <span style="display:flex; align-items:center; gap:8px; flex:1; font-weight:800; font-size:0.9rem; color:#1e293b;">
+          <i class="fas fa-folder-open" style="color:oklch(67.66% .1481 238.14) !important; font-size:1rem;"></i>
+          ${projectName}
+          <span style="font-size:0.68rem; font-weight:700; background:#dbeafe; color:oklch(67.66% .1481 238.14) !important; padding:2px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:0.04em; margin-left:4px;">Project</span>
+        </span>
+      </div>
+      <!-- Schema badge row -->
+      <div style="padding:3px 12px 8px 36px; font-size:0.72rem; color:#64748b; font-weight:600; letter-spacing:0.01em;">
+        <i class="fas fa-sitemap" style="margin-right:5px; color:#94a3b8;"></i>${schemaLabel}
+      </div>
+      <div class="tree-children">`;
 
   const strategies = isLevel6
     ? generatedTestCases.strategies
@@ -815,124 +842,144 @@ function renderTreeView() {
     const validStIdx = isLevel6 ? stIdx : null;
     const stIdxArg = isLevel6 ? stIdx : "null";
 
+    // ── Strategy node (Level 6 only) ──────────────────────────────────────
     if (isLevel6) {
       html += `
             <div class="tree-node open">
                 <div class="tree-header">
-                     <span data-action="toggleTree" style="display:flex; align-items:center; flex:1; cursor:pointer;">
-                        <i class="fas fa-chess-knight" style="color: #663399;"></i> ${strategy.strategyName}
+                     <span style="display:flex; align-items:center; flex:1;">
+                        <i class="fas fa-chess-knight" style="color:#663399; margin-right:6px;"></i>
+                        <strong>${strategy.strategyName}</strong>
                      </span>
                 </div>
                 <div class="tree-children">`;
     }
 
+    // ── Plan nodes ────────────────────────────────────────────────────────
     (strategy.plans || []).forEach((plan, pIdx) => {
+      const planLabel = ["3", "4"].includes(level) ? "Project" : "Plan";
       html += `
             <div class="tree-node open">
                 <div class="tree-header">
-                     <span data-action="toggleTree" style="display:flex; align-items:center; flex:1; cursor:pointer;">
-                        <i class="fas fa-folder"></i> ${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Project" : "Plan"}: ${plan.planName}
+                     <span style="display:flex; align-items:center; flex:1;">
+                        <i class="fas fa-folder" style="margin-right:6px; color:#f59e0b;"></i>
+                        <strong>${planLabel}:</strong>&nbsp;${plan.planName}
                      </span>
-                     <div class="tree-actions" style="display: flex; gap: 0.5rem; flex-shrink: 0;">
-                         <span style="font-size: 0.75rem; color: var(--primary-color); cursor: pointer;" data-action="editPlan" data-stid="${validStIdx}" data-pid="${pIdx}">${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Edit" : "Edit Plan"}</span>
-                         <span style="font-size: 0.75rem; color: #ff6b6b; cursor: pointer;" data-action="deletePlan" data-stid="${validStIdx}" data-pid="${pIdx}"><i class="fas fa-trash-can"></i> Delete ${["3", "4"].includes(generatedTestCases.schemaLevel) ? "Project" : "Plan"}</span>
+                     <div class="tree-actions" style="display:flex; gap:0.5rem; flex-shrink:0;">
+                         <span style="font-size:0.75rem; color:var(--primary-color); cursor:pointer;" data-action="editPlan" data-stid="${validStIdx}" data-pid="${pIdx}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                         </span>
+                         <span style="font-size:0.75rem; color:#ff6b6b; cursor:pointer;" data-action="deletePlan" data-stid="${validStIdx}" data-pid="${pIdx}">
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                         </span>
                      </div>
                 </div>
                 <div class="tree-children">`;
 
+      // ── Suite nodes ──────────────────────────────────────────────────────
       plan.suites.forEach((suite, sIdx) => {
-        // Hide Suite node for Level 3
         if (!isLevel3) {
           html += `
                     <div class="tree-node open">
                         <div class="tree-header">
-                            <span data-action="toggleTree" style="display:flex; align-items:center; flex:1; cursor:pointer;">
-                                <i class="fas fa-layer-group"></i> ${suite.suiteName}
+                            <span style="display:flex; align-items:center; flex:1;">
+                                <i class="fas fa-layer-group" style="margin-right:6px; color:#0ea5e9;"></i>
+                                <strong>Suite:</strong>&nbsp;${suite.suiteName}
                             </span>
-                            <div class="tree-actions" style="display: flex; gap: 0.5rem; flex-shrink: 0;">
-                                <span style="font-size: 0.75rem; color: var(--primary-color); cursor: pointer;" data-action="editSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">Edit</span>
-                                <span style="font-size: 0.75rem; color: #ff6b6b; cursor: pointer;" data-action="deleteSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}"><i class="fas fa-trash-can"></i> Delete Suite</span>
+                            <div class="tree-actions" style="display:flex; gap:0.5rem; flex-shrink:0;">
+                                <span style="font-size:0.75rem; color:var(--primary-color); cursor:pointer;" data-action="editSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+
+                                </span>
+                                <span style="font-size:0.75rem; color:#ff6b6b; cursor:pointer;" data-action="deleteSuite" data-stid="${validStIdx}" data-pid="${pIdx}" data-sid="${sIdx}">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+
+                                          </span>
                             </div>
                         </div>
                         <div class="tree-children">`;
         }
 
+        // ── Test Case nodes (open by default so evidence shows immediately) ──
         suite.testCases.forEach((tc, tIdx) => {
           const tcId = tc.testCaseId || tc.id;
-          // Removed assignee from header line
+          html += `
+                        <div class="tree-node open">
+                            <div class="tree-header">
+                                <span style="align-items:center;">
+                                    <i class="fas fa-file-alt" style="margin-right:8px; color:#64748b;"></i>
+                                    <span style="font-family:monospace; font-size:0.78rem; background:#d8e2ec; color:#64748b; padding:1px 6px; border-radius:4px; margin-right:6px; flex-shrink:0;">${tcId || "NO-ID"}</span>
+                                    ${tc.title || "Untitled Test Case"}
+                                </span>
+                                <div class="tree-actions" style="display:flex; gap:0.5rem; flex-shrink:0;">
+                                    <span style="font-size:0.75rem; color:var(--primary-color); cursor:pointer;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}">          
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </span>
+                                    <span style="font-size:0.75rem; color:#ff6b6b; cursor:pointer;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="tree-children">`;
 
-          // TC is now a node with children (Evidence)
-          html += `<div class="tree-node">
-                        <div class="tree-header">
-                              <span data-action="toggleTree" style="display:flex; align-items:center; flex:1; cursor:pointer;">
-                                <i class="fas fa-file-alt" style="margin-right:8px;"></i> ${tcId || "No ID"}: ${tc.title || "Untitled Test Case"}
-                             </span>
-                             <div class="tree-actions" style="display: flex; gap: 0.5rem; flex-shrink: 0;">
-                                 <span style="font-size: 0.75rem; color: var(--primary-color); cursor: pointer;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fas fa-edit"></i> Edit</span>
-                                 <span style="font-size: 0.75rem; color: #ff6b6b; cursor: pointer;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fas fa-trash-can"></i> Delete</span>
-                             </div>
-                        </div>
-                        <div class="tree-children">`;
-
-          // Evidence Children
+          // ── Evidence rows (always visible — no click needed) ───────────────
           if (tc.evidenceHistory && tc.evidenceHistory.length > 0) {
             tc.evidenceHistory.forEach((ev, evIdx) => {
-              let color = "#ccc";
-              let icon = "fa-clipboard";
+              let color = "#64748b";
+              let icon = "fa-clipboard-list";
               const s = (ev.status || "").toLowerCase();
+              if (s === "passed") { color = "#16a34a"; icon = "fa-check-circle"; }
+              else if (s === "failed") { color = "#dc2626"; icon = "fa-times-circle"; }
+              else if (s === "blocked") { color = "#d97706"; icon = "fa-ban"; }
+              else if (s === "skipped") { color = "#6b7280"; icon = "fa-forward"; }
+              else if (s === "unexecuted" || s === "to-do") { color = "#2563eb"; icon = "fa-clipboard-list"; }
 
-              if (s === "passed") {
-                color = "#4caf50";
-                icon = "fa-check-circle";
-              } else if (s === "failed") {
-                color = "#f44336";
-                icon = "fa-times-circle";
-              } else if (s === "blocked") {
-                color = "#ff9800";
-                icon = "fa-ban";
-              } else if (s === "skipped") {
-                color = "#9e9e9e";
-                icon = "fa-forward";
-              } else if (s === "unexecuted" || s === "to-do") {
-                color = "#2196f3";
-                icon = "fa-clipboard-list";
-              }
-
-              // Determine assignee for this evidence (fallback to tc assignee)
-              const currentAssignee =
-                ev.assignee || ev.executedBy || tc.assignee;
-              const assigneeDisplay = currentAssignee
-                ? ` <span style="margin-left: 0.5rem; font-size: 0.75rem; color: var(--text-muted); font-weight: normal;"><i class="fas fa-user" style="margin-right: 0.25rem;"></i>${currentAssignee}</span>`
+              const evAssignee = ev.assignee || ev.executedBy || tc.assignee || "";
+              const assigneeDisplay = evAssignee
+                ? `<span style="margin-left:8px; font-size:0.72rem; color:#94a3b8;"><i class="fas fa-user" style="margin-right:3px;"></i>${evAssignee}</span>`
                 : "";
 
-              html += `<div class="tree-node leaf" style="padding-left: 2rem; color: ${color}; display: flex; justify-content: space-between; align-items: center;">
-                                <span>
-                                    <i class="fas ${icon}"></i> Cycle ${ev.cycle || "1.0"} - ${ev.status || "To-do"} (${ev.cycleDate || ev.date || "No Date"})${assigneeDisplay}
-                                </span>
-                                <span style="font-size: 0.75rem; color: #ff6b6b; cursor: pointer; margin-left: 1rem;" data-action="deleteEvidence" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}" data-evid="${evIdx}" title="Delete Cycle Result">
-                                    <i class="fas fa-trash-can"></i>
-                                </span>
-                             </div>`;
+              html += `
+                                <div class="tree-node leaf" style="margin-left:1rem; border-left:2px solid ${color}30; padding:4px 8px 4px 12px; display:flex; justify-content:space-between; align-items:center; border-radius:0 6px 6px 0;">
+                                    <span style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:${color};">
+                                        <i class="fas ${icon}"></i>
+                                        <strong>Cycle ${ev.cycle || "1.0"}</strong>
+                                        <span style="color:#64748b;">·</span>
+                                        <span style="color:#475569;">${ev.status || "To-do"}</span>
+                                        <span style="color:#94a3b8; font-size:0.72rem;">(${ev.cycleDate || ev.date || "No Date"})</span>
+                                        ${assigneeDisplay}
+                                    </span>
+                                    <span style="font-size:0.72rem; color:#ff6b6b; cursor:pointer; margin-left:1rem; opacity:0.6; transition:opacity 0.2s;" 
+                                          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6"
+                                          data-action="deleteEvidence" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}" data-evid="${evIdx}" title="Delete this cycle result">
+                                        <i class="fas fa-trash-can"></i>
+                                    </span>
+                                </div>`;
             });
           } else {
-            html += `<div class="tree-node leaf" style="padding-left: 2rem; color: #666; font-style: italic;">No evidence</div>`;
+            html += `
+                                <div class="tree-node leaf" style="margin-left:1rem; padding:4px 8px 4px 12px; font-size:0.78rem; color:#94a3b8; font-style:italic;">
+                                    <i class="fas fa-circle-info" style="margin-right:4px;"></i>No evidence recorded
+                                </div>`;
           }
 
-          html += `</div></div>`; // Close TC Children + TC Node
+          html += `</div></div>`; // Close TC .tree-children + .tree-node
         });
 
         if (!isLevel3) {
-          html += `</div></div>`; // Close Suite
+          html += `</div></div>`; // Close Suite .tree-children + .tree-node
         }
       });
 
-      html += `</div></div>`; // Close Plan
+      html += `</div></div>`; // Close Plan .tree-children + .tree-node
     });
 
     if (isLevel6) {
-      html += `</div></div>`; // Close Strategy
+      html += `</div></div>`; // Close Strategy .tree-children + .tree-node
     }
   });
+
+  html += `</div></div>`; // Close root Project .tree-children + .tree-node
 
   elements.treeViewContent.innerHTML = html;
 }

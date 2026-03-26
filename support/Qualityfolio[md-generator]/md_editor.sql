@@ -172,7 +172,7 @@ SELECT 'html' AS component, '
         .left-rounded { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; }
         .right-rounded { border-top-left-radius: 0; border-bottom-left-radius: 0; }
         
-        /* Tree View (Hierarchy) Tab Styles */
+        /* Tree View (Hierarchy) Tab Styles — all levels always expanded */
         .tree-node { margin-left: 1.25rem; border-left: 1px solid rgba(226, 232, 240, 0.5); padding-left: 0.75rem; margin-top: 0.3rem; }
         .tree-node.open > .tree-children { display: block; }
         .tree-header { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; border-radius: 8px; transition: background 0.2s; }
@@ -180,7 +180,7 @@ SELECT 'html' AS component, '
         .tree-actions { display: flex; gap: 0.75rem; opacity: 0.3; transition: opacity 0.2s; }
         .tree-header:hover .tree-actions { opacity: 1; }
         .tree-actions span:hover { text-decoration: underline; color: var(--primary-color); }
-        .tree-children { display: none; }
+        .tree-children { display: block; }
 
         /* Upload Prompt */
         .upload-prompt {
@@ -351,7 +351,7 @@ SELECT 'html' AS component, '
         }
         
         .tree-children {
-            display: none;
+            display: block; /* Always expanded — full hierarchy visible by default */
             padding-left: 12px;
             margin-left: 6px;
             border-left: 2px solid rgba(14, 165, 233, 0.15);
@@ -582,7 +582,7 @@ SELECT 'html' AS component, '
         .close-modal { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; width:36px; height:36px; border-radius:10px; }
         .close-modal:hover { color: #1e293b; background: rgba(226, 232, 240, 0.5); }
 
-        /* Tree View (Hierarchy) Tab Styles */
+        /* Tree View (Hierarchy) Tab Styles — all levels always expanded */
         .tree-node { margin-left: 1.25rem; border-left: 1px solid #e2e8f0; padding-left: 0.75rem; margin-top: 0.25rem; }
         .tree-node.open > .tree-children { display: block; }
         .tree-node .tree-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; border-radius: 6px; transition: background 0.2s; }
@@ -591,7 +591,7 @@ SELECT 'html' AS component, '
         .tree-node .tree-header:hover .tree-actions { opacity: 1; }
         .tree-node .tree-actions span { cursor: pointer; font-size: 0.75rem; color: var(--primary-color); }
         .tree-node .tree-actions span.danger { color: #ef4444; }
-        .tree-node .tree-children { display: none; }
+        .tree-node .tree-children { display: block; }
         .tree-node.open > .tree-children { display: block; }
 
         /* Toast Notification */
