@@ -25,7 +25,9 @@ SELECT 'shell' AS component,
        json_array(
            '/css/theme.css?v=' || CAST(STRFTIME('%s', 'now') AS TEXT),
            '/css/chat.css?v='  || CAST(STRFTIME('%s', 'now') AS TEXT)
-       ) AS css;
+       ) AS css,
+       '/images/favicon.ico' AS favicon,
+       '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;
 
 -- ── Capture params ────────────────────────────────────────────
 SET _schema     = COALESCE(NULLIF($schema_level,''),   '3_level');

@@ -37,7 +37,9 @@ SELECT 'shell' AS component,
            '/css/theme.css?v=' || CAST(STRFTIME('%s','now') AS TEXT),
            '/css/chat.css?v='  || CAST(STRFTIME('%s','now') AS TEXT),
             '/css/pikaday.css'
-       ) AS css;
+       ) AS css,
+       '/images/favicon.ico' AS favicon,
+       '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;
 
 -- Inject server-side data via data-* attributes on a hidden element (CSP-safe, no inline script)
 SELECT 'html' AS component,

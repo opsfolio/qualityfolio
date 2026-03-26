@@ -26,7 +26,9 @@ SELECT 'shell' AS component,
             '/css/pikaday.css',
             '/css/treeview.css',
             'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
-        ) AS css;
+        ) AS css,
+        '/images/favicon.ico' AS favicon,
+        '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;
         
 
 SET _members   = (SELECT json_group_array(json_object('name', full_name, 'id', id)) FROM team_members);
