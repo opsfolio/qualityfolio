@@ -319,7 +319,7 @@ SELECT 'html' AS component, '
             padding: 7px 10px;
             cursor: pointer;
             border-radius: 8px;
-            color: #169fb9 !important;
+            color: oklch(67.66% .1481 238.14) !important;
             font-size: 0.75rem;
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -570,13 +570,6 @@ SELECT 'html' AS component, '
         }
 
         /* Buttons */
-        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent; line-height: 1.2; letter-spacing: -0.3px; }
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: 8px; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary-color) 0%, #0284c7 100%); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25); }
-        .btn-primary:hover { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35); }
-        .btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25); }
-        .btn-secondary { background: rgba(241, 245, 249, 0.8); color: #475569; border-color: rgba(226, 232, 240, 0.6); transition: all 0.2s ease; }
-        .btn-secondary:hover { background: #e2e8f0; color: #1e293b; border-color: rgba(226, 232, 240, 1); transform: translateY(-1px); }
         .btn-outline { background: transparent; border-color: rgba(226, 232, 240, 0.8); color: #64748b; }
         .btn-outline:hover { background: rgba(248, 250, 252, 0.9); color: var(--primary-color); border-color: var(--primary-color); }
 
@@ -780,7 +773,7 @@ SELECT 'html' AS component, '
                     </h1>
                     <div style="display:flex;align-items:center;gap:1.5rem;">
                         <span id="totalTestCases" class="badge" style="padding: 0.3rem 0.9rem; font-size: 0.8rem;">0 Cases</span>
-                        <button id="btnSaveFileAction" class="btn btn-primary qfg-tc-btn" style="padding:0rem 0.5rem !important;background:linear-gradient(135deg,var(--primary-color),#0284c7); font-weight: 600;">
+                        <button id="btnSaveFileAction" class="btn btn-primary qfg-tc-btn" style="padding:0rem 0.5rem !important; font-weight: 600;">
                             <i class="fas fa-save"></i> Save Changes
                         </button>
                     </div>
@@ -815,11 +808,11 @@ SELECT 'html' AS component, '
 
                         <!-- Center-Left: Quick Edit -->
                         <div class="qfg-bulk-group">
-                            <button id="bulkEditBtn" class="btn btn-sm btn-primary">
-                                <i class="fa fa-pencil" aria-hidden="true"></i>
+                            <button id="bulkEditBtn" class="btn btn-sm  btn-edit-action">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            <button id="bulkDeleteBtn" class="btn btn-sm btn-danger">
-                                <i class="fa fa-trash" aria-hidden="true"></i>
+                            <button id="bulkDeleteBtn" class="btn btn-sm btn-delete-action">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                             </button>
                         </div>
 

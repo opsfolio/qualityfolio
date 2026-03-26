@@ -3,7 +3,7 @@
    Just add this CSS to your project */
 
 :root {
-  --primary-color: #06b6d4;
+  --primary-color: oklch(67.66% .1481 238.14) !important;
   --primary-dark: #0891b2;
   --primary-light: #cffafe;
   --success: #10b981;

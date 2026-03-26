@@ -885,6 +885,10 @@ a:hover {
     margin-right: 8px !important;
     font-size: 0.75rem;
 }
+.btn-bulk-action {
+   font-size: 0.8rem !important;
+  padding: 0.5rem !important;
+}
 /* ============================================================
    RESPONSIVE DESIGN
    ============================================================ */

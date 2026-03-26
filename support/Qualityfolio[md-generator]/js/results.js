@@ -727,8 +727,12 @@ function renderTestCasesList() {
                             
                             <div style="display: flex; gap: 1.5rem; align-items: center; background: #fafafa; padding: 8px 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
                                 <div style="display: flex; gap: 0.65rem; flex-shrink: 0;">
-                                    <button class="btn btn-sm btn-primary" style="padding: 0.5rem !important;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-pencil"></i></button>
-                                    <button class="btn btn-sm btn-danger" style="padding: 0.5rem !important;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}"><i class="fa fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;" data-action="editTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </button>
+                                    <button class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important;" data-action="deleteTestCase" data-stid="${stIdxArg}" data-pid="${pIdx}" data-sid="${sIdx}" data-tid="${tIdx}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                    </button>
                                 </div>
                                 <div style="height: 20px; width: 1px; background: #e2e8f0;"></div>
                                 <div> 

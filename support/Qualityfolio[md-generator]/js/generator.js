@@ -1286,7 +1286,7 @@
       `<input id="${id}" type="text" value="${val}" placeholder="${ph}" class="qfg-bulk-input" style="width:${w};"/>`;
 
     const btn = (id, label, extraStyle = "") =>
-      `<button id="${id}" class="btn btn-sm" style="font-weight:700;${extraStyle}">${label}</button>`;
+      `<button id="${id}" class="btn btn-sm btn-primary" style="font-weight:700;${extraStyle}">${label}</button>`;
     return `
     <div class="qfg-results-header">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -1294,7 +1294,7 @@
       </div>
       <p style="margin:6px 0 0">AI-generated HFM markdown — use bulk tools and per-case controls to refine, then download.</p>
       <div class="qfg-results-meta">
-        <span style="display: flex;align-items: center;gap: 8px;color: #FFF;background: #169fb9;border-radius:5px">
+        <span style="display: flex;align-items: center;gap: 8px;color: #FFF;background: oklch(0.65 0.06 235.9);border-radius:5px">
           &#128193; ${esc(ctx.project)} 
           <button class="qfg-action-sm" id="editProjectBtn" style="background:#fff!important;color:#1e40af!important;border:none!important;box-shadow:0 1px 3px rgba(0,0,0,0.1)!important;padding:2px 8px;font-size:0.7rem;">&#128393; </button>
         </span>
@@ -1319,7 +1319,7 @@
         </div>
 
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-          ${btn("bulkDownloadBtn", '<i class="fas fa-download"></i> Download .md', "font-size: 0.85rem !important; background: #169fb9; color: #fff;white-space: nowrap; gap:0 !important; padding:10px !important;")}
+          ${btn("bulkDownloadBtn", '<i class="fas fa-download"></i> Download .md', "font-size: 0.85rem !important; color: #fff;white-space: nowrap; gap:0 !important; padding:10px !important;")}
         </div>
       </div>
     </div>`;
@@ -1357,7 +1357,7 @@
       /* Keep existing tab button styles below */
       .qfg-tab-btn{padding:7px 18px;border:none; border-radius: 5px 5px 0 0; font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;background:#e2e8f0;color:#475569;}
       .qfg-tab-btn:hover{opacity:.88;}
-      .qfg-tab-active{background:#40bac6!important;color:#fff!important;}
+      .qfg-tab-active{background:oklch(67.66% .1481 238.14)!important;color:#fff!important;}
       .qfg-tab-btn:not(.qfg-tab-active){background: #FFF;color: #333; border: 1px solid #CCC;border-bottom: 0;}
       .qfg-bulk-select, .qfg-bulk-input {
         background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px !important;
@@ -1482,13 +1482,13 @@
         </div>
 
         <div style="display:flex;">
-          <button id="bulkRunBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
+          <button id="bulkRunBtn" class="btn btn-primary btn-bulk-action" style="margin-right: 1rem;">
           Run Cycle
           </button>
-          <button id="bulkEditBtn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex; margin-right:20px">
+          <button id="bulkEditBtn" class="btn btn-primary btn-bulk-action" style="margin-right: 1rem;">
           Bulk Update
           </button>
-          <button id="qfg-add-case-btn" style="background: #169fb9;color: #FFFFFF;border: 1.5px solid #29a454;border-radius: 8px;padding: 7px 15px;font-size: 0.8rem;font-weight: 700;cursor: pointer;display: flex;">
+          <button id="qfg-add-case-btn" class="btn btn-primary btn-bulk-action">
           &#43;ADD NEW TEST CASE
           </button>
 
@@ -1578,8 +1578,12 @@
         ${c.tags && c.tags.length > 0 ? `<span class="qfg-case-pill" style="background: #f3e8ff;color: #905fba;">&#127991; ${esc(Array.isArray(c.tags) ? c.tags.join(", ") : c.tags)}</span>` : ""}
         <span class="qfg-case-pill" style="background:#eff6ff;color:#677cc1;margin-left:auto;margin-right:1rem;">${esc(displayAssignee || "Unassigned")}</span>
         <div class="tc-actions">
-          <button class="qfg-tc-edit-btn tc-edit-btn" data-idx="${i}">&#128393;</button>
-          <button class="qfg-tc-del-btn  tc-delete-btn" data-idx="${i}">&#128465;</button>
+          <button class="btn btn-sm btn-edit-action tc-edit-btn" data-idx="${i}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-sm btn-delete-action tc-delete-btn" data-idx="${i}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
         </div>
       </div>
     </div>`;

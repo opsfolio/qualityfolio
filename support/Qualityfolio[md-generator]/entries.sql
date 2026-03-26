@@ -171,18 +171,18 @@ SELECT 'html' AS component, '
   /* ============================================
      RESULTS SECTION
      ============================================ */
-  .qfg-results-header { background: linear-gradient(135deg, #d3f7f9 0%, #e0f2fe 100%); color: #1d8397; padding: 24px; border-radius: 14px; margin-bottom: 24px; }
+  .qfg-results-header { background: #F4F9FC;color: oklch(0.65 0.06 235.9);padding: 24px;border-radius: 14px;margin-bottom: 24px; }
   .qfg-results-header h2 { margin: 0 0 6px; font-size: 1rem; font-weight:500; }
   .qfg-results-header p { margin: 0; opacity: 0.9; font-size: 0.85rem; }
   .qfg-results-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-  .qfg-results-meta span { background: rgb(9 124 113 / 20%); border-radius: 20px;; padding: 4px 12px; font-size: 0.8125rem; font-weight: 600; }
+  .qfg-results-meta span { background: rgb(75 182 216 / 20%); border-radius: 20px;; padding: 4px 12px; font-size: 0.8125rem; font-weight: 600; }
 
   /* ============================================
      CASE CARDS
      ============================================ */
   .qfg-case-card { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #ffffff; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
   .qfg-case-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  .qfg-case-head { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; background: var(--slate-50); }
+  .qfg-case-head { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .qfg-case-id { font-size: 0.75rem; font-weight: 800; background: #8fdee1; color: #0e9289; border-radius: 6px; padding: 4px 10px;cursor: pointer; }
   .qfg-case-title { flex: 1; font-weight: 700; font-size: 0.8rem; color: #666; min-width: 200px; }
   .pri-high { background: #fee2e2; color: #991b1b; }

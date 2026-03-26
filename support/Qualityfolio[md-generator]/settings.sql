@@ -81,8 +81,8 @@ SELECT 'html' AS component, '
      ============================================ */
   .cfg-tab-bar {display: flex;background: #ffffff;box-shadow: var(--shadow-sm);flex-wrap: wrap;animation: fadeIn 0.5s ease-out 0.05s both; }
   .cfg-tab-btn { padding: 9px 16px; border: none; background: transparent; color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .cfg-tab-btn:hover { background: var(--slate-100); color: var(--text-primary); }
-  .cfg-tab-btn.active {color: #ffffff;box-shadow: var(--shadow-sm);border-bottom: 3px solid #11a6aa; }
+  .cfg-tab-btn:hover { background: var(--slate-100); color: var(--text-primary); border-radius: 10px 10px 0 0;}
+  .cfg-tab-btn.active {box-shadow: var(--shadow-sm);background: oklch(67.66% .1481 238.14) !important;border-radius: 10px 10px 0 0;color: #FFF !important;}
   .cfg-tab-btn .cfg-tab-icon { font-size: 0.9rem; }
 
   /* ============================================
@@ -130,11 +130,6 @@ SELECT 'html' AS component, '
   /* ============================================
      BUTTONS (mirroring entries.sql button styles)
      ============================================ */
-  .btn.btn-primary.qfg-tc-btn { color: #ffffff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 0.875rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); transition: all 0.2s ease; }
-  .cfg-btn-secondary { background: var(--slate-100); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-  .cfg-btn-secondary:hover { background: var(--border); transform: translateY(-1px); }
-  .cfg-btn-sm { padding: 6px 12px; font-size: 0.78rem; border-radius: 7px; border: 1px solid var(--border); background: #ffffff; color: var(--text-secondary); cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
-  .cfg-btn-sm:hover { background: var(--slate-100); }
 
   /* ============================================
      DATA TABLE (matching entries.sql card aesthetics)
