@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS debug_log (
-    id INTEGER PRIMARY KEY,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);

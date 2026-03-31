@@ -1,0 +1,3504 @@
+.
+├── .env
+├── .tap-venv
+│   ├── .gitignore
+│   ├── bin
+│   │   ├── Activate.ps1
+│   │   ├── activate
+│   │   ├── activate.csh
+│   │   ├── activate.fish
+│   │   ├── chardetect
+│   │   ├── jsonschema
+│   │   ├── normalizer
+│   │   ├── pip
+│   │   ├── pip3
+│   │   ├── pip3.14
+│   │   ├── python -> python3.14
+│   │   ├── python3 -> python3.14
+│   │   ├── python3.14 -> /home/linuxbrew/.linuxbrew/opt/python@3.14/bin/python3.14
+│   │   ├── tap-github
+│   │   └── 𝜋thon -> python3.14
+│   ├── include
+│   ├── lib
+│   │   └── python3.14
+│   │       └── site-packages
+│   │           ├── 81d243bd2c585b0f4821__mypyc.cpython-314-x86_64-linux-gnu.so
+│   │           ├── __pycache__
+│   │           │   ├── _pyrsistent_version.cpython-314.pyc
+│   │           │   └── six.cpython-314.pyc
+│   │           ├── _distutils_hack
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   └── override.cpython-314.pyc
+│   │           │   └── override.py
+│   │           ├── _pyrsistent_version.py
+│   │           ├── attr
+│   │           │   ├── __init__.py
+│   │           │   ├── __init__.pyi
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _cmp.cpython-314.pyc
+│   │           │   │   ├── _compat.cpython-314.pyc
+│   │           │   │   ├── _config.cpython-314.pyc
+│   │           │   │   ├── _funcs.cpython-314.pyc
+│   │           │   │   ├── _make.cpython-314.pyc
+│   │           │   │   ├── _next_gen.cpython-314.pyc
+│   │           │   │   ├── _version_info.cpython-314.pyc
+│   │           │   │   ├── converters.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── filters.cpython-314.pyc
+│   │           │   │   ├── setters.cpython-314.pyc
+│   │           │   │   └── validators.cpython-314.pyc
+│   │           │   ├── _cmp.py
+│   │           │   ├── _cmp.pyi
+│   │           │   ├── _compat.py
+│   │           │   ├── _config.py
+│   │           │   ├── _funcs.py
+│   │           │   ├── _make.py
+│   │           │   ├── _next_gen.py
+│   │           │   ├── _typing_compat.pyi
+│   │           │   ├── _version_info.py
+│   │           │   ├── _version_info.pyi
+│   │           │   ├── converters.py
+│   │           │   ├── converters.pyi
+│   │           │   ├── exceptions.py
+│   │           │   ├── exceptions.pyi
+│   │           │   ├── filters.py
+│   │           │   ├── filters.pyi
+│   │           │   ├── py.typed
+│   │           │   ├── setters.py
+│   │           │   ├── setters.pyi
+│   │           │   ├── validators.py
+│   │           │   └── validators.pyi
+│   │           ├── attrs
+│   │           │   ├── __init__.py
+│   │           │   ├── __init__.pyi
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── converters.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── filters.cpython-314.pyc
+│   │           │   │   ├── setters.cpython-314.pyc
+│   │           │   │   └── validators.cpython-314.pyc
+│   │           │   ├── converters.py
+│   │           │   ├── exceptions.py
+│   │           │   ├── filters.py
+│   │           │   ├── py.typed
+│   │           │   ├── setters.py
+│   │           │   └── validators.py
+│   │           ├── attrs-26.1.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   └── licenses
+│   │           │       └── LICENSE
+│   │           ├── backoff
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _async.cpython-314.pyc
+│   │           │   │   ├── _common.cpython-314.pyc
+│   │           │   │   ├── _decorator.cpython-314.pyc
+│   │           │   │   ├── _jitter.cpython-314.pyc
+│   │           │   │   ├── _sync.cpython-314.pyc
+│   │           │   │   └── _wait_gen.cpython-314.pyc
+│   │           │   ├── _async.py
+│   │           │   ├── _common.py
+│   │           │   ├── _decorator.py
+│   │           │   ├── _jitter.py
+│   │           │   ├── _sync.py
+│   │           │   └── _wait_gen.py
+│   │           ├── backoff-1.10.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   └── WHEEL
+│   │           ├── certifi
+│   │           │   ├── __init__.py
+│   │           │   ├── __main__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   └── core.cpython-314.pyc
+│   │           │   ├── cacert.pem
+│   │           │   ├── core.py
+│   │           │   └── py.typed
+│   │           ├── certifi-2026.2.25.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE
+│   │           │   └── top_level.txt
+│   │           ├── chardet
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── big5freq.cpython-314.pyc
+│   │           │   │   ├── big5prober.cpython-314.pyc
+│   │           │   │   ├── chardistribution.cpython-314.pyc
+│   │           │   │   ├── charsetgroupprober.cpython-314.pyc
+│   │           │   │   ├── charsetprober.cpython-314.pyc
+│   │           │   │   ├── codingstatemachine.cpython-314.pyc
+│   │           │   │   ├── compat.cpython-314.pyc
+│   │           │   │   ├── cp949prober.cpython-314.pyc
+│   │           │   │   ├── enums.cpython-314.pyc
+│   │           │   │   ├── escprober.cpython-314.pyc
+│   │           │   │   ├── escsm.cpython-314.pyc
+│   │           │   │   ├── eucjpprober.cpython-314.pyc
+│   │           │   │   ├── euckrfreq.cpython-314.pyc
+│   │           │   │   ├── euckrprober.cpython-314.pyc
+│   │           │   │   ├── euctwfreq.cpython-314.pyc
+│   │           │   │   ├── euctwprober.cpython-314.pyc
+│   │           │   │   ├── gb2312freq.cpython-314.pyc
+│   │           │   │   ├── gb2312prober.cpython-314.pyc
+│   │           │   │   ├── hebrewprober.cpython-314.pyc
+│   │           │   │   ├── jisfreq.cpython-314.pyc
+│   │           │   │   ├── jpcntx.cpython-314.pyc
+│   │           │   │   ├── langbulgarianmodel.cpython-314.pyc
+│   │           │   │   ├── langcyrillicmodel.cpython-314.pyc
+│   │           │   │   ├── langgreekmodel.cpython-314.pyc
+│   │           │   │   ├── langhebrewmodel.cpython-314.pyc
+│   │           │   │   ├── langhungarianmodel.cpython-314.pyc
+│   │           │   │   ├── langthaimodel.cpython-314.pyc
+│   │           │   │   ├── langturkishmodel.cpython-314.pyc
+│   │           │   │   ├── latin1prober.cpython-314.pyc
+│   │           │   │   ├── mbcharsetprober.cpython-314.pyc
+│   │           │   │   ├── mbcsgroupprober.cpython-314.pyc
+│   │           │   │   ├── mbcssm.cpython-314.pyc
+│   │           │   │   ├── sbcharsetprober.cpython-314.pyc
+│   │           │   │   ├── sbcsgroupprober.cpython-314.pyc
+│   │           │   │   ├── sjisprober.cpython-314.pyc
+│   │           │   │   ├── universaldetector.cpython-314.pyc
+│   │           │   │   ├── utf8prober.cpython-314.pyc
+│   │           │   │   └── version.cpython-314.pyc
+│   │           │   ├── big5freq.py
+│   │           │   ├── big5prober.py
+│   │           │   ├── chardistribution.py
+│   │           │   ├── charsetgroupprober.py
+│   │           │   ├── charsetprober.py
+│   │           │   ├── cli
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   └── chardetect.cpython-314.pyc
+│   │           │   │   └── chardetect.py
+│   │           │   ├── codingstatemachine.py
+│   │           │   ├── compat.py
+│   │           │   ├── cp949prober.py
+│   │           │   ├── enums.py
+│   │           │   ├── escprober.py
+│   │           │   ├── escsm.py
+│   │           │   ├── eucjpprober.py
+│   │           │   ├── euckrfreq.py
+│   │           │   ├── euckrprober.py
+│   │           │   ├── euctwfreq.py
+│   │           │   ├── euctwprober.py
+│   │           │   ├── gb2312freq.py
+│   │           │   ├── gb2312prober.py
+│   │           │   ├── hebrewprober.py
+│   │           │   ├── jisfreq.py
+│   │           │   ├── jpcntx.py
+│   │           │   ├── langbulgarianmodel.py
+│   │           │   ├── langcyrillicmodel.py
+│   │           │   ├── langgreekmodel.py
+│   │           │   ├── langhebrewmodel.py
+│   │           │   ├── langhungarianmodel.py
+│   │           │   ├── langthaimodel.py
+│   │           │   ├── langturkishmodel.py
+│   │           │   ├── latin1prober.py
+│   │           │   ├── mbcharsetprober.py
+│   │           │   ├── mbcsgroupprober.py
+│   │           │   ├── mbcssm.py
+│   │           │   ├── sbcharsetprober.py
+│   │           │   ├── sbcsgroupprober.py
+│   │           │   ├── sjisprober.py
+│   │           │   ├── universaldetector.py
+│   │           │   ├── utf8prober.py
+│   │           │   └── version.py
+│   │           ├── chardet-3.0.4.dist-info
+│   │           │   ├── DESCRIPTION.rst
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   ├── metadata.json
+│   │           │   └── top_level.txt
+│   │           ├── charset_normalizer
+│   │           │   ├── __init__.py
+│   │           │   ├── __main__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   ├── api.cpython-314.pyc
+│   │           │   │   ├── cd.cpython-314.pyc
+│   │           │   │   ├── constant.cpython-314.pyc
+│   │           │   │   ├── legacy.cpython-314.pyc
+│   │           │   │   ├── md.cpython-314.pyc
+│   │           │   │   ├── models.cpython-314.pyc
+│   │           │   │   ├── utils.cpython-314.pyc
+│   │           │   │   └── version.cpython-314.pyc
+│   │           │   ├── api.py
+│   │           │   ├── cd.cpython-314-x86_64-linux-gnu.so
+│   │           │   ├── cd.py
+│   │           │   ├── cli
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __main__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       ├── __init__.cpython-314.pyc
+│   │           │   │       └── __main__.cpython-314.pyc
+│   │           │   ├── constant.py
+│   │           │   ├── legacy.py
+│   │           │   ├── md.cpython-314-x86_64-linux-gnu.so
+│   │           │   ├── md.py
+│   │           │   ├── models.py
+│   │           │   ├── py.typed
+│   │           │   ├── utils.py
+│   │           │   └── version.py
+│   │           ├── charset_normalizer-3.4.6.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE
+│   │           │   └── top_level.txt
+│   │           ├── ciso8601
+│   │           │   ├── __init__.pyi
+│   │           │   └── py.typed
+│   │           ├── ciso8601-2.3.3.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE
+│   │           │   └── top_level.txt
+│   │           ├── ciso8601.cpython-314-x86_64-linux-gnu.so
+│   │           ├── dateutil
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _common.cpython-314.pyc
+│   │           │   │   ├── _version.cpython-314.pyc
+│   │           │   │   ├── easter.cpython-314.pyc
+│   │           │   │   ├── relativedelta.cpython-314.pyc
+│   │           │   │   ├── rrule.cpython-314.pyc
+│   │           │   │   ├── tzwin.cpython-314.pyc
+│   │           │   │   └── utils.cpython-314.pyc
+│   │           │   ├── _common.py
+│   │           │   ├── _version.py
+│   │           │   ├── easter.py
+│   │           │   ├── parser
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _parser.cpython-314.pyc
+│   │           │   │   │   └── isoparser.cpython-314.pyc
+│   │           │   │   ├── _parser.py
+│   │           │   │   └── isoparser.py
+│   │           │   ├── relativedelta.py
+│   │           │   ├── rrule.py
+│   │           │   ├── tz
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _common.cpython-314.pyc
+│   │           │   │   │   ├── _factories.cpython-314.pyc
+│   │           │   │   │   ├── tz.cpython-314.pyc
+│   │           │   │   │   └── win.cpython-314.pyc
+│   │           │   │   ├── _common.py
+│   │           │   │   ├── _factories.py
+│   │           │   │   ├── tz.py
+│   │           │   │   └── win.py
+│   │           │   ├── tzwin.py
+│   │           │   ├── utils.py
+│   │           │   └── zoneinfo
+│   │           │       ├── __init__.py
+│   │           │       ├── __pycache__
+│   │           │       │   ├── __init__.cpython-314.pyc
+│   │           │       │   └── rebuild.cpython-314.pyc
+│   │           │       ├── dateutil-zoneinfo.tar.gz
+│   │           │       └── rebuild.py
+│   │           ├── distutils-precedence.pth
+│   │           ├── idna
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── codec.cpython-314.pyc
+│   │           │   │   ├── compat.cpython-314.pyc
+│   │           │   │   ├── core.cpython-314.pyc
+│   │           │   │   ├── idnadata.cpython-314.pyc
+│   │           │   │   ├── intranges.cpython-314.pyc
+│   │           │   │   ├── package_data.cpython-314.pyc
+│   │           │   │   └── uts46data.cpython-314.pyc
+│   │           │   ├── codec.py
+│   │           │   ├── compat.py
+│   │           │   ├── core.py
+│   │           │   ├── idnadata.py
+│   │           │   ├── intranges.py
+│   │           │   ├── package_data.py
+│   │           │   └── uts46data.py
+│   │           ├── idna-2.7.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE.txt
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   └── top_level.txt
+│   │           ├── jsonschema
+│   │           │   ├── __init__.py
+│   │           │   ├── __main__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   ├── _format.cpython-314.pyc
+│   │           │   │   ├── _legacy_validators.cpython-314.pyc
+│   │           │   │   ├── _reflect.cpython-314.pyc
+│   │           │   │   ├── _types.cpython-314.pyc
+│   │           │   │   ├── _utils.cpython-314.pyc
+│   │           │   │   ├── _validators.cpython-314.pyc
+│   │           │   │   ├── cli.cpython-314.pyc
+│   │           │   │   ├── compat.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   └── validators.cpython-314.pyc
+│   │           │   ├── _format.py
+│   │           │   ├── _legacy_validators.py
+│   │           │   ├── _reflect.py
+│   │           │   ├── _types.py
+│   │           │   ├── _utils.py
+│   │           │   ├── _validators.py
+│   │           │   ├── benchmarks
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── issue232.cpython-314.pyc
+│   │           │   │   │   └── json_schema_test_suite.cpython-314.pyc
+│   │           │   │   ├── issue232.py
+│   │           │   │   └── json_schema_test_suite.py
+│   │           │   ├── cli.py
+│   │           │   ├── compat.py
+│   │           │   ├── exceptions.py
+│   │           │   ├── schemas
+│   │           │   │   ├── draft3.json
+│   │           │   │   ├── draft4.json
+│   │           │   │   ├── draft6.json
+│   │           │   │   └── draft7.json
+│   │           │   ├── tests
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _helpers.cpython-314.pyc
+│   │           │   │   │   ├── _suite.cpython-314.pyc
+│   │           │   │   │   ├── test_cli.cpython-314.pyc
+│   │           │   │   │   ├── test_exceptions.cpython-314.pyc
+│   │           │   │   │   ├── test_format.cpython-314.pyc
+│   │           │   │   │   ├── test_jsonschema_test_suite.cpython-314.pyc
+│   │           │   │   │   ├── test_types.cpython-314.pyc
+│   │           │   │   │   └── test_validators.cpython-314.pyc
+│   │           │   │   ├── _helpers.py
+│   │           │   │   ├── _suite.py
+│   │           │   │   ├── test_cli.py
+│   │           │   │   ├── test_exceptions.py
+│   │           │   │   ├── test_format.py
+│   │           │   │   ├── test_jsonschema_test_suite.py
+│   │           │   │   ├── test_types.py
+│   │           │   │   └── test_validators.py
+│   │           │   └── validators.py
+│   │           ├── jsonschema-3.2.0.dist-info
+│   │           │   ├── COPYING
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   └── top_level.txt
+│   │           ├── pip
+│   │           │   ├── __init__.py
+│   │           │   ├── __main__.py
+│   │           │   ├── __pip-runner__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   └── __pip-runner__.cpython-314.pyc
+│   │           │   ├── _internal
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── build_env.cpython-314.pyc
+│   │           │   │   │   ├── cache.cpython-314.pyc
+│   │           │   │   │   ├── configuration.cpython-314.pyc
+│   │           │   │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   │   ├── main.cpython-314.pyc
+│   │           │   │   │   ├── pyproject.cpython-314.pyc
+│   │           │   │   │   ├── self_outdated_check.cpython-314.pyc
+│   │           │   │   │   └── wheel_builder.cpython-314.pyc
+│   │           │   │   ├── build_env.py
+│   │           │   │   ├── cache.py
+│   │           │   │   ├── cli
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── autocompletion.cpython-314.pyc
+│   │           │   │   │   │   ├── base_command.cpython-314.pyc
+│   │           │   │   │   │   ├── cmdoptions.cpython-314.pyc
+│   │           │   │   │   │   ├── command_context.cpython-314.pyc
+│   │           │   │   │   │   ├── index_command.cpython-314.pyc
+│   │           │   │   │   │   ├── main.cpython-314.pyc
+│   │           │   │   │   │   ├── main_parser.cpython-314.pyc
+│   │           │   │   │   │   ├── parser.cpython-314.pyc
+│   │           │   │   │   │   ├── progress_bars.cpython-314.pyc
+│   │           │   │   │   │   ├── req_command.cpython-314.pyc
+│   │           │   │   │   │   ├── spinners.cpython-314.pyc
+│   │           │   │   │   │   └── status_codes.cpython-314.pyc
+│   │           │   │   │   ├── autocompletion.py
+│   │           │   │   │   ├── base_command.py
+│   │           │   │   │   ├── cmdoptions.py
+│   │           │   │   │   ├── command_context.py
+│   │           │   │   │   ├── index_command.py
+│   │           │   │   │   ├── main.py
+│   │           │   │   │   ├── main_parser.py
+│   │           │   │   │   ├── parser.py
+│   │           │   │   │   ├── progress_bars.py
+│   │           │   │   │   ├── req_command.py
+│   │           │   │   │   ├── spinners.py
+│   │           │   │   │   └── status_codes.py
+│   │           │   │   ├── commands
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── cache.cpython-314.pyc
+│   │           │   │   │   │   ├── check.cpython-314.pyc
+│   │           │   │   │   │   ├── completion.cpython-314.pyc
+│   │           │   │   │   │   ├── configuration.cpython-314.pyc
+│   │           │   │   │   │   ├── debug.cpython-314.pyc
+│   │           │   │   │   │   ├── download.cpython-314.pyc
+│   │           │   │   │   │   ├── freeze.cpython-314.pyc
+│   │           │   │   │   │   ├── hash.cpython-314.pyc
+│   │           │   │   │   │   ├── help.cpython-314.pyc
+│   │           │   │   │   │   ├── index.cpython-314.pyc
+│   │           │   │   │   │   ├── inspect.cpython-314.pyc
+│   │           │   │   │   │   ├── install.cpython-314.pyc
+│   │           │   │   │   │   ├── list.cpython-314.pyc
+│   │           │   │   │   │   ├── lock.cpython-314.pyc
+│   │           │   │   │   │   ├── search.cpython-314.pyc
+│   │           │   │   │   │   ├── show.cpython-314.pyc
+│   │           │   │   │   │   ├── uninstall.cpython-314.pyc
+│   │           │   │   │   │   └── wheel.cpython-314.pyc
+│   │           │   │   │   ├── cache.py
+│   │           │   │   │   ├── check.py
+│   │           │   │   │   ├── completion.py
+│   │           │   │   │   ├── configuration.py
+│   │           │   │   │   ├── debug.py
+│   │           │   │   │   ├── download.py
+│   │           │   │   │   ├── freeze.py
+│   │           │   │   │   ├── hash.py
+│   │           │   │   │   ├── help.py
+│   │           │   │   │   ├── index.py
+│   │           │   │   │   ├── inspect.py
+│   │           │   │   │   ├── install.py
+│   │           │   │   │   ├── list.py
+│   │           │   │   │   ├── lock.py
+│   │           │   │   │   ├── search.py
+│   │           │   │   │   ├── show.py
+│   │           │   │   │   ├── uninstall.py
+│   │           │   │   │   └── wheel.py
+│   │           │   │   ├── configuration.py
+│   │           │   │   ├── distributions
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── base.cpython-314.pyc
+│   │           │   │   │   │   ├── installed.cpython-314.pyc
+│   │           │   │   │   │   ├── sdist.cpython-314.pyc
+│   │           │   │   │   │   └── wheel.cpython-314.pyc
+│   │           │   │   │   ├── base.py
+│   │           │   │   │   ├── installed.py
+│   │           │   │   │   ├── sdist.py
+│   │           │   │   │   └── wheel.py
+│   │           │   │   ├── exceptions.py
+│   │           │   │   ├── index
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── collector.cpython-314.pyc
+│   │           │   │   │   │   ├── package_finder.cpython-314.pyc
+│   │           │   │   │   │   └── sources.cpython-314.pyc
+│   │           │   │   │   ├── collector.py
+│   │           │   │   │   ├── package_finder.py
+│   │           │   │   │   └── sources.py
+│   │           │   │   ├── locations
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _distutils.cpython-314.pyc
+│   │           │   │   │   │   ├── _sysconfig.cpython-314.pyc
+│   │           │   │   │   │   └── base.cpython-314.pyc
+│   │           │   │   │   ├── _distutils.py
+│   │           │   │   │   ├── _sysconfig.py
+│   │           │   │   │   └── base.py
+│   │           │   │   ├── main.py
+│   │           │   │   ├── metadata
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _json.cpython-314.pyc
+│   │           │   │   │   │   ├── base.cpython-314.pyc
+│   │           │   │   │   │   └── pkg_resources.cpython-314.pyc
+│   │           │   │   │   ├── _json.py
+│   │           │   │   │   ├── base.py
+│   │           │   │   │   ├── importlib
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── _compat.cpython-314.pyc
+│   │           │   │   │   │   │   ├── _dists.cpython-314.pyc
+│   │           │   │   │   │   │   └── _envs.cpython-314.pyc
+│   │           │   │   │   │   ├── _compat.py
+│   │           │   │   │   │   ├── _dists.py
+│   │           │   │   │   │   └── _envs.py
+│   │           │   │   │   └── pkg_resources.py
+│   │           │   │   ├── models
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── candidate.cpython-314.pyc
+│   │           │   │   │   │   ├── direct_url.cpython-314.pyc
+│   │           │   │   │   │   ├── format_control.cpython-314.pyc
+│   │           │   │   │   │   ├── index.cpython-314.pyc
+│   │           │   │   │   │   ├── installation_report.cpython-314.pyc
+│   │           │   │   │   │   ├── link.cpython-314.pyc
+│   │           │   │   │   │   ├── release_control.cpython-314.pyc
+│   │           │   │   │   │   ├── scheme.cpython-314.pyc
+│   │           │   │   │   │   ├── search_scope.cpython-314.pyc
+│   │           │   │   │   │   ├── selection_prefs.cpython-314.pyc
+│   │           │   │   │   │   ├── target_python.cpython-314.pyc
+│   │           │   │   │   │   └── wheel.cpython-314.pyc
+│   │           │   │   │   ├── candidate.py
+│   │           │   │   │   ├── direct_url.py
+│   │           │   │   │   ├── format_control.py
+│   │           │   │   │   ├── index.py
+│   │           │   │   │   ├── installation_report.py
+│   │           │   │   │   ├── link.py
+│   │           │   │   │   ├── release_control.py
+│   │           │   │   │   ├── scheme.py
+│   │           │   │   │   ├── search_scope.py
+│   │           │   │   │   ├── selection_prefs.py
+│   │           │   │   │   ├── target_python.py
+│   │           │   │   │   └── wheel.py
+│   │           │   │   ├── network
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── auth.cpython-314.pyc
+│   │           │   │   │   │   ├── cache.cpython-314.pyc
+│   │           │   │   │   │   ├── download.cpython-314.pyc
+│   │           │   │   │   │   ├── lazy_wheel.cpython-314.pyc
+│   │           │   │   │   │   ├── session.cpython-314.pyc
+│   │           │   │   │   │   ├── utils.cpython-314.pyc
+│   │           │   │   │   │   └── xmlrpc.cpython-314.pyc
+│   │           │   │   │   ├── auth.py
+│   │           │   │   │   ├── cache.py
+│   │           │   │   │   ├── download.py
+│   │           │   │   │   ├── lazy_wheel.py
+│   │           │   │   │   ├── session.py
+│   │           │   │   │   ├── utils.py
+│   │           │   │   │   └── xmlrpc.py
+│   │           │   │   ├── operations
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── check.cpython-314.pyc
+│   │           │   │   │   │   ├── freeze.cpython-314.pyc
+│   │           │   │   │   │   └── prepare.cpython-314.pyc
+│   │           │   │   │   ├── build
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── build_tracker.cpython-314.pyc
+│   │           │   │   │   │   │   ├── metadata.cpython-314.pyc
+│   │           │   │   │   │   │   ├── metadata_editable.cpython-314.pyc
+│   │           │   │   │   │   │   ├── wheel.cpython-314.pyc
+│   │           │   │   │   │   │   └── wheel_editable.cpython-314.pyc
+│   │           │   │   │   │   ├── build_tracker.py
+│   │           │   │   │   │   ├── metadata.py
+│   │           │   │   │   │   ├── metadata_editable.py
+│   │           │   │   │   │   ├── wheel.py
+│   │           │   │   │   │   └── wheel_editable.py
+│   │           │   │   │   ├── check.py
+│   │           │   │   │   ├── freeze.py
+│   │           │   │   │   ├── install
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── wheel.cpython-314.pyc
+│   │           │   │   │   │   └── wheel.py
+│   │           │   │   │   └── prepare.py
+│   │           │   │   ├── pyproject.py
+│   │           │   │   ├── req
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── constructors.cpython-314.pyc
+│   │           │   │   │   │   ├── pep723.cpython-314.pyc
+│   │           │   │   │   │   ├── req_dependency_group.cpython-314.pyc
+│   │           │   │   │   │   ├── req_file.cpython-314.pyc
+│   │           │   │   │   │   ├── req_install.cpython-314.pyc
+│   │           │   │   │   │   ├── req_set.cpython-314.pyc
+│   │           │   │   │   │   └── req_uninstall.cpython-314.pyc
+│   │           │   │   │   ├── constructors.py
+│   │           │   │   │   ├── pep723.py
+│   │           │   │   │   ├── req_dependency_group.py
+│   │           │   │   │   ├── req_file.py
+│   │           │   │   │   ├── req_install.py
+│   │           │   │   │   ├── req_set.py
+│   │           │   │   │   └── req_uninstall.py
+│   │           │   │   ├── resolution
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── base.cpython-314.pyc
+│   │           │   │   │   ├── base.py
+│   │           │   │   │   ├── legacy
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── resolver.cpython-314.pyc
+│   │           │   │   │   │   └── resolver.py
+│   │           │   │   │   └── resolvelib
+│   │           │   │   │       ├── __init__.py
+│   │           │   │   │       ├── __pycache__
+│   │           │   │   │       │   ├── __init__.cpython-314.pyc
+│   │           │   │   │       │   ├── base.cpython-314.pyc
+│   │           │   │   │       │   ├── candidates.cpython-314.pyc
+│   │           │   │   │       │   ├── factory.cpython-314.pyc
+│   │           │   │   │       │   ├── found_candidates.cpython-314.pyc
+│   │           │   │   │       │   ├── provider.cpython-314.pyc
+│   │           │   │   │       │   ├── reporter.cpython-314.pyc
+│   │           │   │   │       │   ├── requirements.cpython-314.pyc
+│   │           │   │   │       │   └── resolver.cpython-314.pyc
+│   │           │   │   │       ├── base.py
+│   │           │   │   │       ├── candidates.py
+│   │           │   │   │       ├── factory.py
+│   │           │   │   │       ├── found_candidates.py
+│   │           │   │   │       ├── provider.py
+│   │           │   │   │       ├── reporter.py
+│   │           │   │   │       ├── requirements.py
+│   │           │   │   │       └── resolver.py
+│   │           │   │   ├── self_outdated_check.py
+│   │           │   │   ├── utils
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _jaraco_text.cpython-314.pyc
+│   │           │   │   │   │   ├── _log.cpython-314.pyc
+│   │           │   │   │   │   ├── appdirs.cpython-314.pyc
+│   │           │   │   │   │   ├── compat.cpython-314.pyc
+│   │           │   │   │   │   ├── compatibility_tags.cpython-314.pyc
+│   │           │   │   │   │   ├── datetime.cpython-314.pyc
+│   │           │   │   │   │   ├── deprecation.cpython-314.pyc
+│   │           │   │   │   │   ├── direct_url_helpers.cpython-314.pyc
+│   │           │   │   │   │   ├── egg_link.cpython-314.pyc
+│   │           │   │   │   │   ├── entrypoints.cpython-314.pyc
+│   │           │   │   │   │   ├── filesystem.cpython-314.pyc
+│   │           │   │   │   │   ├── filetypes.cpython-314.pyc
+│   │           │   │   │   │   ├── glibc.cpython-314.pyc
+│   │           │   │   │   │   ├── hashes.cpython-314.pyc
+│   │           │   │   │   │   ├── logging.cpython-314.pyc
+│   │           │   │   │   │   ├── misc.cpython-314.pyc
+│   │           │   │   │   │   ├── packaging.cpython-314.pyc
+│   │           │   │   │   │   ├── pylock.cpython-314.pyc
+│   │           │   │   │   │   ├── retry.cpython-314.pyc
+│   │           │   │   │   │   ├── subprocess.cpython-314.pyc
+│   │           │   │   │   │   ├── temp_dir.cpython-314.pyc
+│   │           │   │   │   │   ├── unpacking.cpython-314.pyc
+│   │           │   │   │   │   ├── urls.cpython-314.pyc
+│   │           │   │   │   │   ├── virtualenv.cpython-314.pyc
+│   │           │   │   │   │   └── wheel.cpython-314.pyc
+│   │           │   │   │   ├── _jaraco_text.py
+│   │           │   │   │   ├── _log.py
+│   │           │   │   │   ├── appdirs.py
+│   │           │   │   │   ├── compat.py
+│   │           │   │   │   ├── compatibility_tags.py
+│   │           │   │   │   ├── datetime.py
+│   │           │   │   │   ├── deprecation.py
+│   │           │   │   │   ├── direct_url_helpers.py
+│   │           │   │   │   ├── egg_link.py
+│   │           │   │   │   ├── entrypoints.py
+│   │           │   │   │   ├── filesystem.py
+│   │           │   │   │   ├── filetypes.py
+│   │           │   │   │   ├── glibc.py
+│   │           │   │   │   ├── hashes.py
+│   │           │   │   │   ├── logging.py
+│   │           │   │   │   ├── misc.py
+│   │           │   │   │   ├── packaging.py
+│   │           │   │   │   ├── pylock.py
+│   │           │   │   │   ├── retry.py
+│   │           │   │   │   ├── subprocess.py
+│   │           │   │   │   ├── temp_dir.py
+│   │           │   │   │   ├── unpacking.py
+│   │           │   │   │   ├── urls.py
+│   │           │   │   │   ├── virtualenv.py
+│   │           │   │   │   └── wheel.py
+│   │           │   │   ├── vcs
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── bazaar.cpython-314.pyc
+│   │           │   │   │   │   ├── git.cpython-314.pyc
+│   │           │   │   │   │   ├── mercurial.cpython-314.pyc
+│   │           │   │   │   │   ├── subversion.cpython-314.pyc
+│   │           │   │   │   │   └── versioncontrol.cpython-314.pyc
+│   │           │   │   │   ├── bazaar.py
+│   │           │   │   │   ├── git.py
+│   │           │   │   │   ├── mercurial.py
+│   │           │   │   │   ├── subversion.py
+│   │           │   │   │   └── versioncontrol.py
+│   │           │   │   └── wheel_builder.py
+│   │           │   ├── _vendor
+│   │           │   │   ├── README.rst
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   └── __init__.cpython-314.pyc
+│   │           │   │   ├── cachecontrol
+│   │           │   │   │   ├── LICENSE.txt
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _cmd.cpython-314.pyc
+│   │           │   │   │   │   ├── adapter.cpython-314.pyc
+│   │           │   │   │   │   ├── cache.cpython-314.pyc
+│   │           │   │   │   │   ├── controller.cpython-314.pyc
+│   │           │   │   │   │   ├── filewrapper.cpython-314.pyc
+│   │           │   │   │   │   ├── heuristics.cpython-314.pyc
+│   │           │   │   │   │   ├── serialize.cpython-314.pyc
+│   │           │   │   │   │   └── wrapper.cpython-314.pyc
+│   │           │   │   │   ├── _cmd.py
+│   │           │   │   │   ├── adapter.py
+│   │           │   │   │   ├── cache.py
+│   │           │   │   │   ├── caches
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── file_cache.cpython-314.pyc
+│   │           │   │   │   │   │   └── redis_cache.cpython-314.pyc
+│   │           │   │   │   │   ├── file_cache.py
+│   │           │   │   │   │   └── redis_cache.py
+│   │           │   │   │   ├── controller.py
+│   │           │   │   │   ├── filewrapper.py
+│   │           │   │   │   ├── heuristics.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── serialize.py
+│   │           │   │   │   └── wrapper.py
+│   │           │   │   ├── certifi
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   └── core.cpython-314.pyc
+│   │           │   │   │   ├── cacert.pem
+│   │           │   │   │   ├── core.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── dependency_groups
+│   │           │   │   │   ├── LICENSE.txt
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── _implementation.cpython-314.pyc
+│   │           │   │   │   │   ├── _lint_dependency_groups.cpython-314.pyc
+│   │           │   │   │   │   ├── _pip_wrapper.cpython-314.pyc
+│   │           │   │   │   │   └── _toml_compat.cpython-314.pyc
+│   │           │   │   │   ├── _implementation.py
+│   │           │   │   │   ├── _lint_dependency_groups.py
+│   │           │   │   │   ├── _pip_wrapper.py
+│   │           │   │   │   ├── _toml_compat.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── distlib
+│   │           │   │   │   ├── LICENSE.txt
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── compat.cpython-314.pyc
+│   │           │   │   │   │   ├── resources.cpython-314.pyc
+│   │           │   │   │   │   ├── scripts.cpython-314.pyc
+│   │           │   │   │   │   └── util.cpython-314.pyc
+│   │           │   │   │   ├── compat.py
+│   │           │   │   │   ├── resources.py
+│   │           │   │   │   ├── scripts.py
+│   │           │   │   │   ├── t32.exe
+│   │           │   │   │   ├── t64-arm.exe
+│   │           │   │   │   ├── t64.exe
+│   │           │   │   │   ├── util.py
+│   │           │   │   │   ├── w32.exe
+│   │           │   │   │   ├── w64-arm.exe
+│   │           │   │   │   └── w64.exe
+│   │           │   │   ├── distro
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   └── distro.cpython-314.pyc
+│   │           │   │   │   ├── distro.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── idna
+│   │           │   │   │   ├── LICENSE.md
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── codec.cpython-314.pyc
+│   │           │   │   │   │   ├── compat.cpython-314.pyc
+│   │           │   │   │   │   ├── core.cpython-314.pyc
+│   │           │   │   │   │   ├── idnadata.cpython-314.pyc
+│   │           │   │   │   │   ├── intranges.cpython-314.pyc
+│   │           │   │   │   │   ├── package_data.cpython-314.pyc
+│   │           │   │   │   │   └── uts46data.cpython-314.pyc
+│   │           │   │   │   ├── codec.py
+│   │           │   │   │   ├── compat.py
+│   │           │   │   │   ├── core.py
+│   │           │   │   │   ├── idnadata.py
+│   │           │   │   │   ├── intranges.py
+│   │           │   │   │   ├── package_data.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   └── uts46data.py
+│   │           │   │   ├── msgpack
+│   │           │   │   │   ├── COPYING
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   │   │   ├── ext.cpython-314.pyc
+│   │           │   │   │   │   └── fallback.cpython-314.pyc
+│   │           │   │   │   ├── exceptions.py
+│   │           │   │   │   ├── ext.py
+│   │           │   │   │   └── fallback.py
+│   │           │   │   ├── packaging
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── LICENSE.APACHE
+│   │           │   │   │   ├── LICENSE.BSD
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _elffile.cpython-314.pyc
+│   │           │   │   │   │   ├── _manylinux.cpython-314.pyc
+│   │           │   │   │   │   ├── _musllinux.cpython-314.pyc
+│   │           │   │   │   │   ├── _parser.cpython-314.pyc
+│   │           │   │   │   │   ├── _structures.cpython-314.pyc
+│   │           │   │   │   │   ├── _tokenizer.cpython-314.pyc
+│   │           │   │   │   │   ├── markers.cpython-314.pyc
+│   │           │   │   │   │   ├── metadata.cpython-314.pyc
+│   │           │   │   │   │   ├── pylock.cpython-314.pyc
+│   │           │   │   │   │   ├── requirements.cpython-314.pyc
+│   │           │   │   │   │   ├── specifiers.cpython-314.pyc
+│   │           │   │   │   │   ├── tags.cpython-314.pyc
+│   │           │   │   │   │   ├── utils.cpython-314.pyc
+│   │           │   │   │   │   └── version.cpython-314.pyc
+│   │           │   │   │   ├── _elffile.py
+│   │           │   │   │   ├── _manylinux.py
+│   │           │   │   │   ├── _musllinux.py
+│   │           │   │   │   ├── _parser.py
+│   │           │   │   │   ├── _structures.py
+│   │           │   │   │   ├── _tokenizer.py
+│   │           │   │   │   ├── licenses
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── _spdx.cpython-314.pyc
+│   │           │   │   │   │   └── _spdx.py
+│   │           │   │   │   ├── markers.py
+│   │           │   │   │   ├── metadata.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── pylock.py
+│   │           │   │   │   ├── requirements.py
+│   │           │   │   │   ├── specifiers.py
+│   │           │   │   │   ├── tags.py
+│   │           │   │   │   ├── utils.py
+│   │           │   │   │   └── version.py
+│   │           │   │   ├── pkg_resources
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   └── __pycache__
+│   │           │   │   │       └── __init__.cpython-314.pyc
+│   │           │   │   ├── platformdirs
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── android.cpython-314.pyc
+│   │           │   │   │   │   ├── api.cpython-314.pyc
+│   │           │   │   │   │   ├── macos.cpython-314.pyc
+│   │           │   │   │   │   ├── unix.cpython-314.pyc
+│   │           │   │   │   │   ├── version.cpython-314.pyc
+│   │           │   │   │   │   └── windows.cpython-314.pyc
+│   │           │   │   │   ├── android.py
+│   │           │   │   │   ├── api.py
+│   │           │   │   │   ├── macos.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── unix.py
+│   │           │   │   │   ├── version.py
+│   │           │   │   │   └── windows.py
+│   │           │   │   ├── pygments
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── console.cpython-314.pyc
+│   │           │   │   │   │   ├── filter.cpython-314.pyc
+│   │           │   │   │   │   ├── formatter.cpython-314.pyc
+│   │           │   │   │   │   ├── lexer.cpython-314.pyc
+│   │           │   │   │   │   ├── modeline.cpython-314.pyc
+│   │           │   │   │   │   ├── plugin.cpython-314.pyc
+│   │           │   │   │   │   ├── regexopt.cpython-314.pyc
+│   │           │   │   │   │   ├── scanner.cpython-314.pyc
+│   │           │   │   │   │   ├── sphinxext.cpython-314.pyc
+│   │           │   │   │   │   ├── style.cpython-314.pyc
+│   │           │   │   │   │   ├── token.cpython-314.pyc
+│   │           │   │   │   │   ├── unistring.cpython-314.pyc
+│   │           │   │   │   │   └── util.cpython-314.pyc
+│   │           │   │   │   ├── console.py
+│   │           │   │   │   ├── filter.py
+│   │           │   │   │   ├── filters
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   └── __pycache__
+│   │           │   │   │   │       └── __init__.cpython-314.pyc
+│   │           │   │   │   ├── formatter.py
+│   │           │   │   │   ├── formatters
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── _mapping.cpython-314.pyc
+│   │           │   │   │   │   └── _mapping.py
+│   │           │   │   │   ├── lexer.py
+│   │           │   │   │   ├── lexers
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── _mapping.cpython-314.pyc
+│   │           │   │   │   │   │   └── python.cpython-314.pyc
+│   │           │   │   │   │   ├── _mapping.py
+│   │           │   │   │   │   └── python.py
+│   │           │   │   │   ├── modeline.py
+│   │           │   │   │   ├── plugin.py
+│   │           │   │   │   ├── regexopt.py
+│   │           │   │   │   ├── scanner.py
+│   │           │   │   │   ├── sphinxext.py
+│   │           │   │   │   ├── style.py
+│   │           │   │   │   ├── styles
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── _mapping.cpython-314.pyc
+│   │           │   │   │   │   └── _mapping.py
+│   │           │   │   │   ├── token.py
+│   │           │   │   │   ├── unistring.py
+│   │           │   │   │   └── util.py
+│   │           │   │   ├── pyproject_hooks
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── _impl.cpython-314.pyc
+│   │           │   │   │   ├── _impl.py
+│   │           │   │   │   ├── _in_process
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── _in_process.cpython-314.pyc
+│   │           │   │   │   │   └── _in_process.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── requests
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __version__.cpython-314.pyc
+│   │           │   │   │   │   ├── _internal_utils.cpython-314.pyc
+│   │           │   │   │   │   ├── adapters.cpython-314.pyc
+│   │           │   │   │   │   ├── api.cpython-314.pyc
+│   │           │   │   │   │   ├── auth.cpython-314.pyc
+│   │           │   │   │   │   ├── certs.cpython-314.pyc
+│   │           │   │   │   │   ├── compat.cpython-314.pyc
+│   │           │   │   │   │   ├── cookies.cpython-314.pyc
+│   │           │   │   │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   │   │   ├── help.cpython-314.pyc
+│   │           │   │   │   │   ├── hooks.cpython-314.pyc
+│   │           │   │   │   │   ├── models.cpython-314.pyc
+│   │           │   │   │   │   ├── packages.cpython-314.pyc
+│   │           │   │   │   │   ├── sessions.cpython-314.pyc
+│   │           │   │   │   │   ├── status_codes.cpython-314.pyc
+│   │           │   │   │   │   ├── structures.cpython-314.pyc
+│   │           │   │   │   │   └── utils.cpython-314.pyc
+│   │           │   │   │   ├── __version__.py
+│   │           │   │   │   ├── _internal_utils.py
+│   │           │   │   │   ├── adapters.py
+│   │           │   │   │   ├── api.py
+│   │           │   │   │   ├── auth.py
+│   │           │   │   │   ├── certs.py
+│   │           │   │   │   ├── compat.py
+│   │           │   │   │   ├── cookies.py
+│   │           │   │   │   ├── exceptions.py
+│   │           │   │   │   ├── help.py
+│   │           │   │   │   ├── hooks.py
+│   │           │   │   │   ├── models.py
+│   │           │   │   │   ├── packages.py
+│   │           │   │   │   ├── sessions.py
+│   │           │   │   │   ├── status_codes.py
+│   │           │   │   │   ├── structures.py
+│   │           │   │   │   └── utils.py
+│   │           │   │   ├── resolvelib
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── providers.cpython-314.pyc
+│   │           │   │   │   │   ├── reporters.cpython-314.pyc
+│   │           │   │   │   │   └── structs.cpython-314.pyc
+│   │           │   │   │   ├── providers.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── reporters.py
+│   │           │   │   │   ├── resolvers
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── abstract.cpython-314.pyc
+│   │           │   │   │   │   │   ├── criterion.cpython-314.pyc
+│   │           │   │   │   │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   │   │   │   └── resolution.cpython-314.pyc
+│   │           │   │   │   │   ├── abstract.py
+│   │           │   │   │   │   ├── criterion.py
+│   │           │   │   │   │   ├── exceptions.py
+│   │           │   │   │   │   └── resolution.py
+│   │           │   │   │   └── structs.py
+│   │           │   │   ├── rich
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── _cell_widths.cpython-314.pyc
+│   │           │   │   │   │   ├── _emoji_codes.cpython-314.pyc
+│   │           │   │   │   │   ├── _emoji_replace.cpython-314.pyc
+│   │           │   │   │   │   ├── _export_format.cpython-314.pyc
+│   │           │   │   │   │   ├── _extension.cpython-314.pyc
+│   │           │   │   │   │   ├── _fileno.cpython-314.pyc
+│   │           │   │   │   │   ├── _inspect.cpython-314.pyc
+│   │           │   │   │   │   ├── _log_render.cpython-314.pyc
+│   │           │   │   │   │   ├── _loop.cpython-314.pyc
+│   │           │   │   │   │   ├── _null_file.cpython-314.pyc
+│   │           │   │   │   │   ├── _palettes.cpython-314.pyc
+│   │           │   │   │   │   ├── _pick.cpython-314.pyc
+│   │           │   │   │   │   ├── _ratio.cpython-314.pyc
+│   │           │   │   │   │   ├── _spinners.cpython-314.pyc
+│   │           │   │   │   │   ├── _stack.cpython-314.pyc
+│   │           │   │   │   │   ├── _timer.cpython-314.pyc
+│   │           │   │   │   │   ├── _win32_console.cpython-314.pyc
+│   │           │   │   │   │   ├── _windows.cpython-314.pyc
+│   │           │   │   │   │   ├── _windows_renderer.cpython-314.pyc
+│   │           │   │   │   │   ├── _wrap.cpython-314.pyc
+│   │           │   │   │   │   ├── abc.cpython-314.pyc
+│   │           │   │   │   │   ├── align.cpython-314.pyc
+│   │           │   │   │   │   ├── ansi.cpython-314.pyc
+│   │           │   │   │   │   ├── bar.cpython-314.pyc
+│   │           │   │   │   │   ├── box.cpython-314.pyc
+│   │           │   │   │   │   ├── cells.cpython-314.pyc
+│   │           │   │   │   │   ├── color.cpython-314.pyc
+│   │           │   │   │   │   ├── color_triplet.cpython-314.pyc
+│   │           │   │   │   │   ├── columns.cpython-314.pyc
+│   │           │   │   │   │   ├── console.cpython-314.pyc
+│   │           │   │   │   │   ├── constrain.cpython-314.pyc
+│   │           │   │   │   │   ├── containers.cpython-314.pyc
+│   │           │   │   │   │   ├── control.cpython-314.pyc
+│   │           │   │   │   │   ├── default_styles.cpython-314.pyc
+│   │           │   │   │   │   ├── diagnose.cpython-314.pyc
+│   │           │   │   │   │   ├── emoji.cpython-314.pyc
+│   │           │   │   │   │   ├── errors.cpython-314.pyc
+│   │           │   │   │   │   ├── file_proxy.cpython-314.pyc
+│   │           │   │   │   │   ├── filesize.cpython-314.pyc
+│   │           │   │   │   │   ├── highlighter.cpython-314.pyc
+│   │           │   │   │   │   ├── json.cpython-314.pyc
+│   │           │   │   │   │   ├── jupyter.cpython-314.pyc
+│   │           │   │   │   │   ├── layout.cpython-314.pyc
+│   │           │   │   │   │   ├── live.cpython-314.pyc
+│   │           │   │   │   │   ├── live_render.cpython-314.pyc
+│   │           │   │   │   │   ├── logging.cpython-314.pyc
+│   │           │   │   │   │   ├── markup.cpython-314.pyc
+│   │           │   │   │   │   ├── measure.cpython-314.pyc
+│   │           │   │   │   │   ├── padding.cpython-314.pyc
+│   │           │   │   │   │   ├── pager.cpython-314.pyc
+│   │           │   │   │   │   ├── palette.cpython-314.pyc
+│   │           │   │   │   │   ├── panel.cpython-314.pyc
+│   │           │   │   │   │   ├── pretty.cpython-314.pyc
+│   │           │   │   │   │   ├── progress.cpython-314.pyc
+│   │           │   │   │   │   ├── progress_bar.cpython-314.pyc
+│   │           │   │   │   │   ├── prompt.cpython-314.pyc
+│   │           │   │   │   │   ├── protocol.cpython-314.pyc
+│   │           │   │   │   │   ├── region.cpython-314.pyc
+│   │           │   │   │   │   ├── repr.cpython-314.pyc
+│   │           │   │   │   │   ├── rule.cpython-314.pyc
+│   │           │   │   │   │   ├── scope.cpython-314.pyc
+│   │           │   │   │   │   ├── screen.cpython-314.pyc
+│   │           │   │   │   │   ├── segment.cpython-314.pyc
+│   │           │   │   │   │   ├── spinner.cpython-314.pyc
+│   │           │   │   │   │   ├── status.cpython-314.pyc
+│   │           │   │   │   │   ├── style.cpython-314.pyc
+│   │           │   │   │   │   ├── styled.cpython-314.pyc
+│   │           │   │   │   │   ├── syntax.cpython-314.pyc
+│   │           │   │   │   │   ├── table.cpython-314.pyc
+│   │           │   │   │   │   ├── terminal_theme.cpython-314.pyc
+│   │           │   │   │   │   ├── text.cpython-314.pyc
+│   │           │   │   │   │   ├── theme.cpython-314.pyc
+│   │           │   │   │   │   ├── themes.cpython-314.pyc
+│   │           │   │   │   │   ├── traceback.cpython-314.pyc
+│   │           │   │   │   │   └── tree.cpython-314.pyc
+│   │           │   │   │   ├── _cell_widths.py
+│   │           │   │   │   ├── _emoji_codes.py
+│   │           │   │   │   ├── _emoji_replace.py
+│   │           │   │   │   ├── _export_format.py
+│   │           │   │   │   ├── _extension.py
+│   │           │   │   │   ├── _fileno.py
+│   │           │   │   │   ├── _inspect.py
+│   │           │   │   │   ├── _log_render.py
+│   │           │   │   │   ├── _loop.py
+│   │           │   │   │   ├── _null_file.py
+│   │           │   │   │   ├── _palettes.py
+│   │           │   │   │   ├── _pick.py
+│   │           │   │   │   ├── _ratio.py
+│   │           │   │   │   ├── _spinners.py
+│   │           │   │   │   ├── _stack.py
+│   │           │   │   │   ├── _timer.py
+│   │           │   │   │   ├── _win32_console.py
+│   │           │   │   │   ├── _windows.py
+│   │           │   │   │   ├── _windows_renderer.py
+│   │           │   │   │   ├── _wrap.py
+│   │           │   │   │   ├── abc.py
+│   │           │   │   │   ├── align.py
+│   │           │   │   │   ├── ansi.py
+│   │           │   │   │   ├── bar.py
+│   │           │   │   │   ├── box.py
+│   │           │   │   │   ├── cells.py
+│   │           │   │   │   ├── color.py
+│   │           │   │   │   ├── color_triplet.py
+│   │           │   │   │   ├── columns.py
+│   │           │   │   │   ├── console.py
+│   │           │   │   │   ├── constrain.py
+│   │           │   │   │   ├── containers.py
+│   │           │   │   │   ├── control.py
+│   │           │   │   │   ├── default_styles.py
+│   │           │   │   │   ├── diagnose.py
+│   │           │   │   │   ├── emoji.py
+│   │           │   │   │   ├── errors.py
+│   │           │   │   │   ├── file_proxy.py
+│   │           │   │   │   ├── filesize.py
+│   │           │   │   │   ├── highlighter.py
+│   │           │   │   │   ├── json.py
+│   │           │   │   │   ├── jupyter.py
+│   │           │   │   │   ├── layout.py
+│   │           │   │   │   ├── live.py
+│   │           │   │   │   ├── live_render.py
+│   │           │   │   │   ├── logging.py
+│   │           │   │   │   ├── markup.py
+│   │           │   │   │   ├── measure.py
+│   │           │   │   │   ├── padding.py
+│   │           │   │   │   ├── pager.py
+│   │           │   │   │   ├── palette.py
+│   │           │   │   │   ├── panel.py
+│   │           │   │   │   ├── pretty.py
+│   │           │   │   │   ├── progress.py
+│   │           │   │   │   ├── progress_bar.py
+│   │           │   │   │   ├── prompt.py
+│   │           │   │   │   ├── protocol.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── region.py
+│   │           │   │   │   ├── repr.py
+│   │           │   │   │   ├── rule.py
+│   │           │   │   │   ├── scope.py
+│   │           │   │   │   ├── screen.py
+│   │           │   │   │   ├── segment.py
+│   │           │   │   │   ├── spinner.py
+│   │           │   │   │   ├── status.py
+│   │           │   │   │   ├── style.py
+│   │           │   │   │   ├── styled.py
+│   │           │   │   │   ├── syntax.py
+│   │           │   │   │   ├── table.py
+│   │           │   │   │   ├── terminal_theme.py
+│   │           │   │   │   ├── text.py
+│   │           │   │   │   ├── theme.py
+│   │           │   │   │   ├── themes.py
+│   │           │   │   │   ├── traceback.py
+│   │           │   │   │   └── tree.py
+│   │           │   │   ├── tomli
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _parser.cpython-314.pyc
+│   │           │   │   │   │   ├── _re.cpython-314.pyc
+│   │           │   │   │   │   └── _types.cpython-314.pyc
+│   │           │   │   │   ├── _parser.py
+│   │           │   │   │   ├── _re.py
+│   │           │   │   │   ├── _types.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── tomli_w
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── _writer.cpython-314.pyc
+│   │           │   │   │   ├── _writer.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── truststore
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _api.cpython-314.pyc
+│   │           │   │   │   │   ├── _macos.cpython-314.pyc
+│   │           │   │   │   │   ├── _openssl.cpython-314.pyc
+│   │           │   │   │   │   ├── _ssl_constants.cpython-314.pyc
+│   │           │   │   │   │   └── _windows.cpython-314.pyc
+│   │           │   │   │   ├── _api.py
+│   │           │   │   │   ├── _macos.py
+│   │           │   │   │   ├── _openssl.py
+│   │           │   │   │   ├── _ssl_constants.py
+│   │           │   │   │   ├── _windows.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── urllib3
+│   │           │   │   │   ├── LICENSE.txt
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _collections.cpython-314.pyc
+│   │           │   │   │   │   ├── _version.cpython-314.pyc
+│   │           │   │   │   │   ├── connection.cpython-314.pyc
+│   │           │   │   │   │   ├── connectionpool.cpython-314.pyc
+│   │           │   │   │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   │   │   ├── fields.cpython-314.pyc
+│   │           │   │   │   │   ├── filepost.cpython-314.pyc
+│   │           │   │   │   │   ├── poolmanager.cpython-314.pyc
+│   │           │   │   │   │   ├── request.cpython-314.pyc
+│   │           │   │   │   │   └── response.cpython-314.pyc
+│   │           │   │   │   ├── _collections.py
+│   │           │   │   │   ├── _version.py
+│   │           │   │   │   ├── connection.py
+│   │           │   │   │   ├── connectionpool.py
+│   │           │   │   │   ├── contrib
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── _appengine_environ.cpython-314.pyc
+│   │           │   │   │   │   │   ├── appengine.cpython-314.pyc
+│   │           │   │   │   │   │   ├── ntlmpool.cpython-314.pyc
+│   │           │   │   │   │   │   ├── pyopenssl.cpython-314.pyc
+│   │           │   │   │   │   │   ├── securetransport.cpython-314.pyc
+│   │           │   │   │   │   │   └── socks.cpython-314.pyc
+│   │           │   │   │   │   ├── _appengine_environ.py
+│   │           │   │   │   │   ├── _securetransport
+│   │           │   │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   │   ├── bindings.cpython-314.pyc
+│   │           │   │   │   │   │   │   └── low_level.cpython-314.pyc
+│   │           │   │   │   │   │   ├── bindings.py
+│   │           │   │   │   │   │   └── low_level.py
+│   │           │   │   │   │   ├── appengine.py
+│   │           │   │   │   │   ├── ntlmpool.py
+│   │           │   │   │   │   ├── pyopenssl.py
+│   │           │   │   │   │   ├── securetransport.py
+│   │           │   │   │   │   └── socks.py
+│   │           │   │   │   ├── exceptions.py
+│   │           │   │   │   ├── fields.py
+│   │           │   │   │   ├── filepost.py
+│   │           │   │   │   ├── packages
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── six.cpython-314.pyc
+│   │           │   │   │   │   ├── backports
+│   │           │   │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   │   ├── makefile.cpython-314.pyc
+│   │           │   │   │   │   │   │   └── weakref_finalize.cpython-314.pyc
+│   │           │   │   │   │   │   ├── makefile.py
+│   │           │   │   │   │   │   └── weakref_finalize.py
+│   │           │   │   │   │   └── six.py
+│   │           │   │   │   ├── poolmanager.py
+│   │           │   │   │   ├── request.py
+│   │           │   │   │   ├── response.py
+│   │           │   │   │   └── util
+│   │           │   │   │       ├── __init__.py
+│   │           │   │   │       ├── __pycache__
+│   │           │   │   │       │   ├── __init__.cpython-314.pyc
+│   │           │   │   │       │   ├── connection.cpython-314.pyc
+│   │           │   │   │       │   ├── proxy.cpython-314.pyc
+│   │           │   │   │       │   ├── queue.cpython-314.pyc
+│   │           │   │   │       │   ├── request.cpython-314.pyc
+│   │           │   │   │       │   ├── response.cpython-314.pyc
+│   │           │   │   │       │   ├── retry.cpython-314.pyc
+│   │           │   │   │       │   ├── ssl_.cpython-314.pyc
+│   │           │   │   │       │   ├── ssl_match_hostname.cpython-314.pyc
+│   │           │   │   │       │   ├── ssltransport.cpython-314.pyc
+│   │           │   │   │       │   ├── timeout.cpython-314.pyc
+│   │           │   │   │       │   ├── url.cpython-314.pyc
+│   │           │   │   │       │   └── wait.cpython-314.pyc
+│   │           │   │   │       ├── connection.py
+│   │           │   │   │       ├── proxy.py
+│   │           │   │   │       ├── queue.py
+│   │           │   │   │       ├── request.py
+│   │           │   │   │       ├── response.py
+│   │           │   │   │       ├── retry.py
+│   │           │   │   │       ├── ssl_.py
+│   │           │   │   │       ├── ssl_match_hostname.py
+│   │           │   │   │       ├── ssltransport.py
+│   │           │   │   │       ├── timeout.py
+│   │           │   │   │       ├── url.py
+│   │           │   │   │       └── wait.py
+│   │           │   │   └── vendor.txt
+│   │           │   └── py.typed
+│   │           ├── pip-26.0.1.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── REQUESTED
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   └── licenses
+│   │           │       ├── AUTHORS.txt
+│   │           │       ├── LICENSE.txt
+│   │           │       └── src
+│   │           │           └── pip
+│   │           │               └── _vendor
+│   │           │                   ├── cachecontrol
+│   │           │                   │   └── LICENSE.txt
+│   │           │                   ├── certifi
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── dependency_groups
+│   │           │                   │   └── LICENSE.txt
+│   │           │                   ├── distlib
+│   │           │                   │   └── LICENSE.txt
+│   │           │                   ├── distro
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── idna
+│   │           │                   │   └── LICENSE.md
+│   │           │                   ├── msgpack
+│   │           │                   │   └── COPYING
+│   │           │                   ├── packaging
+│   │           │                   │   ├── LICENSE
+│   │           │                   │   ├── LICENSE.APACHE
+│   │           │                   │   └── LICENSE.BSD
+│   │           │                   ├── pkg_resources
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── platformdirs
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── pygments
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── pyproject_hooks
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── requests
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── resolvelib
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── rich
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── tomli
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── tomli_w
+│   │           │                   │   └── LICENSE
+│   │           │                   ├── truststore
+│   │           │                   │   └── LICENSE
+│   │           │                   └── urllib3
+│   │           │                       └── LICENSE.txt
+│   │           ├── pipelinewise_singer_python-1.3.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   └── top_level.txt
+│   │           ├── pipelinewise_tap_github-1.1.1.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── REQUESTED
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   └── top_level.txt
+│   │           ├── pyrsistent
+│   │           │   ├── __init__.py
+│   │           │   ├── __init__.pyi
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _checked_types.cpython-314.pyc
+│   │           │   │   ├── _field_common.cpython-314.pyc
+│   │           │   │   ├── _helpers.cpython-314.pyc
+│   │           │   │   ├── _immutable.cpython-314.pyc
+│   │           │   │   ├── _pbag.cpython-314.pyc
+│   │           │   │   ├── _pclass.cpython-314.pyc
+│   │           │   │   ├── _pdeque.cpython-314.pyc
+│   │           │   │   ├── _plist.cpython-314.pyc
+│   │           │   │   ├── _pmap.cpython-314.pyc
+│   │           │   │   ├── _precord.cpython-314.pyc
+│   │           │   │   ├── _pset.cpython-314.pyc
+│   │           │   │   ├── _pvector.cpython-314.pyc
+│   │           │   │   ├── _toolz.cpython-314.pyc
+│   │           │   │   ├── _transformations.cpython-314.pyc
+│   │           │   │   └── typing.cpython-314.pyc
+│   │           │   ├── _checked_types.py
+│   │           │   ├── _field_common.py
+│   │           │   ├── _helpers.py
+│   │           │   ├── _immutable.py
+│   │           │   ├── _pbag.py
+│   │           │   ├── _pclass.py
+│   │           │   ├── _pdeque.py
+│   │           │   ├── _plist.py
+│   │           │   ├── _pmap.py
+│   │           │   ├── _precord.py
+│   │           │   ├── _pset.py
+│   │           │   ├── _pvector.py
+│   │           │   ├── _toolz.py
+│   │           │   ├── _transformations.py
+│   │           │   ├── py.typed
+│   │           │   ├── typing.py
+│   │           │   └── typing.pyi
+│   │           ├── pyrsistent-0.20.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE.mit
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   └── top_level.txt
+│   │           ├── python_dateutil-2.9.0.post0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── top_level.txt
+│   │           │   └── zip-safe
+│   │           ├── pytz
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── lazy.cpython-314.pyc
+│   │           │   │   ├── reference.cpython-314.pyc
+│   │           │   │   ├── tzfile.cpython-314.pyc
+│   │           │   │   └── tzinfo.cpython-314.pyc
+│   │           │   ├── exceptions.py
+│   │           │   ├── lazy.py
+│   │           │   ├── reference.py
+│   │           │   ├── tzfile.py
+│   │           │   ├── tzinfo.py
+│   │           │   └── zoneinfo
+│   │           │       ├── Africa
+│   │           │       │   ├── Abidjan
+│   │           │       │   ├── Accra
+│   │           │       │   ├── Addis_Ababa
+│   │           │       │   ├── Algiers
+│   │           │       │   ├── Asmara
+│   │           │       │   ├── Asmera
+│   │           │       │   ├── Bamako
+│   │           │       │   ├── Bangui
+│   │           │       │   ├── Banjul
+│   │           │       │   ├── Bissau
+│   │           │       │   ├── Blantyre
+│   │           │       │   ├── Brazzaville
+│   │           │       │   ├── Bujumbura
+│   │           │       │   ├── Cairo
+│   │           │       │   ├── Casablanca
+│   │           │       │   ├── Ceuta
+│   │           │       │   ├── Conakry
+│   │           │       │   ├── Dakar
+│   │           │       │   ├── Dar_es_Salaam
+│   │           │       │   ├── Djibouti
+│   │           │       │   ├── Douala
+│   │           │       │   ├── El_Aaiun
+│   │           │       │   ├── Freetown
+│   │           │       │   ├── Gaborone
+│   │           │       │   ├── Harare
+│   │           │       │   ├── Johannesburg
+│   │           │       │   ├── Juba
+│   │           │       │   ├── Kampala
+│   │           │       │   ├── Khartoum
+│   │           │       │   ├── Kigali
+│   │           │       │   ├── Kinshasa
+│   │           │       │   ├── Lagos
+│   │           │       │   ├── Libreville
+│   │           │       │   ├── Lome
+│   │           │       │   ├── Luanda
+│   │           │       │   ├── Lubumbashi
+│   │           │       │   ├── Lusaka
+│   │           │       │   ├── Malabo
+│   │           │       │   ├── Maputo
+│   │           │       │   ├── Maseru
+│   │           │       │   ├── Mbabane
+│   │           │       │   ├── Mogadishu
+│   │           │       │   ├── Monrovia
+│   │           │       │   ├── Nairobi
+│   │           │       │   ├── Ndjamena
+│   │           │       │   ├── Niamey
+│   │           │       │   ├── Nouakchott
+│   │           │       │   ├── Ouagadougou
+│   │           │       │   ├── Porto-Novo
+│   │           │       │   ├── Sao_Tome
+│   │           │       │   ├── Timbuktu
+│   │           │       │   ├── Tripoli
+│   │           │       │   ├── Tunis
+│   │           │       │   └── Windhoek
+│   │           │       ├── America
+│   │           │       │   ├── Adak
+│   │           │       │   ├── Anchorage
+│   │           │       │   ├── Anguilla
+│   │           │       │   ├── Antigua
+│   │           │       │   ├── Araguaina
+│   │           │       │   ├── Argentina
+│   │           │       │   │   ├── Buenos_Aires
+│   │           │       │   │   ├── Catamarca
+│   │           │       │   │   ├── ComodRivadavia
+│   │           │       │   │   ├── Cordoba
+│   │           │       │   │   ├── Jujuy
+│   │           │       │   │   ├── La_Rioja
+│   │           │       │   │   ├── Mendoza
+│   │           │       │   │   ├── Rio_Gallegos
+│   │           │       │   │   ├── Salta
+│   │           │       │   │   ├── San_Juan
+│   │           │       │   │   ├── San_Luis
+│   │           │       │   │   ├── Tucuman
+│   │           │       │   │   └── Ushuaia
+│   │           │       │   ├── Aruba
+│   │           │       │   ├── Asuncion
+│   │           │       │   ├── Atikokan
+│   │           │       │   ├── Atka
+│   │           │       │   ├── Bahia
+│   │           │       │   ├── Bahia_Banderas
+│   │           │       │   ├── Barbados
+│   │           │       │   ├── Belem
+│   │           │       │   ├── Belize
+│   │           │       │   ├── Blanc-Sablon
+│   │           │       │   ├── Boa_Vista
+│   │           │       │   ├── Bogota
+│   │           │       │   ├── Boise
+│   │           │       │   ├── Buenos_Aires
+│   │           │       │   ├── Cambridge_Bay
+│   │           │       │   ├── Campo_Grande
+│   │           │       │   ├── Cancun
+│   │           │       │   ├── Caracas
+│   │           │       │   ├── Catamarca
+│   │           │       │   ├── Cayenne
+│   │           │       │   ├── Cayman
+│   │           │       │   ├── Chicago
+│   │           │       │   ├── Chihuahua
+│   │           │       │   ├── Coral_Harbour
+│   │           │       │   ├── Cordoba
+│   │           │       │   ├── Costa_Rica
+│   │           │       │   ├── Creston
+│   │           │       │   ├── Cuiaba
+│   │           │       │   ├── Curacao
+│   │           │       │   ├── Danmarkshavn
+│   │           │       │   ├── Dawson
+│   │           │       │   ├── Dawson_Creek
+│   │           │       │   ├── Denver
+│   │           │       │   ├── Detroit
+│   │           │       │   ├── Dominica
+│   │           │       │   ├── Edmonton
+│   │           │       │   ├── Eirunepe
+│   │           │       │   ├── El_Salvador
+│   │           │       │   ├── Ensenada
+│   │           │       │   ├── Fort_Nelson
+│   │           │       │   ├── Fort_Wayne
+│   │           │       │   ├── Fortaleza
+│   │           │       │   ├── Glace_Bay
+│   │           │       │   ├── Godthab
+│   │           │       │   ├── Goose_Bay
+│   │           │       │   ├── Grand_Turk
+│   │           │       │   ├── Grenada
+│   │           │       │   ├── Guadeloupe
+│   │           │       │   ├── Guatemala
+│   │           │       │   ├── Guayaquil
+│   │           │       │   ├── Guyana
+│   │           │       │   ├── Halifax
+│   │           │       │   ├── Havana
+│   │           │       │   ├── Hermosillo
+│   │           │       │   ├── Indiana
+│   │           │       │   │   ├── Indianapolis
+│   │           │       │   │   ├── Knox
+│   │           │       │   │   ├── Marengo
+│   │           │       │   │   ├── Petersburg
+│   │           │       │   │   ├── Tell_City
+│   │           │       │   │   ├── Vevay
+│   │           │       │   │   ├── Vincennes
+│   │           │       │   │   └── Winamac
+│   │           │       │   ├── Indianapolis
+│   │           │       │   ├── Inuvik
+│   │           │       │   ├── Iqaluit
+│   │           │       │   ├── Jamaica
+│   │           │       │   ├── Jujuy
+│   │           │       │   ├── Juneau
+│   │           │       │   ├── Kentucky
+│   │           │       │   │   ├── Louisville
+│   │           │       │   │   └── Monticello
+│   │           │       │   ├── Knox_IN
+│   │           │       │   ├── Kralendijk
+│   │           │       │   ├── La_Paz
+│   │           │       │   ├── Lima
+│   │           │       │   ├── Los_Angeles
+│   │           │       │   ├── Louisville
+│   │           │       │   ├── Lower_Princes
+│   │           │       │   ├── Maceio
+│   │           │       │   ├── Managua
+│   │           │       │   ├── Manaus
+│   │           │       │   ├── Marigot
+│   │           │       │   ├── Martinique
+│   │           │       │   ├── Matamoros
+│   │           │       │   ├── Mazatlan
+│   │           │       │   ├── Mendoza
+│   │           │       │   ├── Menominee
+│   │           │       │   ├── Merida
+│   │           │       │   ├── Metlakatla
+│   │           │       │   ├── Mexico_City
+│   │           │       │   ├── Miquelon
+│   │           │       │   ├── Moncton
+│   │           │       │   ├── Monterrey
+│   │           │       │   ├── Montevideo
+│   │           │       │   ├── Montreal
+│   │           │       │   ├── Montserrat
+│   │           │       │   ├── Nassau
+│   │           │       │   ├── New_York
+│   │           │       │   ├── Nipigon
+│   │           │       │   ├── Nome
+│   │           │       │   ├── Noronha
+│   │           │       │   ├── North_Dakota
+│   │           │       │   │   ├── Beulah
+│   │           │       │   │   ├── Center
+│   │           │       │   │   └── New_Salem
+│   │           │       │   ├── Nuuk
+│   │           │       │   ├── Ojinaga
+│   │           │       │   ├── Panama
+│   │           │       │   ├── Pangnirtung
+│   │           │       │   ├── Paramaribo
+│   │           │       │   ├── Phoenix
+│   │           │       │   ├── Port-au-Prince
+│   │           │       │   ├── Port_of_Spain
+│   │           │       │   ├── Porto_Acre
+│   │           │       │   ├── Porto_Velho
+│   │           │       │   ├── Puerto_Rico
+│   │           │       │   ├── Punta_Arenas
+│   │           │       │   ├── Rainy_River
+│   │           │       │   ├── Rankin_Inlet
+│   │           │       │   ├── Recife
+│   │           │       │   ├── Regina
+│   │           │       │   ├── Resolute
+│   │           │       │   ├── Rio_Branco
+│   │           │       │   ├── Rosario
+│   │           │       │   ├── Santa_Isabel
+│   │           │       │   ├── Santarem
+│   │           │       │   ├── Santiago
+│   │           │       │   ├── Santo_Domingo
+│   │           │       │   ├── Sao_Paulo
+│   │           │       │   ├── Scoresbysund
+│   │           │       │   ├── Shiprock
+│   │           │       │   ├── Sitka
+│   │           │       │   ├── St_Barthelemy
+│   │           │       │   ├── St_Johns
+│   │           │       │   ├── St_Kitts
+│   │           │       │   ├── St_Lucia
+│   │           │       │   ├── St_Thomas
+│   │           │       │   ├── St_Vincent
+│   │           │       │   ├── Swift_Current
+│   │           │       │   ├── Tegucigalpa
+│   │           │       │   ├── Thule
+│   │           │       │   ├── Thunder_Bay
+│   │           │       │   ├── Tijuana
+│   │           │       │   ├── Toronto
+│   │           │       │   ├── Tortola
+│   │           │       │   ├── Vancouver
+│   │           │       │   ├── Virgin
+│   │           │       │   ├── Whitehorse
+│   │           │       │   ├── Winnipeg
+│   │           │       │   ├── Yakutat
+│   │           │       │   └── Yellowknife
+│   │           │       ├── Antarctica
+│   │           │       │   ├── Casey
+│   │           │       │   ├── Davis
+│   │           │       │   ├── DumontDUrville
+│   │           │       │   ├── Macquarie
+│   │           │       │   ├── Mawson
+│   │           │       │   ├── McMurdo
+│   │           │       │   ├── Palmer
+│   │           │       │   ├── Rothera
+│   │           │       │   ├── South_Pole
+│   │           │       │   ├── Syowa
+│   │           │       │   ├── Troll
+│   │           │       │   └── Vostok
+│   │           │       ├── Arctic
+│   │           │       │   └── Longyearbyen
+│   │           │       ├── Asia
+│   │           │       │   ├── Aden
+│   │           │       │   ├── Almaty
+│   │           │       │   ├── Amman
+│   │           │       │   ├── Anadyr
+│   │           │       │   ├── Aqtau
+│   │           │       │   ├── Aqtobe
+│   │           │       │   ├── Ashgabat
+│   │           │       │   ├── Ashkhabad
+│   │           │       │   ├── Atyrau
+│   │           │       │   ├── Baghdad
+│   │           │       │   ├── Bahrain
+│   │           │       │   ├── Baku
+│   │           │       │   ├── Bangkok
+│   │           │       │   ├── Barnaul
+│   │           │       │   ├── Beirut
+│   │           │       │   ├── Bishkek
+│   │           │       │   ├── Brunei
+│   │           │       │   ├── Calcutta
+│   │           │       │   ├── Chita
+│   │           │       │   ├── Choibalsan
+│   │           │       │   ├── Chongqing
+│   │           │       │   ├── Chungking
+│   │           │       │   ├── Colombo
+│   │           │       │   ├── Dacca
+│   │           │       │   ├── Damascus
+│   │           │       │   ├── Dhaka
+│   │           │       │   ├── Dili
+│   │           │       │   ├── Dubai
+│   │           │       │   ├── Dushanbe
+│   │           │       │   ├── Famagusta
+│   │           │       │   ├── Gaza
+│   │           │       │   ├── Harbin
+│   │           │       │   ├── Hebron
+│   │           │       │   ├── Ho_Chi_Minh
+│   │           │       │   ├── Hong_Kong
+│   │           │       │   ├── Hovd
+│   │           │       │   ├── Irkutsk
+│   │           │       │   ├── Istanbul
+│   │           │       │   ├── Jakarta
+│   │           │       │   ├── Jayapura
+│   │           │       │   ├── Jerusalem
+│   │           │       │   ├── Kabul
+│   │           │       │   ├── Kamchatka
+│   │           │       │   ├── Karachi
+│   │           │       │   ├── Kashgar
+│   │           │       │   ├── Kathmandu
+│   │           │       │   ├── Katmandu
+│   │           │       │   ├── Khandyga
+│   │           │       │   ├── Kolkata
+│   │           │       │   ├── Krasnoyarsk
+│   │           │       │   ├── Kuala_Lumpur
+│   │           │       │   ├── Kuching
+│   │           │       │   ├── Kuwait
+│   │           │       │   ├── Macao
+│   │           │       │   ├── Macau
+│   │           │       │   ├── Magadan
+│   │           │       │   ├── Makassar
+│   │           │       │   ├── Manila
+│   │           │       │   ├── Muscat
+│   │           │       │   ├── Nicosia
+│   │           │       │   ├── Novokuznetsk
+│   │           │       │   ├── Novosibirsk
+│   │           │       │   ├── Omsk
+│   │           │       │   ├── Oral
+│   │           │       │   ├── Phnom_Penh
+│   │           │       │   ├── Pontianak
+│   │           │       │   ├── Pyongyang
+│   │           │       │   ├── Qatar
+│   │           │       │   ├── Qostanay
+│   │           │       │   ├── Qyzylorda
+│   │           │       │   ├── Rangoon
+│   │           │       │   ├── Riyadh
+│   │           │       │   ├── Saigon
+│   │           │       │   ├── Sakhalin
+│   │           │       │   ├── Samarkand
+│   │           │       │   ├── Seoul
+│   │           │       │   ├── Shanghai
+│   │           │       │   ├── Singapore
+│   │           │       │   ├── Srednekolymsk
+│   │           │       │   ├── Taipei
+│   │           │       │   ├── Tashkent
+│   │           │       │   ├── Tbilisi
+│   │           │       │   ├── Tehran
+│   │           │       │   ├── Tel_Aviv
+│   │           │       │   ├── Thimbu
+│   │           │       │   ├── Thimphu
+│   │           │       │   ├── Tokyo
+│   │           │       │   ├── Tomsk
+│   │           │       │   ├── Ujung_Pandang
+│   │           │       │   ├── Ulaanbaatar
+│   │           │       │   ├── Ulan_Bator
+│   │           │       │   ├── Urumqi
+│   │           │       │   ├── Ust-Nera
+│   │           │       │   ├── Vientiane
+│   │           │       │   ├── Vladivostok
+│   │           │       │   ├── Yakutsk
+│   │           │       │   ├── Yangon
+│   │           │       │   ├── Yekaterinburg
+│   │           │       │   └── Yerevan
+│   │           │       ├── Atlantic
+│   │           │       │   ├── Azores
+│   │           │       │   ├── Bermuda
+│   │           │       │   ├── Canary
+│   │           │       │   ├── Cape_Verde
+│   │           │       │   ├── Faeroe
+│   │           │       │   ├── Faroe
+│   │           │       │   ├── Jan_Mayen
+│   │           │       │   ├── Madeira
+│   │           │       │   ├── Reykjavik
+│   │           │       │   ├── South_Georgia
+│   │           │       │   ├── St_Helena
+│   │           │       │   └── Stanley
+│   │           │       ├── Australia
+│   │           │       │   ├── ACT
+│   │           │       │   ├── Adelaide
+│   │           │       │   ├── Brisbane
+│   │           │       │   ├── Broken_Hill
+│   │           │       │   ├── Canberra
+│   │           │       │   ├── Currie
+│   │           │       │   ├── Darwin
+│   │           │       │   ├── Eucla
+│   │           │       │   ├── Hobart
+│   │           │       │   ├── LHI
+│   │           │       │   ├── Lindeman
+│   │           │       │   ├── Lord_Howe
+│   │           │       │   ├── Melbourne
+│   │           │       │   ├── NSW
+│   │           │       │   ├── North
+│   │           │       │   ├── Perth
+│   │           │       │   ├── Queensland
+│   │           │       │   ├── South
+│   │           │       │   ├── Sydney
+│   │           │       │   ├── Tasmania
+│   │           │       │   ├── Victoria
+│   │           │       │   ├── West
+│   │           │       │   └── Yancowinna
+│   │           │       ├── Brazil
+│   │           │       │   ├── Acre
+│   │           │       │   ├── DeNoronha
+│   │           │       │   ├── East
+│   │           │       │   └── West
+│   │           │       ├── CET
+│   │           │       ├── CST6CDT
+│   │           │       ├── Canada
+│   │           │       │   ├── Atlantic
+│   │           │       │   ├── Central
+│   │           │       │   ├── Eastern
+│   │           │       │   ├── Mountain
+│   │           │       │   ├── Newfoundland
+│   │           │       │   ├── Pacific
+│   │           │       │   ├── Saskatchewan
+│   │           │       │   └── Yukon
+│   │           │       ├── Chile
+│   │           │       │   ├── Continental
+│   │           │       │   └── EasterIsland
+│   │           │       ├── Cuba
+│   │           │       ├── EET
+│   │           │       ├── EST
+│   │           │       ├── EST5EDT
+│   │           │       ├── Egypt
+│   │           │       ├── Eire
+│   │           │       ├── Etc
+│   │           │       │   ├── GMT
+│   │           │       │   ├── GMT+0
+│   │           │       │   ├── GMT+1
+│   │           │       │   ├── GMT+10
+│   │           │       │   ├── GMT+11
+│   │           │       │   ├── GMT+12
+│   │           │       │   ├── GMT+2
+│   │           │       │   ├── GMT+3
+│   │           │       │   ├── GMT+4
+│   │           │       │   ├── GMT+5
+│   │           │       │   ├── GMT+6
+│   │           │       │   ├── GMT+7
+│   │           │       │   ├── GMT+8
+│   │           │       │   ├── GMT+9
+│   │           │       │   ├── GMT-0
+│   │           │       │   ├── GMT-1
+│   │           │       │   ├── GMT-10
+│   │           │       │   ├── GMT-11
+│   │           │       │   ├── GMT-12
+│   │           │       │   ├── GMT-13
+│   │           │       │   ├── GMT-14
+│   │           │       │   ├── GMT-2
+│   │           │       │   ├── GMT-3
+│   │           │       │   ├── GMT-4
+│   │           │       │   ├── GMT-5
+│   │           │       │   ├── GMT-6
+│   │           │       │   ├── GMT-7
+│   │           │       │   ├── GMT-8
+│   │           │       │   ├── GMT-9
+│   │           │       │   ├── GMT0
+│   │           │       │   ├── Greenwich
+│   │           │       │   ├── UCT
+│   │           │       │   ├── UTC
+│   │           │       │   ├── Universal
+│   │           │       │   └── Zulu
+│   │           │       ├── Europe
+│   │           │       │   ├── Amsterdam
+│   │           │       │   ├── Andorra
+│   │           │       │   ├── Astrakhan
+│   │           │       │   ├── Athens
+│   │           │       │   ├── Belfast
+│   │           │       │   ├── Belgrade
+│   │           │       │   ├── Berlin
+│   │           │       │   ├── Bratislava
+│   │           │       │   ├── Brussels
+│   │           │       │   ├── Bucharest
+│   │           │       │   ├── Budapest
+│   │           │       │   ├── Busingen
+│   │           │       │   ├── Chisinau
+│   │           │       │   ├── Copenhagen
+│   │           │       │   ├── Dublin
+│   │           │       │   ├── Gibraltar
+│   │           │       │   ├── Guernsey
+│   │           │       │   ├── Helsinki
+│   │           │       │   ├── Isle_of_Man
+│   │           │       │   ├── Istanbul
+│   │           │       │   ├── Jersey
+│   │           │       │   ├── Kaliningrad
+│   │           │       │   ├── Kiev
+│   │           │       │   ├── Kirov
+│   │           │       │   ├── Lisbon
+│   │           │       │   ├── Ljubljana
+│   │           │       │   ├── London
+│   │           │       │   ├── Luxembourg
+│   │           │       │   ├── Madrid
+│   │           │       │   ├── Malta
+│   │           │       │   ├── Mariehamn
+│   │           │       │   ├── Minsk
+│   │           │       │   ├── Monaco
+│   │           │       │   ├── Moscow
+│   │           │       │   ├── Nicosia
+│   │           │       │   ├── Oslo
+│   │           │       │   ├── Paris
+│   │           │       │   ├── Podgorica
+│   │           │       │   ├── Prague
+│   │           │       │   ├── Riga
+│   │           │       │   ├── Rome
+│   │           │       │   ├── Samara
+│   │           │       │   ├── San_Marino
+│   │           │       │   ├── Sarajevo
+│   │           │       │   ├── Saratov
+│   │           │       │   ├── Simferopol
+│   │           │       │   ├── Skopje
+│   │           │       │   ├── Sofia
+│   │           │       │   ├── Stockholm
+│   │           │       │   ├── Tallinn
+│   │           │       │   ├── Tirane
+│   │           │       │   ├── Tiraspol
+│   │           │       │   ├── Ulyanovsk
+│   │           │       │   ├── Uzhgorod
+│   │           │       │   ├── Vaduz
+│   │           │       │   ├── Vatican
+│   │           │       │   ├── Vienna
+│   │           │       │   ├── Vilnius
+│   │           │       │   ├── Volgograd
+│   │           │       │   ├── Warsaw
+│   │           │       │   ├── Zagreb
+│   │           │       │   ├── Zaporozhye
+│   │           │       │   └── Zurich
+│   │           │       ├── Factory
+│   │           │       ├── GB
+│   │           │       ├── GB-Eire
+│   │           │       ├── GMT
+│   │           │       ├── GMT+0
+│   │           │       ├── GMT-0
+│   │           │       ├── GMT0
+│   │           │       ├── Greenwich
+│   │           │       ├── HST
+│   │           │       ├── Hongkong
+│   │           │       ├── Iceland
+│   │           │       ├── Indian
+│   │           │       │   ├── Antananarivo
+│   │           │       │   ├── Chagos
+│   │           │       │   ├── Christmas
+│   │           │       │   ├── Cocos
+│   │           │       │   ├── Comoro
+│   │           │       │   ├── Kerguelen
+│   │           │       │   ├── Mahe
+│   │           │       │   ├── Maldives
+│   │           │       │   ├── Mauritius
+│   │           │       │   ├── Mayotte
+│   │           │       │   └── Reunion
+│   │           │       ├── Iran
+│   │           │       ├── Israel
+│   │           │       ├── Jamaica
+│   │           │       ├── Japan
+│   │           │       ├── Kwajalein
+│   │           │       ├── Libya
+│   │           │       ├── MET
+│   │           │       ├── MST
+│   │           │       ├── MST7MDT
+│   │           │       ├── Mexico
+│   │           │       │   ├── BajaNorte
+│   │           │       │   ├── BajaSur
+│   │           │       │   └── General
+│   │           │       ├── NZ
+│   │           │       ├── NZ-CHAT
+│   │           │       ├── Navajo
+│   │           │       ├── PRC
+│   │           │       ├── PST8PDT
+│   │           │       ├── Pacific
+│   │           │       │   ├── Apia
+│   │           │       │   ├── Auckland
+│   │           │       │   ├── Bougainville
+│   │           │       │   ├── Chatham
+│   │           │       │   ├── Chuuk
+│   │           │       │   ├── Easter
+│   │           │       │   ├── Efate
+│   │           │       │   ├── Enderbury
+│   │           │       │   ├── Fakaofo
+│   │           │       │   ├── Fiji
+│   │           │       │   ├── Funafuti
+│   │           │       │   ├── Galapagos
+│   │           │       │   ├── Gambier
+│   │           │       │   ├── Guadalcanal
+│   │           │       │   ├── Guam
+│   │           │       │   ├── Honolulu
+│   │           │       │   ├── Johnston
+│   │           │       │   ├── Kiritimati
+│   │           │       │   ├── Kosrae
+│   │           │       │   ├── Kwajalein
+│   │           │       │   ├── Majuro
+│   │           │       │   ├── Marquesas
+│   │           │       │   ├── Midway
+│   │           │       │   ├── Nauru
+│   │           │       │   ├── Niue
+│   │           │       │   ├── Norfolk
+│   │           │       │   ├── Noumea
+│   │           │       │   ├── Pago_Pago
+│   │           │       │   ├── Palau
+│   │           │       │   ├── Pitcairn
+│   │           │       │   ├── Pohnpei
+│   │           │       │   ├── Ponape
+│   │           │       │   ├── Port_Moresby
+│   │           │       │   ├── Rarotonga
+│   │           │       │   ├── Saipan
+│   │           │       │   ├── Samoa
+│   │           │       │   ├── Tahiti
+│   │           │       │   ├── Tarawa
+│   │           │       │   ├── Tongatapu
+│   │           │       │   ├── Truk
+│   │           │       │   ├── Wake
+│   │           │       │   ├── Wallis
+│   │           │       │   └── Yap
+│   │           │       ├── Poland
+│   │           │       ├── Portugal
+│   │           │       ├── ROC
+│   │           │       ├── ROK
+│   │           │       ├── Singapore
+│   │           │       ├── Turkey
+│   │           │       ├── UCT
+│   │           │       ├── US
+│   │           │       │   ├── Alaska
+│   │           │       │   ├── Aleutian
+│   │           │       │   ├── Arizona
+│   │           │       │   ├── Central
+│   │           │       │   ├── East-Indiana
+│   │           │       │   ├── Eastern
+│   │           │       │   ├── Hawaii
+│   │           │       │   ├── Indiana-Starke
+│   │           │       │   ├── Michigan
+│   │           │       │   ├── Mountain
+│   │           │       │   ├── Pacific
+│   │           │       │   └── Samoa
+│   │           │       ├── UTC
+│   │           │       ├── Universal
+│   │           │       ├── W-SU
+│   │           │       ├── WET
+│   │           │       ├── Zulu
+│   │           │       ├── iso3166.tab
+│   │           │       ├── leapseconds
+│   │           │       ├── tzdata.zi
+│   │           │       ├── zone.tab
+│   │           │       └── zone1970.tab
+│   │           ├── pytz-2020.5.dist-info
+│   │           │   ├── DESCRIPTION.rst
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE.txt
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── metadata.json
+│   │           │   ├── top_level.txt
+│   │           │   └── zip-safe
+│   │           ├── requests
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── __version__.cpython-314.pyc
+│   │           │   │   ├── _internal_utils.cpython-314.pyc
+│   │           │   │   ├── adapters.cpython-314.pyc
+│   │           │   │   ├── api.cpython-314.pyc
+│   │           │   │   ├── auth.cpython-314.pyc
+│   │           │   │   ├── certs.cpython-314.pyc
+│   │           │   │   ├── compat.cpython-314.pyc
+│   │           │   │   ├── cookies.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── help.cpython-314.pyc
+│   │           │   │   ├── hooks.cpython-314.pyc
+│   │           │   │   ├── models.cpython-314.pyc
+│   │           │   │   ├── packages.cpython-314.pyc
+│   │           │   │   ├── sessions.cpython-314.pyc
+│   │           │   │   ├── status_codes.cpython-314.pyc
+│   │           │   │   ├── structures.cpython-314.pyc
+│   │           │   │   └── utils.cpython-314.pyc
+│   │           │   ├── __version__.py
+│   │           │   ├── _internal_utils.py
+│   │           │   ├── adapters.py
+│   │           │   ├── api.py
+│   │           │   ├── auth.py
+│   │           │   ├── certs.py
+│   │           │   ├── compat.py
+│   │           │   ├── cookies.py
+│   │           │   ├── exceptions.py
+│   │           │   ├── help.py
+│   │           │   ├── hooks.py
+│   │           │   ├── models.py
+│   │           │   ├── packages.py
+│   │           │   ├── sessions.py
+│   │           │   ├── status_codes.py
+│   │           │   ├── structures.py
+│   │           │   └── utils.py
+│   │           ├── requests-2.33.1.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── REQUESTED
+│   │           │   ├── WHEEL
+│   │           │   ├── licenses
+│   │           │   │   ├── LICENSE
+│   │           │   │   └── NOTICE
+│   │           │   └── top_level.txt
+│   │           ├── setuptools
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _core_metadata.cpython-314.pyc
+│   │           │   │   ├── _discovery.cpython-314.pyc
+│   │           │   │   ├── _entry_points.cpython-314.pyc
+│   │           │   │   ├── _imp.cpython-314.pyc
+│   │           │   │   ├── _importlib.cpython-314.pyc
+│   │           │   │   ├── _itertools.cpython-314.pyc
+│   │           │   │   ├── _normalization.cpython-314.pyc
+│   │           │   │   ├── _path.cpython-314.pyc
+│   │           │   │   ├── _reqs.cpython-314.pyc
+│   │           │   │   ├── _scripts.cpython-314.pyc
+│   │           │   │   ├── _shutil.cpython-314.pyc
+│   │           │   │   ├── _static.cpython-314.pyc
+│   │           │   │   ├── archive_util.cpython-314.pyc
+│   │           │   │   ├── build_meta.cpython-314.pyc
+│   │           │   │   ├── depends.cpython-314.pyc
+│   │           │   │   ├── discovery.cpython-314.pyc
+│   │           │   │   ├── dist.cpython-314.pyc
+│   │           │   │   ├── errors.cpython-314.pyc
+│   │           │   │   ├── extension.cpython-314.pyc
+│   │           │   │   ├── glob.cpython-314.pyc
+│   │           │   │   ├── installer.cpython-314.pyc
+│   │           │   │   ├── launch.cpython-314.pyc
+│   │           │   │   ├── logging.cpython-314.pyc
+│   │           │   │   ├── modified.cpython-314.pyc
+│   │           │   │   ├── monkey.cpython-314.pyc
+│   │           │   │   ├── msvc.cpython-314.pyc
+│   │           │   │   ├── namespaces.cpython-314.pyc
+│   │           │   │   ├── unicode_utils.cpython-314.pyc
+│   │           │   │   ├── version.cpython-314.pyc
+│   │           │   │   ├── warnings.cpython-314.pyc
+│   │           │   │   ├── wheel.cpython-314.pyc
+│   │           │   │   └── windows_support.cpython-314.pyc
+│   │           │   ├── _core_metadata.py
+│   │           │   ├── _discovery.py
+│   │           │   ├── _distutils
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _log.cpython-314.pyc
+│   │           │   │   │   ├── _macos_compat.cpython-314.pyc
+│   │           │   │   │   ├── _modified.cpython-314.pyc
+│   │           │   │   │   ├── _msvccompiler.cpython-314.pyc
+│   │           │   │   │   ├── archive_util.cpython-314.pyc
+│   │           │   │   │   ├── ccompiler.cpython-314.pyc
+│   │           │   │   │   ├── cmd.cpython-314.pyc
+│   │           │   │   │   ├── core.cpython-314.pyc
+│   │           │   │   │   ├── cygwinccompiler.cpython-314.pyc
+│   │           │   │   │   ├── debug.cpython-314.pyc
+│   │           │   │   │   ├── dep_util.cpython-314.pyc
+│   │           │   │   │   ├── dir_util.cpython-314.pyc
+│   │           │   │   │   ├── dist.cpython-314.pyc
+│   │           │   │   │   ├── errors.cpython-314.pyc
+│   │           │   │   │   ├── extension.cpython-314.pyc
+│   │           │   │   │   ├── fancy_getopt.cpython-314.pyc
+│   │           │   │   │   ├── file_util.cpython-314.pyc
+│   │           │   │   │   ├── filelist.cpython-314.pyc
+│   │           │   │   │   ├── log.cpython-314.pyc
+│   │           │   │   │   ├── spawn.cpython-314.pyc
+│   │           │   │   │   ├── sysconfig.cpython-314.pyc
+│   │           │   │   │   ├── text_file.cpython-314.pyc
+│   │           │   │   │   ├── unixccompiler.cpython-314.pyc
+│   │           │   │   │   ├── util.cpython-314.pyc
+│   │           │   │   │   ├── version.cpython-314.pyc
+│   │           │   │   │   ├── versionpredicate.cpython-314.pyc
+│   │           │   │   │   └── zosccompiler.cpython-314.pyc
+│   │           │   │   ├── _log.py
+│   │           │   │   ├── _macos_compat.py
+│   │           │   │   ├── _modified.py
+│   │           │   │   ├── _msvccompiler.py
+│   │           │   │   ├── archive_util.py
+│   │           │   │   ├── ccompiler.py
+│   │           │   │   ├── cmd.py
+│   │           │   │   ├── command
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _framework_compat.cpython-314.pyc
+│   │           │   │   │   │   ├── bdist.cpython-314.pyc
+│   │           │   │   │   │   ├── bdist_dumb.cpython-314.pyc
+│   │           │   │   │   │   ├── bdist_rpm.cpython-314.pyc
+│   │           │   │   │   │   ├── build.cpython-314.pyc
+│   │           │   │   │   │   ├── build_clib.cpython-314.pyc
+│   │           │   │   │   │   ├── build_ext.cpython-314.pyc
+│   │           │   │   │   │   ├── build_py.cpython-314.pyc
+│   │           │   │   │   │   ├── build_scripts.cpython-314.pyc
+│   │           │   │   │   │   ├── check.cpython-314.pyc
+│   │           │   │   │   │   ├── clean.cpython-314.pyc
+│   │           │   │   │   │   ├── config.cpython-314.pyc
+│   │           │   │   │   │   ├── install.cpython-314.pyc
+│   │           │   │   │   │   ├── install_data.cpython-314.pyc
+│   │           │   │   │   │   ├── install_egg_info.cpython-314.pyc
+│   │           │   │   │   │   ├── install_headers.cpython-314.pyc
+│   │           │   │   │   │   ├── install_lib.cpython-314.pyc
+│   │           │   │   │   │   ├── install_scripts.cpython-314.pyc
+│   │           │   │   │   │   └── sdist.cpython-314.pyc
+│   │           │   │   │   ├── _framework_compat.py
+│   │           │   │   │   ├── bdist.py
+│   │           │   │   │   ├── bdist_dumb.py
+│   │           │   │   │   ├── bdist_rpm.py
+│   │           │   │   │   ├── build.py
+│   │           │   │   │   ├── build_clib.py
+│   │           │   │   │   ├── build_ext.py
+│   │           │   │   │   ├── build_py.py
+│   │           │   │   │   ├── build_scripts.py
+│   │           │   │   │   ├── check.py
+│   │           │   │   │   ├── clean.py
+│   │           │   │   │   ├── config.py
+│   │           │   │   │   ├── install.py
+│   │           │   │   │   ├── install_data.py
+│   │           │   │   │   ├── install_egg_info.py
+│   │           │   │   │   ├── install_headers.py
+│   │           │   │   │   ├── install_lib.py
+│   │           │   │   │   ├── install_scripts.py
+│   │           │   │   │   └── sdist.py
+│   │           │   │   ├── compat
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── numpy.cpython-314.pyc
+│   │           │   │   │   │   └── py39.cpython-314.pyc
+│   │           │   │   │   ├── numpy.py
+│   │           │   │   │   └── py39.py
+│   │           │   │   ├── compilers
+│   │           │   │   │   └── C
+│   │           │   │   │       ├── __pycache__
+│   │           │   │   │       │   ├── base.cpython-314.pyc
+│   │           │   │   │       │   ├── cygwin.cpython-314.pyc
+│   │           │   │   │       │   ├── errors.cpython-314.pyc
+│   │           │   │   │       │   ├── msvc.cpython-314.pyc
+│   │           │   │   │       │   ├── unix.cpython-314.pyc
+│   │           │   │   │       │   └── zos.cpython-314.pyc
+│   │           │   │   │       ├── base.py
+│   │           │   │   │       ├── cygwin.py
+│   │           │   │   │       ├── errors.py
+│   │           │   │   │       ├── msvc.py
+│   │           │   │   │       ├── tests
+│   │           │   │   │       │   ├── __pycache__
+│   │           │   │   │       │   │   ├── test_base.cpython-314.pyc
+│   │           │   │   │       │   │   ├── test_cygwin.cpython-314.pyc
+│   │           │   │   │       │   │   ├── test_mingw.cpython-314.pyc
+│   │           │   │   │       │   │   ├── test_msvc.cpython-314.pyc
+│   │           │   │   │       │   │   └── test_unix.cpython-314.pyc
+│   │           │   │   │       │   ├── test_base.py
+│   │           │   │   │       │   ├── test_cygwin.py
+│   │           │   │   │       │   ├── test_mingw.py
+│   │           │   │   │       │   ├── test_msvc.py
+│   │           │   │   │       │   └── test_unix.py
+│   │           │   │   │       ├── unix.py
+│   │           │   │   │       └── zos.py
+│   │           │   │   ├── core.py
+│   │           │   │   ├── cygwinccompiler.py
+│   │           │   │   ├── debug.py
+│   │           │   │   ├── dep_util.py
+│   │           │   │   ├── dir_util.py
+│   │           │   │   ├── dist.py
+│   │           │   │   ├── errors.py
+│   │           │   │   ├── extension.py
+│   │           │   │   ├── fancy_getopt.py
+│   │           │   │   ├── file_util.py
+│   │           │   │   ├── filelist.py
+│   │           │   │   ├── log.py
+│   │           │   │   ├── spawn.py
+│   │           │   │   ├── sysconfig.py
+│   │           │   │   ├── tests
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── support.cpython-314.pyc
+│   │           │   │   │   │   ├── test_archive_util.cpython-314.pyc
+│   │           │   │   │   │   ├── test_bdist.cpython-314.pyc
+│   │           │   │   │   │   ├── test_bdist_dumb.cpython-314.pyc
+│   │           │   │   │   │   ├── test_bdist_rpm.cpython-314.pyc
+│   │           │   │   │   │   ├── test_build.cpython-314.pyc
+│   │           │   │   │   │   ├── test_build_clib.cpython-314.pyc
+│   │           │   │   │   │   ├── test_build_ext.cpython-314.pyc
+│   │           │   │   │   │   ├── test_build_py.cpython-314.pyc
+│   │           │   │   │   │   ├── test_build_scripts.cpython-314.pyc
+│   │           │   │   │   │   ├── test_check.cpython-314.pyc
+│   │           │   │   │   │   ├── test_clean.cpython-314.pyc
+│   │           │   │   │   │   ├── test_cmd.cpython-314.pyc
+│   │           │   │   │   │   ├── test_config_cmd.cpython-314.pyc
+│   │           │   │   │   │   ├── test_core.cpython-314.pyc
+│   │           │   │   │   │   ├── test_dir_util.cpython-314.pyc
+│   │           │   │   │   │   ├── test_dist.cpython-314.pyc
+│   │           │   │   │   │   ├── test_extension.cpython-314.pyc
+│   │           │   │   │   │   ├── test_file_util.cpython-314.pyc
+│   │           │   │   │   │   ├── test_filelist.cpython-314.pyc
+│   │           │   │   │   │   ├── test_install.cpython-314.pyc
+│   │           │   │   │   │   ├── test_install_data.cpython-314.pyc
+│   │           │   │   │   │   ├── test_install_headers.cpython-314.pyc
+│   │           │   │   │   │   ├── test_install_lib.cpython-314.pyc
+│   │           │   │   │   │   ├── test_install_scripts.cpython-314.pyc
+│   │           │   │   │   │   ├── test_log.cpython-314.pyc
+│   │           │   │   │   │   ├── test_modified.cpython-314.pyc
+│   │           │   │   │   │   ├── test_sdist.cpython-314.pyc
+│   │           │   │   │   │   ├── test_spawn.cpython-314.pyc
+│   │           │   │   │   │   ├── test_sysconfig.cpython-314.pyc
+│   │           │   │   │   │   ├── test_text_file.cpython-314.pyc
+│   │           │   │   │   │   ├── test_util.cpython-314.pyc
+│   │           │   │   │   │   ├── test_version.cpython-314.pyc
+│   │           │   │   │   │   ├── test_versionpredicate.cpython-314.pyc
+│   │           │   │   │   │   └── unix_compat.cpython-314.pyc
+│   │           │   │   │   ├── compat
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── py39.cpython-314.pyc
+│   │           │   │   │   │   └── py39.py
+│   │           │   │   │   ├── support.py
+│   │           │   │   │   ├── test_archive_util.py
+│   │           │   │   │   ├── test_bdist.py
+│   │           │   │   │   ├── test_bdist_dumb.py
+│   │           │   │   │   ├── test_bdist_rpm.py
+│   │           │   │   │   ├── test_build.py
+│   │           │   │   │   ├── test_build_clib.py
+│   │           │   │   │   ├── test_build_ext.py
+│   │           │   │   │   ├── test_build_py.py
+│   │           │   │   │   ├── test_build_scripts.py
+│   │           │   │   │   ├── test_check.py
+│   │           │   │   │   ├── test_clean.py
+│   │           │   │   │   ├── test_cmd.py
+│   │           │   │   │   ├── test_config_cmd.py
+│   │           │   │   │   ├── test_core.py
+│   │           │   │   │   ├── test_dir_util.py
+│   │           │   │   │   ├── test_dist.py
+│   │           │   │   │   ├── test_extension.py
+│   │           │   │   │   ├── test_file_util.py
+│   │           │   │   │   ├── test_filelist.py
+│   │           │   │   │   ├── test_install.py
+│   │           │   │   │   ├── test_install_data.py
+│   │           │   │   │   ├── test_install_headers.py
+│   │           │   │   │   ├── test_install_lib.py
+│   │           │   │   │   ├── test_install_scripts.py
+│   │           │   │   │   ├── test_log.py
+│   │           │   │   │   ├── test_modified.py
+│   │           │   │   │   ├── test_sdist.py
+│   │           │   │   │   ├── test_spawn.py
+│   │           │   │   │   ├── test_sysconfig.py
+│   │           │   │   │   ├── test_text_file.py
+│   │           │   │   │   ├── test_util.py
+│   │           │   │   │   ├── test_version.py
+│   │           │   │   │   ├── test_versionpredicate.py
+│   │           │   │   │   └── unix_compat.py
+│   │           │   │   ├── text_file.py
+│   │           │   │   ├── unixccompiler.py
+│   │           │   │   ├── util.py
+│   │           │   │   ├── version.py
+│   │           │   │   ├── versionpredicate.py
+│   │           │   │   └── zosccompiler.py
+│   │           │   ├── _entry_points.py
+│   │           │   ├── _imp.py
+│   │           │   ├── _importlib.py
+│   │           │   ├── _itertools.py
+│   │           │   ├── _normalization.py
+│   │           │   ├── _path.py
+│   │           │   ├── _reqs.py
+│   │           │   ├── _scripts.py
+│   │           │   ├── _shutil.py
+│   │           │   ├── _static.py
+│   │           │   ├── _vendor
+│   │           │   │   ├── .lock
+│   │           │   │   ├── autocommand
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── autoasync.cpython-314.pyc
+│   │           │   │   │   │   ├── autocommand.cpython-314.pyc
+│   │           │   │   │   │   ├── automain.cpython-314.pyc
+│   │           │   │   │   │   ├── autoparse.cpython-314.pyc
+│   │           │   │   │   │   └── errors.cpython-314.pyc
+│   │           │   │   │   ├── autoasync.py
+│   │           │   │   │   ├── autocommand.py
+│   │           │   │   │   ├── automain.py
+│   │           │   │   │   ├── autoparse.py
+│   │           │   │   │   └── errors.py
+│   │           │   │   ├── autocommand-2.2.2.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── backports
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   └── __init__.cpython-314.pyc
+│   │           │   │   │   └── tarfile
+│   │           │   │   │       ├── __init__.py
+│   │           │   │   │       ├── __main__.py
+│   │           │   │   │       ├── __pycache__
+│   │           │   │   │       │   ├── __init__.cpython-314.pyc
+│   │           │   │   │       │   └── __main__.cpython-314.pyc
+│   │           │   │   │       └── compat
+│   │           │   │   │           ├── __init__.py
+│   │           │   │   │           ├── __pycache__
+│   │           │   │   │           │   ├── __init__.cpython-314.pyc
+│   │           │   │   │           │   └── py38.cpython-314.pyc
+│   │           │   │   │           └── py38.py
+│   │           │   │   ├── backports.tarfile-1.2.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── importlib_metadata
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _adapters.cpython-314.pyc
+│   │           │   │   │   │   ├── _collections.cpython-314.pyc
+│   │           │   │   │   │   ├── _compat.cpython-314.pyc
+│   │           │   │   │   │   ├── _functools.cpython-314.pyc
+│   │           │   │   │   │   ├── _itertools.cpython-314.pyc
+│   │           │   │   │   │   ├── _meta.cpython-314.pyc
+│   │           │   │   │   │   ├── _text.cpython-314.pyc
+│   │           │   │   │   │   ├── _typing.cpython-314.pyc
+│   │           │   │   │   │   └── diagnose.cpython-314.pyc
+│   │           │   │   │   ├── _adapters.py
+│   │           │   │   │   ├── _collections.py
+│   │           │   │   │   ├── _compat.py
+│   │           │   │   │   ├── _functools.py
+│   │           │   │   │   ├── _itertools.py
+│   │           │   │   │   ├── _meta.py
+│   │           │   │   │   ├── _text.py
+│   │           │   │   │   ├── _typing.py
+│   │           │   │   │   ├── compat
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── py311.cpython-314.pyc
+│   │           │   │   │   │   │   └── py39.cpython-314.pyc
+│   │           │   │   │   │   ├── py311.py
+│   │           │   │   │   │   └── py39.py
+│   │           │   │   │   ├── diagnose.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── importlib_metadata-8.7.1.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   ├── licenses
+│   │           │   │   │   │   └── LICENSE
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── jaraco
+│   │           │   │   │   ├── context
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   └── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── py.typed
+│   │           │   │   │   ├── functools
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __init__.pyi
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   └── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── py.typed
+│   │           │   │   │   └── text
+│   │           │   │   │       ├── Lorem ipsum.txt
+│   │           │   │   │       ├── __init__.py
+│   │           │   │   │       ├── __pycache__
+│   │           │   │   │       │   ├── __init__.cpython-314.pyc
+│   │           │   │   │       │   ├── layouts.cpython-314.pyc
+│   │           │   │   │       │   ├── show-newlines.cpython-314.pyc
+│   │           │   │   │       │   ├── strip-prefix.cpython-314.pyc
+│   │           │   │   │       │   ├── to-dvorak.cpython-314.pyc
+│   │           │   │   │       │   └── to-qwerty.cpython-314.pyc
+│   │           │   │   │       ├── layouts.py
+│   │           │   │   │       ├── show-newlines.py
+│   │           │   │   │       ├── strip-prefix.py
+│   │           │   │   │       ├── to-dvorak.py
+│   │           │   │   │       └── to-qwerty.py
+│   │           │   │   ├── jaraco.text-4.0.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── LICENSE
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── jaraco_context-6.1.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   ├── licenses
+│   │           │   │   │   │   └── LICENSE
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── jaraco_functools-4.4.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   ├── licenses
+│   │           │   │   │   │   └── LICENSE
+│   │           │   │   │   └── top_level.txt
+│   │           │   │   ├── more_itertools
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __init__.pyi
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── more.cpython-314.pyc
+│   │           │   │   │   │   └── recipes.cpython-314.pyc
+│   │           │   │   │   ├── more.py
+│   │           │   │   │   ├── more.pyi
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── recipes.py
+│   │           │   │   │   └── recipes.pyi
+│   │           │   │   ├── more_itertools-10.8.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── licenses
+│   │           │   │   │       └── LICENSE
+│   │           │   │   ├── packaging
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _elffile.cpython-314.pyc
+│   │           │   │   │   │   ├── _manylinux.cpython-314.pyc
+│   │           │   │   │   │   ├── _musllinux.cpython-314.pyc
+│   │           │   │   │   │   ├── _parser.cpython-314.pyc
+│   │           │   │   │   │   ├── _structures.cpython-314.pyc
+│   │           │   │   │   │   ├── _tokenizer.cpython-314.pyc
+│   │           │   │   │   │   ├── markers.cpython-314.pyc
+│   │           │   │   │   │   ├── metadata.cpython-314.pyc
+│   │           │   │   │   │   ├── pylock.cpython-314.pyc
+│   │           │   │   │   │   ├── requirements.cpython-314.pyc
+│   │           │   │   │   │   ├── specifiers.cpython-314.pyc
+│   │           │   │   │   │   ├── tags.cpython-314.pyc
+│   │           │   │   │   │   ├── utils.cpython-314.pyc
+│   │           │   │   │   │   └── version.cpython-314.pyc
+│   │           │   │   │   ├── _elffile.py
+│   │           │   │   │   ├── _manylinux.py
+│   │           │   │   │   ├── _musllinux.py
+│   │           │   │   │   ├── _parser.py
+│   │           │   │   │   ├── _structures.py
+│   │           │   │   │   ├── _tokenizer.py
+│   │           │   │   │   ├── licenses
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── _spdx.cpython-314.pyc
+│   │           │   │   │   │   └── _spdx.py
+│   │           │   │   │   ├── markers.py
+│   │           │   │   │   ├── metadata.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── pylock.py
+│   │           │   │   │   ├── requirements.py
+│   │           │   │   │   ├── specifiers.py
+│   │           │   │   │   ├── tags.py
+│   │           │   │   │   ├── utils.py
+│   │           │   │   │   └── version.py
+│   │           │   │   ├── packaging-26.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── licenses
+│   │           │   │   │       ├── LICENSE
+│   │           │   │   │       ├── LICENSE.APACHE
+│   │           │   │   │       └── LICENSE.BSD
+│   │           │   │   ├── platformdirs
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── android.cpython-314.pyc
+│   │           │   │   │   │   ├── api.cpython-314.pyc
+│   │           │   │   │   │   ├── macos.cpython-314.pyc
+│   │           │   │   │   │   ├── unix.cpython-314.pyc
+│   │           │   │   │   │   ├── version.cpython-314.pyc
+│   │           │   │   │   │   └── windows.cpython-314.pyc
+│   │           │   │   │   ├── android.py
+│   │           │   │   │   ├── api.py
+│   │           │   │   │   ├── macos.py
+│   │           │   │   │   ├── py.typed
+│   │           │   │   │   ├── unix.py
+│   │           │   │   │   ├── version.py
+│   │           │   │   │   └── windows.py
+│   │           │   │   ├── platformdirs-4.4.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── licenses
+│   │           │   │   │       └── LICENSE
+│   │           │   │   ├── tomli
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _parser.cpython-314.pyc
+│   │           │   │   │   │   ├── _re.cpython-314.pyc
+│   │           │   │   │   │   └── _types.cpython-314.pyc
+│   │           │   │   │   ├── _parser.py
+│   │           │   │   │   ├── _re.py
+│   │           │   │   │   ├── _types.py
+│   │           │   │   │   └── py.typed
+│   │           │   │   ├── tomli-2.4.0.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   └── licenses
+│   │           │   │   │       └── LICENSE
+│   │           │   │   ├── wheel
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __main__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── __main__.cpython-314.pyc
+│   │           │   │   │   │   ├── _bdist_wheel.cpython-314.pyc
+│   │           │   │   │   │   ├── _metadata.cpython-314.pyc
+│   │           │   │   │   │   ├── _setuptools_logging.cpython-314.pyc
+│   │           │   │   │   │   ├── bdist_wheel.cpython-314.pyc
+│   │           │   │   │   │   ├── macosx_libfile.cpython-314.pyc
+│   │           │   │   │   │   ├── metadata.cpython-314.pyc
+│   │           │   │   │   │   └── wheelfile.cpython-314.pyc
+│   │           │   │   │   ├── _bdist_wheel.py
+│   │           │   │   │   ├── _commands
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── convert.cpython-314.pyc
+│   │           │   │   │   │   │   ├── pack.cpython-314.pyc
+│   │           │   │   │   │   │   ├── tags.cpython-314.pyc
+│   │           │   │   │   │   │   └── unpack.cpython-314.pyc
+│   │           │   │   │   │   ├── convert.py
+│   │           │   │   │   │   ├── pack.py
+│   │           │   │   │   │   ├── tags.py
+│   │           │   │   │   │   └── unpack.py
+│   │           │   │   │   ├── _metadata.py
+│   │           │   │   │   ├── _setuptools_logging.py
+│   │           │   │   │   ├── bdist_wheel.py
+│   │           │   │   │   ├── macosx_libfile.py
+│   │           │   │   │   ├── metadata.py
+│   │           │   │   │   └── wheelfile.py
+│   │           │   │   ├── wheel-0.46.3.dist-info
+│   │           │   │   │   ├── INSTALLER
+│   │           │   │   │   ├── METADATA
+│   │           │   │   │   ├── RECORD
+│   │           │   │   │   ├── REQUESTED
+│   │           │   │   │   ├── WHEEL
+│   │           │   │   │   ├── entry_points.txt
+│   │           │   │   │   └── licenses
+│   │           │   │   │       └── LICENSE.txt
+│   │           │   │   ├── zipp
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── _functools.cpython-314.pyc
+│   │           │   │   │   │   └── glob.cpython-314.pyc
+│   │           │   │   │   ├── _functools.py
+│   │           │   │   │   ├── compat
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   ├── overlay.cpython-314.pyc
+│   │           │   │   │   │   │   ├── py310.cpython-314.pyc
+│   │           │   │   │   │   │   └── py313.cpython-314.pyc
+│   │           │   │   │   │   ├── overlay.py
+│   │           │   │   │   │   ├── py310.py
+│   │           │   │   │   │   └── py313.py
+│   │           │   │   │   └── glob.py
+│   │           │   │   └── zipp-3.23.0.dist-info
+│   │           │   │       ├── INSTALLER
+│   │           │   │       ├── METADATA
+│   │           │   │       ├── RECORD
+│   │           │   │       ├── REQUESTED
+│   │           │   │       ├── WHEEL
+│   │           │   │       ├── licenses
+│   │           │   │       │   └── LICENSE
+│   │           │   │       └── top_level.txt
+│   │           │   ├── archive_util.py
+│   │           │   ├── build_meta.py
+│   │           │   ├── cli-32.exe
+│   │           │   ├── cli-64.exe
+│   │           │   ├── cli-arm64.exe
+│   │           │   ├── cli.exe
+│   │           │   ├── command
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _requirestxt.cpython-314.pyc
+│   │           │   │   │   ├── alias.cpython-314.pyc
+│   │           │   │   │   ├── bdist_egg.cpython-314.pyc
+│   │           │   │   │   ├── bdist_rpm.cpython-314.pyc
+│   │           │   │   │   ├── bdist_wheel.cpython-314.pyc
+│   │           │   │   │   ├── build.cpython-314.pyc
+│   │           │   │   │   ├── build_clib.cpython-314.pyc
+│   │           │   │   │   ├── build_ext.cpython-314.pyc
+│   │           │   │   │   ├── build_py.cpython-314.pyc
+│   │           │   │   │   ├── develop.cpython-314.pyc
+│   │           │   │   │   ├── dist_info.cpython-314.pyc
+│   │           │   │   │   ├── easy_install.cpython-314.pyc
+│   │           │   │   │   ├── editable_wheel.cpython-314.pyc
+│   │           │   │   │   ├── egg_info.cpython-314.pyc
+│   │           │   │   │   ├── install.cpython-314.pyc
+│   │           │   │   │   ├── install_egg_info.cpython-314.pyc
+│   │           │   │   │   ├── install_lib.cpython-314.pyc
+│   │           │   │   │   ├── install_scripts.cpython-314.pyc
+│   │           │   │   │   ├── rotate.cpython-314.pyc
+│   │           │   │   │   ├── saveopts.cpython-314.pyc
+│   │           │   │   │   ├── sdist.cpython-314.pyc
+│   │           │   │   │   ├── setopt.cpython-314.pyc
+│   │           │   │   │   └── test.cpython-314.pyc
+│   │           │   │   ├── _requirestxt.py
+│   │           │   │   ├── alias.py
+│   │           │   │   ├── bdist_egg.py
+│   │           │   │   ├── bdist_rpm.py
+│   │           │   │   ├── bdist_wheel.py
+│   │           │   │   ├── build.py
+│   │           │   │   ├── build_clib.py
+│   │           │   │   ├── build_ext.py
+│   │           │   │   ├── build_py.py
+│   │           │   │   ├── develop.py
+│   │           │   │   ├── dist_info.py
+│   │           │   │   ├── easy_install.py
+│   │           │   │   ├── editable_wheel.py
+│   │           │   │   ├── egg_info.py
+│   │           │   │   ├── install.py
+│   │           │   │   ├── install_egg_info.py
+│   │           │   │   ├── install_lib.py
+│   │           │   │   ├── install_scripts.py
+│   │           │   │   ├── rotate.py
+│   │           │   │   ├── saveopts.py
+│   │           │   │   ├── sdist.py
+│   │           │   │   ├── setopt.py
+│   │           │   │   └── test.py
+│   │           │   ├── compat
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── py310.cpython-314.pyc
+│   │           │   │   │   ├── py311.cpython-314.pyc
+│   │           │   │   │   ├── py312.cpython-314.pyc
+│   │           │   │   │   └── py39.cpython-314.pyc
+│   │           │   │   ├── py310.py
+│   │           │   │   ├── py311.py
+│   │           │   │   ├── py312.py
+│   │           │   │   └── py39.py
+│   │           │   ├── config
+│   │           │   │   ├── NOTICE
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── _apply_pyprojecttoml.cpython-314.pyc
+│   │           │   │   │   ├── expand.cpython-314.pyc
+│   │           │   │   │   ├── pyprojecttoml.cpython-314.pyc
+│   │           │   │   │   └── setupcfg.cpython-314.pyc
+│   │           │   │   ├── _apply_pyprojecttoml.py
+│   │           │   │   ├── _validate_pyproject
+│   │           │   │   │   ├── NOTICE
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── error_reporting.cpython-314.pyc
+│   │           │   │   │   │   ├── extra_validations.cpython-314.pyc
+│   │           │   │   │   │   ├── fastjsonschema_exceptions.cpython-314.pyc
+│   │           │   │   │   │   ├── fastjsonschema_validations.cpython-314.pyc
+│   │           │   │   │   │   └── formats.cpython-314.pyc
+│   │           │   │   │   ├── error_reporting.py
+│   │           │   │   │   ├── extra_validations.py
+│   │           │   │   │   ├── fastjsonschema_exceptions.py
+│   │           │   │   │   ├── fastjsonschema_validations.py
+│   │           │   │   │   └── formats.py
+│   │           │   │   ├── distutils.schema.json
+│   │           │   │   ├── expand.py
+│   │           │   │   ├── pyprojecttoml.py
+│   │           │   │   ├── setupcfg.py
+│   │           │   │   └── setuptools.schema.json
+│   │           │   ├── depends.py
+│   │           │   ├── discovery.py
+│   │           │   ├── dist.py
+│   │           │   ├── errors.py
+│   │           │   ├── extension.py
+│   │           │   ├── glob.py
+│   │           │   ├── gui-32.exe
+│   │           │   ├── gui-64.exe
+│   │           │   ├── gui-arm64.exe
+│   │           │   ├── gui.exe
+│   │           │   ├── installer.py
+│   │           │   ├── launch.py
+│   │           │   ├── launcher manifest.xml
+│   │           │   ├── logging.py
+│   │           │   ├── modified.py
+│   │           │   ├── monkey.py
+│   │           │   ├── msvc.py
+│   │           │   ├── namespaces.py
+│   │           │   ├── script (dev).tmpl
+│   │           │   ├── script.tmpl
+│   │           │   ├── tests
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── contexts.cpython-314.pyc
+│   │           │   │   │   ├── environment.cpython-314.pyc
+│   │           │   │   │   ├── fixtures.cpython-314.pyc
+│   │           │   │   │   ├── mod_with_constant.cpython-314.pyc
+│   │           │   │   │   ├── namespaces.cpython-314.pyc
+│   │           │   │   │   ├── script-with-bom.cpython-314.pyc
+│   │           │   │   │   ├── test_archive_util.cpython-314.pyc
+│   │           │   │   │   ├── test_bdist_deprecations.cpython-314.pyc
+│   │           │   │   │   ├── test_bdist_egg.cpython-314.pyc
+│   │           │   │   │   ├── test_bdist_wheel.cpython-314.pyc
+│   │           │   │   │   ├── test_build.cpython-314.pyc
+│   │           │   │   │   ├── test_build_clib.cpython-314.pyc
+│   │           │   │   │   ├── test_build_ext.cpython-314.pyc
+│   │           │   │   │   ├── test_build_meta.cpython-314.pyc
+│   │           │   │   │   ├── test_build_py.cpython-314.pyc
+│   │           │   │   │   ├── test_config_discovery.cpython-314.pyc
+│   │           │   │   │   ├── test_core_metadata.cpython-314.pyc
+│   │           │   │   │   ├── test_depends.cpython-314.pyc
+│   │           │   │   │   ├── test_develop.cpython-314.pyc
+│   │           │   │   │   ├── test_dist.cpython-314.pyc
+│   │           │   │   │   ├── test_dist_info.cpython-314.pyc
+│   │           │   │   │   ├── test_distutils_adoption.cpython-314.pyc
+│   │           │   │   │   ├── test_editable_install.cpython-314.pyc
+│   │           │   │   │   ├── test_egg_info.cpython-314.pyc
+│   │           │   │   │   ├── test_extern.cpython-314.pyc
+│   │           │   │   │   ├── test_find_packages.cpython-314.pyc
+│   │           │   │   │   ├── test_find_py_modules.cpython-314.pyc
+│   │           │   │   │   ├── test_glob.cpython-314.pyc
+│   │           │   │   │   ├── test_install_scripts.cpython-314.pyc
+│   │           │   │   │   ├── test_logging.cpython-314.pyc
+│   │           │   │   │   ├── test_manifest.cpython-314.pyc
+│   │           │   │   │   ├── test_namespaces.cpython-314.pyc
+│   │           │   │   │   ├── test_scripts.cpython-314.pyc
+│   │           │   │   │   ├── test_sdist.cpython-314.pyc
+│   │           │   │   │   ├── test_setopt.cpython-314.pyc
+│   │           │   │   │   ├── test_setuptools.cpython-314.pyc
+│   │           │   │   │   ├── test_shutil_wrapper.cpython-314.pyc
+│   │           │   │   │   ├── test_unicode_utils.cpython-314.pyc
+│   │           │   │   │   ├── test_virtualenv.cpython-314.pyc
+│   │           │   │   │   ├── test_warnings.cpython-314.pyc
+│   │           │   │   │   ├── test_wheel.cpython-314.pyc
+│   │           │   │   │   ├── test_windows_wrappers.cpython-314.pyc
+│   │           │   │   │   ├── text.cpython-314.pyc
+│   │           │   │   │   └── textwrap.cpython-314.pyc
+│   │           │   │   ├── compat
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   └── py39.cpython-314.pyc
+│   │           │   │   │   └── py39.py
+│   │           │   │   ├── config
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── test_apply_pyprojecttoml.cpython-314.pyc
+│   │           │   │   │   │   ├── test_expand.cpython-314.pyc
+│   │           │   │   │   │   ├── test_pyprojecttoml.cpython-314.pyc
+│   │           │   │   │   │   ├── test_pyprojecttoml_dynamic_deps.cpython-314.pyc
+│   │           │   │   │   │   └── test_setupcfg.cpython-314.pyc
+│   │           │   │   │   ├── downloads
+│   │           │   │   │   │   ├── __init__.py
+│   │           │   │   │   │   ├── __pycache__
+│   │           │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   │   └── preload.cpython-314.pyc
+│   │           │   │   │   │   └── preload.py
+│   │           │   │   │   ├── setupcfg_examples.txt
+│   │           │   │   │   ├── test_apply_pyprojecttoml.py
+│   │           │   │   │   ├── test_expand.py
+│   │           │   │   │   ├── test_pyprojecttoml.py
+│   │           │   │   │   ├── test_pyprojecttoml_dynamic_deps.py
+│   │           │   │   │   └── test_setupcfg.py
+│   │           │   │   ├── contexts.py
+│   │           │   │   ├── environment.py
+│   │           │   │   ├── fixtures.py
+│   │           │   │   ├── indexes
+│   │           │   │   │   └── test_links_priority
+│   │           │   │   │       ├── external.html
+│   │           │   │   │       └── simple
+│   │           │   │   │           └── foobar
+│   │           │   │   │               └── index.html
+│   │           │   │   ├── integration
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── helpers.cpython-314.pyc
+│   │           │   │   │   │   ├── test_pbr.cpython-314.pyc
+│   │           │   │   │   │   └── test_pip_install_sdist.cpython-314.pyc
+│   │           │   │   │   ├── helpers.py
+│   │           │   │   │   ├── test_pbr.py
+│   │           │   │   │   └── test_pip_install_sdist.py
+│   │           │   │   ├── mod_with_constant.py
+│   │           │   │   ├── namespaces.py
+│   │           │   │   ├── script-with-bom.py
+│   │           │   │   ├── test_archive_util.py
+│   │           │   │   ├── test_bdist_deprecations.py
+│   │           │   │   ├── test_bdist_egg.py
+│   │           │   │   ├── test_bdist_wheel.py
+│   │           │   │   ├── test_build.py
+│   │           │   │   ├── test_build_clib.py
+│   │           │   │   ├── test_build_ext.py
+│   │           │   │   ├── test_build_meta.py
+│   │           │   │   ├── test_build_py.py
+│   │           │   │   ├── test_config_discovery.py
+│   │           │   │   ├── test_core_metadata.py
+│   │           │   │   ├── test_depends.py
+│   │           │   │   ├── test_develop.py
+│   │           │   │   ├── test_dist.py
+│   │           │   │   ├── test_dist_info.py
+│   │           │   │   ├── test_distutils_adoption.py
+│   │           │   │   ├── test_editable_install.py
+│   │           │   │   ├── test_egg_info.py
+│   │           │   │   ├── test_extern.py
+│   │           │   │   ├── test_find_packages.py
+│   │           │   │   ├── test_find_py_modules.py
+│   │           │   │   ├── test_glob.py
+│   │           │   │   ├── test_install_scripts.py
+│   │           │   │   ├── test_logging.py
+│   │           │   │   ├── test_manifest.py
+│   │           │   │   ├── test_namespaces.py
+│   │           │   │   ├── test_scripts.py
+│   │           │   │   ├── test_sdist.py
+│   │           │   │   ├── test_setopt.py
+│   │           │   │   ├── test_setuptools.py
+│   │           │   │   ├── test_shutil_wrapper.py
+│   │           │   │   ├── test_unicode_utils.py
+│   │           │   │   ├── test_virtualenv.py
+│   │           │   │   ├── test_warnings.py
+│   │           │   │   ├── test_wheel.py
+│   │           │   │   ├── test_windows_wrappers.py
+│   │           │   │   ├── text.py
+│   │           │   │   └── textwrap.py
+│   │           │   ├── unicode_utils.py
+│   │           │   ├── version.py
+│   │           │   ├── warnings.py
+│   │           │   ├── wheel.py
+│   │           │   └── windows_support.py
+│   │           ├── setuptools-82.0.1.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── entry_points.txt
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE
+│   │           │   └── top_level.txt
+│   │           ├── simplejson
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── compat.cpython-314.pyc
+│   │           │   │   ├── decoder.cpython-314.pyc
+│   │           │   │   ├── encoder.cpython-314.pyc
+│   │           │   │   ├── errors.cpython-314.pyc
+│   │           │   │   ├── ordered_dict.cpython-314.pyc
+│   │           │   │   ├── raw_json.cpython-314.pyc
+│   │           │   │   ├── scanner.cpython-314.pyc
+│   │           │   │   └── tool.cpython-314.pyc
+│   │           │   ├── compat.py
+│   │           │   ├── decoder.py
+│   │           │   ├── encoder.py
+│   │           │   ├── errors.py
+│   │           │   ├── ordered_dict.py
+│   │           │   ├── raw_json.py
+│   │           │   ├── scanner.py
+│   │           │   ├── tests
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── test_bigint_as_string.cpython-314.pyc
+│   │           │   │   │   ├── test_bitsize_int_as_string.cpython-314.pyc
+│   │           │   │   │   ├── test_check_circular.cpython-314.pyc
+│   │           │   │   │   ├── test_decimal.cpython-314.pyc
+│   │           │   │   │   ├── test_decode.cpython-314.pyc
+│   │           │   │   │   ├── test_default.cpython-314.pyc
+│   │           │   │   │   ├── test_dump.cpython-314.pyc
+│   │           │   │   │   ├── test_encode_basestring_ascii.cpython-314.pyc
+│   │           │   │   │   ├── test_encode_for_html.cpython-314.pyc
+│   │           │   │   │   ├── test_errors.cpython-314.pyc
+│   │           │   │   │   ├── test_fail.cpython-314.pyc
+│   │           │   │   │   ├── test_float.cpython-314.pyc
+│   │           │   │   │   ├── test_for_json.cpython-314.pyc
+│   │           │   │   │   ├── test_indent.cpython-314.pyc
+│   │           │   │   │   ├── test_item_sort_key.cpython-314.pyc
+│   │           │   │   │   ├── test_iterable.cpython-314.pyc
+│   │           │   │   │   ├── test_namedtuple.cpython-314.pyc
+│   │           │   │   │   ├── test_pass1.cpython-314.pyc
+│   │           │   │   │   ├── test_pass2.cpython-314.pyc
+│   │           │   │   │   ├── test_pass3.cpython-314.pyc
+│   │           │   │   │   ├── test_raw_json.cpython-314.pyc
+│   │           │   │   │   ├── test_recursion.cpython-314.pyc
+│   │           │   │   │   ├── test_scanstring.cpython-314.pyc
+│   │           │   │   │   ├── test_separators.cpython-314.pyc
+│   │           │   │   │   ├── test_speedups.cpython-314.pyc
+│   │           │   │   │   ├── test_str_subclass.cpython-314.pyc
+│   │           │   │   │   ├── test_subclass.cpython-314.pyc
+│   │           │   │   │   ├── test_tool.cpython-314.pyc
+│   │           │   │   │   ├── test_tuple.cpython-314.pyc
+│   │           │   │   │   └── test_unicode.cpython-314.pyc
+│   │           │   │   ├── test_bigint_as_string.py
+│   │           │   │   ├── test_bitsize_int_as_string.py
+│   │           │   │   ├── test_check_circular.py
+│   │           │   │   ├── test_decimal.py
+│   │           │   │   ├── test_decode.py
+│   │           │   │   ├── test_default.py
+│   │           │   │   ├── test_dump.py
+│   │           │   │   ├── test_encode_basestring_ascii.py
+│   │           │   │   ├── test_encode_for_html.py
+│   │           │   │   ├── test_errors.py
+│   │           │   │   ├── test_fail.py
+│   │           │   │   ├── test_float.py
+│   │           │   │   ├── test_for_json.py
+│   │           │   │   ├── test_indent.py
+│   │           │   │   ├── test_item_sort_key.py
+│   │           │   │   ├── test_iterable.py
+│   │           │   │   ├── test_namedtuple.py
+│   │           │   │   ├── test_pass1.py
+│   │           │   │   ├── test_pass2.py
+│   │           │   │   ├── test_pass3.py
+│   │           │   │   ├── test_raw_json.py
+│   │           │   │   ├── test_recursion.py
+│   │           │   │   ├── test_scanstring.py
+│   │           │   │   ├── test_separators.py
+│   │           │   │   ├── test_speedups.py
+│   │           │   │   ├── test_str_subclass.py
+│   │           │   │   ├── test_subclass.py
+│   │           │   │   ├── test_tool.py
+│   │           │   │   ├── test_tuple.py
+│   │           │   │   └── test_unicode.py
+│   │           │   └── tool.py
+│   │           ├── simplejson-3.17.2.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE.txt
+│   │           │   └── top_level.txt
+│   │           ├── singer
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── bookmarks.cpython-314.pyc
+│   │           │   │   ├── catalog.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── logger.cpython-314.pyc
+│   │           │   │   ├── messages.cpython-314.pyc
+│   │           │   │   ├── metadata.cpython-314.pyc
+│   │           │   │   ├── metrics.cpython-314.pyc
+│   │           │   │   ├── requests.cpython-314.pyc
+│   │           │   │   ├── schema.cpython-314.pyc
+│   │           │   │   ├── schema_generation.cpython-314.pyc
+│   │           │   │   ├── state.cpython-314.pyc
+│   │           │   │   ├── statediff.cpython-314.pyc
+│   │           │   │   ├── transform.cpython-314.pyc
+│   │           │   │   └── utils.cpython-314.pyc
+│   │           │   ├── bookmarks.py
+│   │           │   ├── catalog.py
+│   │           │   ├── exceptions.py
+│   │           │   ├── logger.py
+│   │           │   ├── logging.conf
+│   │           │   ├── messages.py
+│   │           │   ├── metadata.py
+│   │           │   ├── metrics.py
+│   │           │   ├── requests.py
+│   │           │   ├── schema.py
+│   │           │   ├── schema_generation.py
+│   │           │   ├── state.py
+│   │           │   ├── statediff.py
+│   │           │   ├── transform.py
+│   │           │   └── utils.py
+│   │           ├── singer_python-6.8.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── REQUESTED
+│   │           │   ├── WHEEL
+│   │           │   ├── licenses
+│   │           │   │   └── LICENSE
+│   │           │   └── top_level.txt
+│   │           ├── six-1.17.0.dist-info
+│   │           │   ├── INSTALLER
+│   │           │   ├── LICENSE
+│   │           │   ├── METADATA
+│   │           │   ├── RECORD
+│   │           │   ├── WHEEL
+│   │           │   └── top_level.txt
+│   │           ├── six.py
+│   │           ├── tap_github
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   └── __init__.cpython-314.pyc
+│   │           │   └── schemas
+│   │           │       ├── assignees.json
+│   │           │       ├── collaborators.json
+│   │           │       ├── comments.json
+│   │           │       ├── commit_comments.json
+│   │           │       ├── commits.json
+│   │           │       ├── events.json
+│   │           │       ├── issue_events.json
+│   │           │       ├── issue_labels.json
+│   │           │       ├── issue_milestones.json
+│   │           │       ├── issues.json
+│   │           │       ├── project_cards.json
+│   │           │       ├── project_columns.json
+│   │           │       ├── projects.json
+│   │           │       ├── pull_requests.json
+│   │           │       ├── releases.json
+│   │           │       ├── review_comments.json
+│   │           │       ├── reviews.json
+│   │           │       ├── stargazers.json
+│   │           │       ├── team_members.json
+│   │           │       ├── team_memberships.json
+│   │           │       └── teams.json
+│   │           ├── tests
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── test_catalog.cpython-314.pyc
+│   │           │   │   ├── test_exceptions.cpython-314.pyc
+│   │           │   │   ├── test_metadata.cpython-314.pyc
+│   │           │   │   ├── test_metrics.cpython-314.pyc
+│   │           │   │   ├── test_schema.cpython-314.pyc
+│   │           │   │   ├── test_schema_generation.cpython-314.pyc
+│   │           │   │   ├── test_singer.cpython-314.pyc
+│   │           │   │   ├── test_state.cpython-314.pyc
+│   │           │   │   ├── test_statediff.cpython-314.pyc
+│   │           │   │   ├── test_transform.cpython-314.pyc
+│   │           │   │   └── test_utils.cpython-314.pyc
+│   │           │   ├── test_catalog.py
+│   │           │   ├── test_exceptions.py
+│   │           │   ├── test_metadata.py
+│   │           │   ├── test_metrics.py
+│   │           │   ├── test_schema.py
+│   │           │   ├── test_schema_generation.py
+│   │           │   ├── test_singer.py
+│   │           │   ├── test_state.py
+│   │           │   ├── test_statediff.py
+│   │           │   ├── test_transform.py
+│   │           │   └── test_utils.py
+│   │           ├── urllib3
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   ├── _base_connection.cpython-314.pyc
+│   │           │   │   ├── _collections.cpython-314.pyc
+│   │           │   │   ├── _request_methods.cpython-314.pyc
+│   │           │   │   ├── _version.cpython-314.pyc
+│   │           │   │   ├── connection.cpython-314.pyc
+│   │           │   │   ├── connectionpool.cpython-314.pyc
+│   │           │   │   ├── exceptions.cpython-314.pyc
+│   │           │   │   ├── fields.cpython-314.pyc
+│   │           │   │   ├── filepost.cpython-314.pyc
+│   │           │   │   ├── poolmanager.cpython-314.pyc
+│   │           │   │   └── response.cpython-314.pyc
+│   │           │   ├── _base_connection.py
+│   │           │   ├── _collections.py
+│   │           │   ├── _request_methods.py
+│   │           │   ├── _version.py
+│   │           │   ├── connection.py
+│   │           │   ├── connectionpool.py
+│   │           │   ├── contrib
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── pyopenssl.cpython-314.pyc
+│   │           │   │   │   └── socks.cpython-314.pyc
+│   │           │   │   ├── emscripten
+│   │           │   │   │   ├── __init__.py
+│   │           │   │   │   ├── __pycache__
+│   │           │   │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   │   ├── connection.cpython-314.pyc
+│   │           │   │   │   │   ├── fetch.cpython-314.pyc
+│   │           │   │   │   │   ├── request.cpython-314.pyc
+│   │           │   │   │   │   └── response.cpython-314.pyc
+│   │           │   │   │   ├── connection.py
+│   │           │   │   │   ├── emscripten_fetch_worker.js
+│   │           │   │   │   ├── fetch.py
+│   │           │   │   │   ├── request.py
+│   │           │   │   │   └── response.py
+│   │           │   │   ├── pyopenssl.py
+│   │           │   │   └── socks.py
+│   │           │   ├── exceptions.py
+│   │           │   ├── fields.py
+│   │           │   ├── filepost.py
+│   │           │   ├── http2
+│   │           │   │   ├── __init__.py
+│   │           │   │   ├── __pycache__
+│   │           │   │   │   ├── __init__.cpython-314.pyc
+│   │           │   │   │   ├── connection.cpython-314.pyc
+│   │           │   │   │   └── probe.cpython-314.pyc
+│   │           │   │   ├── connection.py
+│   │           │   │   └── probe.py
+│   │           │   ├── poolmanager.py
+│   │           │   ├── py.typed
+│   │           │   ├── response.py
+│   │           │   └── util
+│   │           │       ├── __init__.py
+│   │           │       ├── __pycache__
+│   │           │       │   ├── __init__.cpython-314.pyc
+│   │           │       │   ├── connection.cpython-314.pyc
+│   │           │       │   ├── proxy.cpython-314.pyc
+│   │           │       │   ├── request.cpython-314.pyc
+│   │           │       │   ├── response.cpython-314.pyc
+│   │           │       │   ├── retry.cpython-314.pyc
+│   │           │       │   ├── ssl_.cpython-314.pyc
+│   │           │       │   ├── ssl_match_hostname.cpython-314.pyc
+│   │           │       │   ├── ssltransport.cpython-314.pyc
+│   │           │       │   ├── timeout.cpython-314.pyc
+│   │           │       │   ├── url.cpython-314.pyc
+│   │           │       │   ├── util.cpython-314.pyc
+│   │           │       │   └── wait.cpython-314.pyc
+│   │           │       ├── connection.py
+│   │           │       ├── proxy.py
+│   │           │       ├── request.py
+│   │           │       ├── response.py
+│   │           │       ├── retry.py
+│   │           │       ├── ssl_.py
+│   │           │       ├── ssl_match_hostname.py
+│   │           │       ├── ssltransport.py
+│   │           │       ├── timeout.py
+│   │           │       ├── url.py
+│   │           │       ├── util.py
+│   │           │       └── wait.py
+│   │           └── urllib3-2.6.3.dist-info
+│   │               ├── INSTALLER
+│   │               ├── METADATA
+│   │               ├── RECORD
+│   │               ├── REQUESTED
+│   │               ├── WHEEL
+│   │               └── licenses
+│   │                   └── LICENSE.txt
+│   ├── lib64 -> lib
+│   └── pyvenv.cfg
+├── ai-generator
+│   ├── .env
+│   ├── .gitignore
+│   ├── README.md
+│   ├── api
+│   │   ├── ai_plan_scope.sql
+│   │   ├── ai_refine.sql
+│   │   └── chat.sql
+│   ├── css
+│   │   ├── chat.css
+│   │   ├── dashboard-loader.css
+│   │   ├── pikaday.css
+│   │   ├── testcasedetail.css
+│   │   ├── theme.css
+│   │   └── treeview.css
+│   ├── dashboard.sql
+│   ├── entries.sql
+│   ├── execute_dashboard.sql
+│   ├── generate_markdown.sql
+│   ├── images
+│   │   └── favicon.ico
+│   ├── index.sql
+│   ├── js
+│   │   ├── chat.js
+│   │   ├── dashboard-launcher-commands.js
+│   │   ├── date-normalization-utility.js
+│   │   ├── generator.js
+│   │   ├── layout.js
+│   │   ├── md-date-picker.js
+│   │   ├── md-editor-core.js
+│   │   ├── md-parser.js
+│   │   ├── pikaday.js
+│   │   ├── refine.js
+│   │   ├── results.js
+│   │   ├── settings.js
+│   │   └── testcasedetail.js
+│   ├── logo.png
+│   ├── md_editor.sql
+│   ├── pages
+│   │   ├── evidence
+│   │   │   ├── delete.sql
+│   │   │   ├── edit.sql
+│   │   │   ├── list.sql
+│   │   │   ├── save.sql
+│   │   │   └── update.sql
+│   │   ├── plans
+│   │   │   ├── edit.sql
+│   │   │   ├── list.sql
+│   │   │   ├── save.sql
+│   │   │   └── update.sql
+│   │   ├── projects
+│   │   │   ├── confirm_delete.sql
+│   │   │   ├── delete.sql
+│   │   │   └── update.sql
+│   │   ├── settings
+│   │   │   ├── debug_params.sql
+│   │   │   ├── delete_category.sql
+│   │   │   ├── delete_execution_type.sql
+│   │   │   ├── delete_scenario_type.sql
+│   │   │   ├── delete_tag.sql
+│   │   │   ├── delete_team_member.sql
+│   │   │   ├── delete_test_type.sql
+│   │   │   ├── edit_execution_type.sql
+│   │   │   ├── edit_scenario_type.sql
+│   │   │   ├── edit_tag.sql
+│   │   │   ├── edit_team_member.sql
+│   │   │   ├── edit_test_type.sql
+│   │   │   ├── save_category.sql
+│   │   │   ├── save_execution_type.sql
+│   │   │   ├── save_path_settings.sql
+│   │   │   ├── save_scenario_type.sql
+│   │   │   ├── save_tag.sql
+│   │   │   ├── save_tc_id_format.sql
+│   │   │   ├── save_team_member.sql
+│   │   │   ├── save_test_type.sql
+│   │   │   ├── update_execution_type.sql
+│   │   │   ├── update_path_settings.sql
+│   │   │   ├── update_scenario_type.sql
+│   │   │   ├── update_tag.sql
+│   │   │   ├── update_team_member.sql
+│   │   │   └── update_test_type.sql
+│   │   ├── suites
+│   │   │   ├── edit.sql
+│   │   │   ├── list.sql
+│   │   │   ├── save.sql
+│   │   │   └── update.sql
+│   │   └── test_cases
+│   │       ├── delete.sql
+│   │       ├── delete_status.sql
+│   │       ├── edit.sql
+│   │       ├── edit_status.sql
+│   │       ├── list.sql
+│   │       ├── save.sql
+│   │       ├── save_status.sql
+│   │       ├── update.sql
+│   │       └── update_status.sql
+│   ├── public
+│   │   └── scripts
+│   │       └── start-dashboard.sh
+│   ├── resource-surveillance.sqlite.db
+│   ├── save_project.sql
+│   ├── scripts
+│   │   └── update_env.sh
+│   ├── search_script.py
+│   ├── settings.sql
+│   ├── sqlpage
+│   │   ├── migrations
+│   │   │   ├── 001_create_text_entries.sql
+│   │   │   ├── 002_create_master_data.sql
+│   │   │   ├── 003_create_team_members.sql
+│   │   │   ├── 004_create_test_types.sql
+│   │   │   ├── 005_create_scenario_types.sql
+│   │   │   ├── 006_create_execution_types.sql
+│   │   │   ├── 007_create_hierarchical_data.sql
+│   │   │   ├── 009_add_plan_external_id.sql
+│   │   │   ├── 010_add_plan_date.sql
+│   │   │   ├── 011_add_plan_creator.sql
+│   │   │   ├── 012_add_requirement_id.sql
+│   │   │   ├── 013_add_suite_external_id.sql
+│   │   │   ├── 014_add_suite_date.sql
+│   │   │   ├── 015_add_suite_creator.sql
+│   │   │   ├── 016_add_suite_cycle.sql
+│   │   │   ├── 017_add_suite_cycle_date.sql
+│   │   │   ├── 018_add_project_meta.sql
+│   │   │   ├── 019_create_project_meta_table.sql
+│   │   │   ├── 020_add_objectives_risks.sql
+│   │   │   ├── 021_add_full_docs_json.sql
+│   │   │   ├── 022_add_plan_objectives_risks_goals.sql
+│   │   │   ├── 023_add_plan_requirements.sql
+│   │   │   ├── 024_add_suite_scope_testcases.sql
+│   │   │   ├── 025_add_evidence_metadata.sql
+│   │   │   ├── 026_add_testcase_metadata.sql
+│   │   │   ├── 027_create_test_case_statuses.sql
+│   │   │   ├── 028_add_status_id_to_test_cases.sql
+│   │   │   ├── 029_create_debug_log.sql
+│   │   │   ├── 030_add_suite_test_cases_count.sql
+│   │   │   ├── 031_add_suite_configs.sql
+│   │   │   ├── 032_add_chat_keys_table.sql
+│   │   │   ├── 033_create_app_settings.sql
+│   │   │   └── README.md
+│   │   ├── sqlpage.db
+│   │   ├── sqlpage.json
+│   │   └── templates
+│   │       └── README.md
+│   ├── sqlpage.exe
+│   ├── sqlpage.exe:Zone.Identifier
+│   ├── tabbar.sql
+│   ├── test_form.sql
+│   ├── testcasedetail.sql
+│   └── theme.css
+├── dev-src.auto
+├── evidence
+│   ├── TC-GLUE-001
+│   │   └── 1.1
+│   │       ├── result.auto.json
+│   │       └── run.auto.md
+│   └── TC-GLUE-002
+│       └── 1.1
+│           ├── loginButtonClick.png
+│           ├── result.auto.json
+│           └── run.auto.md
+├── github.surveilr[singer].py
+├── md-files
+├── opsfolio-integration.js
+├── output.txt
+├── qualityfolio-json-etl.sql
+├── qualityfolio.md
+├── sample-lifecycle.sql
+├── sqlpage
+│   └── sqlpage.json
+├── tap-github-config.json
+├── tap-github-state.json
+└── test-artifacts
+    └── example-artifact.md
+
+375 directories, 3126 files

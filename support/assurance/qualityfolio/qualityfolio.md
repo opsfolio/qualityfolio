@@ -80,7 +80,25 @@ Generate complete test execution reports automatically.
 
 ```bash ingest --descr "Ingest Files"
 #!/usr/bin/env -S bash
-surveilr ingest files -r ./test-artifacts && surveilr orchestrate transform-markdown
+set -euo pipefail
+
+# Load environment variables from .env
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+
+# Get path with fallback
+INGEST_PATH="${MARKDOWN_DESTINATION_PATH:-.test-artifacts}"
+
+# Create directory if needed
+if [ ! -d "$INGEST_PATH" ]; then
+  mkdir -p "$INGEST_PATH"
+fi
+
+# Run ingestion
+surveilr ingest files -r "$INGEST_PATH" && surveilr orchestrate transform-markdown
 ```
 
 # Surveilr Singer Tap Ingestion
@@ -112,7 +130,7 @@ surveilr ingest files -r "github.surveilr[singer].py"
 surveilr orchestrate adapt-singer --stream-prefix github
 ```
 
-# SQL query 
+# SQL query
 
 ```bash deploy -C --descr "Generate sqlpage_files table upsert SQL and push them to SQLite"
 surveilr shell qualityfolio-json-etl.sql
@@ -126,17 +144,23 @@ spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md | sqlite3 r
 spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
 ```
 
-# SQL Page
+```contribute sqlpage_files --base .
+./index.bbd2bbc9.js .
+```
+
+# Qualityfolio
 
 ```sql PARTIAL global-layout.sql --inject *.sql*
 
 SELECT 'shell' AS component,
+       'Qualityfolio' AS title,
        NULL AS icon,
        'https://qualityfolio.dev/_astro/qualityfolio-logo.CiYk51BF.png' AS favicon,
        'https://qualityfolio.dev/_astro/qualityfolio-logo.CiYk51BF.png' AS image,
        'fluid' AS layout,
        true AS fixed_top_menu,
        'index.sql' AS link,
+       '/index.bbd2bbc9.js' AS javascript,
        '© 2026 Qualityfolio. Test assurance as living Markdown.' AS footer;
 
 SET resource_json = sqlpage.read_file_as_text('spry.d/auto/resource/${path}.auto.json');
@@ -144,6 +168,11 @@ SET page_title  = json_extract($resource_json, '$.route.caption');
 SET page_description  = json_extract($resource_json, '$.route.description');
 SET page_path = json_extract($resource_json, '$.route.path');
 
+SELECT 'html' AS component;
+SELECT '<style>
+  #sqlpage_header .navbar .fs-2 { display: none !important; }
+  .apexcharts-legend-series { pointer-events: none !important; }
+</style>' AS html;
 
 SELECT 'html' AS component;
 SELECT'
@@ -257,7 +286,7 @@ SET project_name = (
         THEN MIN(project_name)
         ELSE :project_name
     END
-    FROM qf_role_with_evidence
+    FROM qf_case_status
     WHERE project_name IS NOT NULL AND project_name <> ''
 );
 SELECT
@@ -323,14 +352,14 @@ FROM (
     SELECT 'Select a project...' AS label_text,
            '' AS value_text,
            0 AS sort_order
-    WHERE (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') > 1
+    WHERE (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') > 1
 
     UNION ALL
 
     SELECT DISTINCT project_name AS label_text,
            project_name AS value_text,
            1 AS sort_order
-    FROM qf_evidence_status
+    FROM qf_case_status
     WHERE project_name IS NOT NULL AND project_name <> ''
 
     ORDER BY sort_order, label_text
@@ -379,9 +408,21 @@ WHERE LOWER(test_case_status) IN ('failed', 'not ok')
   AND
   project_name = :project_name;
 
+-- Closed Cases
+SELECT '## Total Closed Cases' AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
+       'white' AS background_color,
+       'circle-check' AS icon,
+       'purple' AS color,
+       'closed-test-cases.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) = 'closed'
+  AND project_name = :project_name;
+
 -- Failed Percentage
 WITH counts AS (
-  SELECT COUNT(DISTINCT test_case_id) AS total_tests,
+  SELECT COUNT(DISTINCT CASE WHEN COALESCE(LOWER(test_case_status), '') NOT IN ('closed', 'todo', 'to-do', 'to do', '') THEN test_case_id END) AS total_tests,
          COUNT(DISTINCT CASE WHEN LOWER(test_case_status) IN ('reopen', 'failed', 'not ok')
                THEN test_case_id END) AS total_defects
   FROM qf_case_status_tap
@@ -397,7 +438,7 @@ FROM counts;
 
 -- Success Percentage
 WITH counts AS (
-  SELECT COUNT(DISTINCT test_case_id) AS total_tests,
+  SELECT COUNT(DISTINCT CASE WHEN COALESCE(LOWER(test_case_status), '') NOT IN ('closed', 'todo', 'to-do', 'to do', '') THEN test_case_id END) AS total_tests,
          COUNT(DISTINCT CASE WHEN LOWER(test_case_status) IN ('passed', 'ok')
                THEN test_case_id END) AS total_passed
   FROM qf_case_status_tap
@@ -418,9 +459,9 @@ SELECT '## Open Defects' AS description_md,
          'orange' as color,
     'details-off'       as icon,
        'open.sql?project_name=' ||
-           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
 FROM qf_issue_detail
-WHERE project_name  like   '%'|| $project_name || '%'
+WHERE project_name = :project_name
 AND state='open'
 ORDER BY testcase_id;
 
@@ -431,9 +472,9 @@ SELECT '## Closed Defects' AS description_md,
          'orange' as color,
         'details-off'       as icon,
        'closed.sql?project_name=' ||
-           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+           REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
 FROM qf_issue_detail
-WHERE project_name  like   '%'|| $project_name || '%'
+WHERE project_name = :project_name
 AND state='closed'
 ORDER BY testcase_id;
 
@@ -458,14 +499,14 @@ WHERE (re.status IS NULL OR LOWER(re.status) IN ('todo', 'to-do', 'to do'))
 
 -- Un assigned test cases
 SELECT '## Unassigned Test Cases' AS description_md,
-       '# ' || COALESCE(COUNT(testcaseid), 0) AS description_md,
+       '# ' || COALESCE(COUNT(test_case_id), 0) AS description_md,
        'white' AS background_color,
        'alert-circle' AS icon,
        'orange' AS color,
        'non-assigned-test-cases.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_role_with_evidence
-WHERE (assignee IS NULL OR TRIM(assignee) = '')
+FROM qf_case_status
+WHERE (latest_assignee IS NULL OR TRIM(latest_assignee) = '')
   AND project_name = :project_name;
 
   -- Automation percentage
@@ -551,7 +592,7 @@ SELECT '## Test Plan Count' AS description_md,
            REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
 FROM qf_role_with_plan
 WHERE
-  project_name = :project_name;
+  project_name = :project_name HAVING COUNT(planid) > 0;
 
 -- History test cases
 SELECT
@@ -562,6 +603,26 @@ SELECT
        'test-case-history.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
 
+-- Recent Commit Changes
+SELECT '## Recent Commit Changes' AS description_md,
+       'white' AS background_color,
+       'git-commit' AS icon,
+       'teal' AS color,
+       'github-commit-changes.sql' AS link
+WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'github_commits');
+
+-- Anchor point — placed ABOVE the divider so tab clicks land at the right spot
+SELECT 'html' AS component;
+SELECT '<div id="chart-section" style="scroll-margin-top: 56px;"></div>
+<script>
+  if (window.location.hash === "#chart-section") {
+    document.addEventListener("DOMContentLoaded", function () {
+      var el = document.getElementById("chart-section");
+      if (el) el.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+  }
+</script>' AS html;
+
 -- Test Status Visualization
 SELECT 'divider' AS component,
        'Comprehensive Test Status' AS contents,
@@ -569,12 +630,64 @@ SELECT 'divider' AS component,
        'blue' AS color;
 
 
-SELECT 'card' AS component, 2 AS columns;
 
--- Pass parameters in the URL
-SELECT '/chart/pie-chart-left.sql?project_name=' || :project_name ||'&status=Passed&color=green&_sqlpage_embed' AS embed;
+-- Chart 1: Test Execution Status
+SELECT 'html' AS component, '<div class="row"><div class="col-md-6">' AS html;
 
-SELECT '/chart/pie-chart-autostatus.sql?project_name=' || :project_name ||'&status=AUTOMATION&color=green&_sqlpage_embed' AS embed;
+-- Show Chart if data exists
+SELECT 'chart' AS component,
+       'pie' AS type,
+       6 AS width,
+       'Test Case Execution Status(%)' AS title,
+       TRUE AS labels,
+       'green' AS color,
+       'red' AS color
+WHERE EXISTS (SELECT 1 FROM qf_case_status_percentage WHERE projectname = :project_name AND (passedpercentage > 0 OR failedpercentage > 0));
+
+SELECT 'Passed' AS label, COALESCE(passedpercentage, 0) AS value
+FROM qf_case_status_percentage
+WHERE projectname = :project_name AND (passedpercentage > 0 OR failedpercentage > 0)
+UNION ALL
+SELECT 'Failed' AS label, COALESCE(failedpercentage, 0) AS value
+FROM qf_case_status_percentage
+WHERE projectname = :project_name AND (passedpercentage > 0 OR failedpercentage > 0);
+
+-- Show "No Data" if no data exists
+SELECT 'html' AS component,
+       '<div class="card p-3 mb-3"><h3 class="card-title">Test Case Execution Status(%)</h3><div style="text-align:center; color:red; padding:40px;"><h3>No Data</h3></div></div>' as html
+WHERE (:project_name IS NULL OR :project_name = '' OR NOT EXISTS (SELECT 1 FROM qf_case_status_percentage WHERE projectname = :project_name AND (passedpercentage > 0 OR failedpercentage > 0)));
+
+SELECT 'html' AS component, '</div><div class="col-md-6">' AS html;
+
+-- Chart 2: Test Coverage - Automation vs Manual
+-- Show Chart if data exists
+SELECT 'chart' AS component,
+       'pie' AS type,
+       6 AS width,
+       'Test Coverage(%)' AS title,
+       TRUE AS labels,
+       'green' AS color,
+       'red' AS color
+WHERE EXISTS (SELECT 1 FROM qf_case_execution_status_percentage WHERE project_name = :project_name AND test_case_percentage > 0);
+
+SELECT 'AUTOMATION' AS label, COALESCE(test_case_percentage, 0) AS value
+FROM qf_case_execution_status_percentage
+WHERE project_name = :project_name
+  AND UPPER(execution_type) = 'AUTOMATION'
+  AND test_case_percentage > 0
+UNION ALL
+SELECT 'MANUAL' AS label, COALESCE(test_case_percentage, 0) AS value
+FROM qf_case_execution_status_percentage
+WHERE project_name = :project_name
+  AND UPPER(execution_type) = 'MANUAL'
+  AND test_case_percentage > 0;
+
+-- Show "No Data" if no data exists for Chart 2
+SELECT 'html' AS component,
+       '<div class="card p-3 mb-3"><h3 class="card-title">Test Coverage(%)</h3><div style="text-align:center; color:red; padding:40px;"><h3>No Data</h3></div></div>' as html
+WHERE (:project_name IS NULL OR :project_name = '' OR NOT EXISTS (SELECT 1 FROM qf_case_execution_status_percentage WHERE project_name = :project_name AND test_case_percentage > 0));
+
+SELECT 'html' AS component, '</div></div>' AS html;
 
 -- Assignee Breakdown
 SELECT 'divider' AS component,
@@ -586,12 +699,14 @@ SELECT 'divider' AS component,
 SELECT 'form' AS component,
        'Submit' AS validate,
        'project-dropdown' as class,
-       'true' AS auto_submit;
+       'true' AS auto_submit
+WHERE EXISTS (SELECT 1 FROM qf_case_status WHERE project_name = :project_name AND latest_assignee IS NOT NULL AND latest_assignee <> '');
 
 
 SELECT 'hidden' AS type,
        'project_name' AS name,
-       COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '')) AS value;
+       COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '')) AS value
+WHERE EXISTS (SELECT 1 FROM qf_case_status WHERE project_name = :project_name AND latest_assignee IS NOT NULL AND latest_assignee <> '');
 
 SELECT 'assignee' AS name,
        'Select Assignee' AS label,
@@ -610,16 +725,17 @@ FROM (
 
     -- Individual assignees
 
-    select tbl.assignee AS label_text,
-tbl.assignee AS value_text,
+    select tbl.latest_assignee AS label_text,
+tbl.latest_assignee AS value_text,
  1 AS sort_order
-  from qf_role_with_evidence tbl
+  from qf_case_status tbl
 where project_name=:project_name  and
- tbl.assignee!='' and tbl.assignee is not null
-group by tbl.assignee
+ tbl.latest_assignee!='' and tbl.latest_assignee is not null
+group by tbl.latest_assignee
 
     ORDER BY sort_order, label_text
-);
+)
+WHERE EXISTS (SELECT 1 FROM qf_case_status WHERE project_name = :project_name AND latest_assignee IS NOT NULL AND latest_assignee <> '');
 
 SELECT 'table' AS component,
        "ASSIGNEE" AS markdown,
@@ -628,36 +744,37 @@ SELECT 'table' AS component,
        "TOTAL FAILED" AS markdown,
        "TOTAL CLOSED" AS markdown,
        1 AS search,
-       1 AS sort;
+       1 AS sort
+WHERE EXISTS (SELECT 1 FROM qf_case_status_tap WHERE project_name = :project_name AND latest_assignee IS NOT NULL AND TRIM(latest_assignee) <> '');
 
 SELECT
     latest_assignee AS "ASSIGNEE",
 
     ${md.link("COUNT(test_case_id)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
-         "'&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL TEST CASES",
+         "'&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL TEST CASES",
 
     ${md.link("SUM(CASE WHEN LOWER(test_case_status) IN ('passed', 'ok') THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
-         "'&status=passed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL PASSED",
+         "'&status=passed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL PASSED",
 
     ${md.link("SUM(CASE WHEN LOWER(test_case_status) IN ('failed', 'not ok') THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
-         "'&status=failed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL FAILED",
+         "'&status=failed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL FAILED",
 
 
     ${md.link("SUM(CASE WHEN LOWER(test_case_status) = 'closed' THEN 1 ELSE 0 END)",
         ["'assigneetotaltestcase.sql?assignee='", "latest_assignee",
-         "'&status=closed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL CLOSED"
+         "'&status=closed&project_name='", "COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))"])} AS "TOTAL CLOSED"
 
 FROM qf_case_status_tap
 WHERE project_name = CASE
-      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
-      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))
+      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
+      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))
       ELSE :project_name
   END
   AND (
-      (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
+      (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
       OR (:project_name IS NOT NULL AND :project_name <> '')
   )
   AND latest_assignee IS NOT NULL
@@ -667,8 +784,13 @@ WHERE project_name = CASE
      OR :assignee = 'ALL'
      OR latest_assignee = :assignee
   )
+GROUP BY latest_assignee;
 
-GROUP BY latest_assignee
+-- Show "No Data" if no data exists for Assignee
+SELECT 'html' AS component,
+       '<div style="text-align:center; color:red; padding:20px;"><h3>No Data</h3></div>' as html
+WHERE (:project_name IS NULL OR :project_name = '' OR NOT EXISTS (SELECT 1 FROM qf_case_status_tap WHERE project_name = :project_name AND latest_assignee IS NOT NULL AND TRIM(latest_assignee) <> ''));
+
 ${pagination.limit};
 ${pagination.navigation};
 
@@ -684,43 +806,63 @@ SELECT 'table' AS component,
        "TOTAL TEST CASES" as markdown,
        "PASSED" as markdown,
        "FAILED" as markdown,
+       "TOTAL CLOSED" as markdown,
        1 AS sort,
-       1 AS search;
+       1 AS search
+WHERE EXISTS (SELECT 1 FROM cycle_data_summary WHERE project_name = :project_name AND totalcases > 0);
 
 SELECT
-  ${md.link("cycle",
-        ["'cycletotaltestcase.sql?cycle='", "cycle","'&project_name='",":project_name"])} AS "CYCLE",
-  cycledate as 'CYCLE DATE',
-  totalcases as 'TOTAL TEST CASES',
-  ${md.link("passed_cases",
-        ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=passed&project_name='",":project_name"])} AS "PASSED",
-  ${md.link("failed_cases",
-        ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=failed&project_name='",":project_name"])} AS "FAILED"
-FROM cycle_data_summary
-WHERE project_name = CASE
-      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
-      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> ''))
-      ELSE :project_name
-  END
-  AND (
-      (SELECT COUNT(DISTINCT project_name) FROM qf_evidence_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
-      OR (:project_name IS NOT NULL AND :project_name <> '')
-  )
-  AND (totalcases > 0)
-  AND (
-      -- Show if it is not the earliest date
-      cycledate_sort > (
-          SELECT MIN(cycledate_sort)
-          FROM cycle_data_summary c3
-          WHERE c3.project_name = cycle_data_summary.project_name
-      )
-      OR
-      -- OR show if it IS the earliest date but it is also the ONLY date
-      (SELECT MIN(cycledate_sort) FROM cycle_data_summary c2 WHERE c2.project_name = cycle_data_summary.project_name) =
-      (SELECT MAX(cycledate_sort) FROM cycle_data_summary c4 WHERE c4.project_name = cycle_data_summary.project_name)
-  )
-GROUP BY cycle, cycledate
+  "CYCLE",
+  "CYCLE DATE",
+  "TOTAL TEST CASES",
+  "PASSED",
+  "FAILED",
+  "TOTAL CLOSED"
+FROM (
+  SELECT
+    cycledate_sort,
+    ${md.link("cycle",
+          ["'cycletotaltestcase.sql?cycle='", "cycle","'&project_name='",":project_name"])} AS "CYCLE",
+    cycledate as 'CYCLE DATE',
+    ${md.link("totalcases",
+          ["'cycletotaltestcase.sql?cycle='", "cycle","'&project_name='",":project_name"])} AS "TOTAL TEST CASES",
+    ${md.link("passed_cases",
+          ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=passed&project_name='",":project_name"])} AS "PASSED",
+    ${md.link("failed_cases",
+          ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=failed&project_name='",":project_name"])} AS "FAILED",
+    ${md.link("closed_cases",
+          ["'cycletotaltestcase.sql?cycle='", "cycle","'&status=closed&project_name='",":project_name"])} AS "TOTAL CLOSED"
+  FROM cycle_data_summary
+  WHERE project_name = CASE
+        WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
+        THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))
+        ELSE :project_name
+    END
+    AND (
+        (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
+        OR (:project_name IS NOT NULL AND :project_name <> '')
+    )
+    AND (totalcases > 0)
+    AND (
+        -- Show if it is not the earliest date
+        cycledate_sort > (
+            SELECT MIN(cycledate_sort)
+            FROM cycle_data_summary c3
+            WHERE c3.project_name = cycle_data_summary.project_name
+        )
+        OR
+        -- OR show if it IS the earliest date but it is also the ONLY date
+        (SELECT MIN(cycledate_sort) FROM cycle_data_summary c2 WHERE c2.project_name = cycle_data_summary.project_name) =
+        (SELECT MAX(cycledate_sort) FROM cycle_data_summary c4 WHERE c4.project_name = cycle_data_summary.project_name)
+    )
+  GROUP BY cycle, cycledate
+) t
 ORDER BY cycledate_sort DESC;
+
+-- Show "No Data" if cycle summary is empty
+SELECT 'html' AS component,
+       '<div style="text-align:center; color:red; padding:20px;"><h3>No Data</h3></div>' as html
+WHERE (:project_name IS NULL OR :project_name = '' OR NOT EXISTS (SELECT 1 FROM cycle_data_summary WHERE project_name = :project_name AND totalcases > 0));
 
 -- Requirement Traceability
 SELECT 'divider' AS component,
@@ -728,7 +870,7 @@ SELECT 'divider' AS component,
        5 AS size,
        'blue' AS color;
 
-${paginate("qf_requirement_summary", "WHERE project_name = :project_name")}
+${paginate("qf_requirement_summary", "WHERE project_name = CASE WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1 THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '')) ELSE :project_name END")}
 
 SELECT 'table' AS component,
        "REQUIREMENT ID" AS markdown,
@@ -737,7 +879,8 @@ SELECT 'table' AS component,
        "TOTAL FAILED" AS markdown,
        "TOTAL CLOSED" AS markdown,
        1 AS sort,
-       1 AS search;
+       1 AS search
+WHERE EXISTS (SELECT 1 FROM qf_requirement_summary WHERE project_name = :project_name);
 
 SELECT
    ${md.link("requirement_ID",
@@ -751,9 +894,250 @@ SELECT
     ${md.link("total_closed",
         ["'requirementtotaltestcase.sql?req='", "requirement_ID", "'&status=closed&project_name='", ":project_name"])} AS "TOTAL CLOSED"
 FROM qf_requirement_summary
-WHERE project_name = :project_name
+WHERE project_name = CASE
+      WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1
+      THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> ''))
+      ELSE :project_name
+  END
 ${pagination.limit};
-${pagination.navigation};
+
+-- Show "No Data" if requirement traceability is empty
+SELECT 'html' AS component,
+       '<div style="text-align:center; color:red; padding:20px;"><h3>No Data</h3></div>' as html
+WHERE (:project_name IS NULL OR :project_name = '' OR NOT EXISTS (SELECT 1 FROM qf_requirement_summary WHERE project_name = :project_name));
+
+SELECT 'text' AS component,
+       (SELECT CASE WHEN CAST($current_page AS INTEGER) > 1 THEN '[Previous](?limit=' || COALESCE($limit,50) || '&offset=' || (COALESCE($offset,0) - COALESCE($limit,50)) || ')' ELSE '' END)
+       || ' '
+       || '(Page ' || COALESCE($current_page,1) || ' of ' || COALESCE($total_pages,1) || ") "
+       || (SELECT CASE WHEN CAST(COALESCE($current_page,1) AS INTEGER) < CAST(COALESCE($total_pages,1) AS INTEGER) THEN '[Next](?limit=' || COALESCE($limit,50) || '&offset=' || (COALESCE($offset,0) + COALESCE($limit,50)) || ')' ELSE '' END)
+       AS contents_md
+WHERE (SELECT COUNT(*) FROM qf_requirement_summary WHERE project_name = CASE WHEN (SELECT COUNT(DISTINCT project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '') = 1 THEN COALESCE(:project_name, (SELECT MIN(project_name) FROM qf_case_status WHERE project_name IS NOT NULL AND project_name <> '')) ELSE :project_name END) > 0;
+
+```
+
+---
+
+## GitHub Commit Changes
+
+```sql github-commit-changes.sql { route: { caption: "Commit Changes" } }
+-- @route.description "Shows the file changes introduced by a specific GitHub commit, with a diff-style view of added and removed lines."
+
+SELECT 'text' AS component, $page_description AS contents_md;
+
+-- Page title & commit selector form
+SELECT 'divider' AS component,
+       'GitHub Commit Changes' AS contents,
+       5 AS size;
+
+-- Auto-submit JS: fires form when date or SHA select changes
+SELECT 'html' AS component;
+SELECT '<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function submitForm() { var f = document.querySelector("form"); if (f) f.submit(); }
+  var d = document.querySelector("input[name=commit_date]");
+  if (d) d.addEventListener("change", submitForm);
+  var s = document.querySelector("select[name=sha]");
+  if (s) s.addEventListener("change", submitForm);
+});
+</script>' AS html;
+
+-- Commit filter form (date required)
+SELECT 'form' AS component, 'Load Commit' AS validate
+WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+
+SELECT 'commit_date' AS name,
+       'Date (required)' AS label,
+       'date' AS type,
+       :commit_date AS value,
+       TRUE AS required,
+       4 AS width
+WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+
+SELECT 'sha' AS name,
+       'Select Commit' AS label,
+       'select' AS type,
+       COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)) AS value,
+       8 AS width,
+       (SELECT json_group_array(json_object('label', SUBSTR(sha,1,7) || ' - ' || COALESCE(message, '(no message)'), 'value', sha))
+        FROM (SELECT sha, message FROM qf_github_commits
+              WHERE :commit_date IS NOT NULL AND date(commit_date) = :commit_date
+              ORDER BY commit_date DESC LIMIT 50)) AS options
+WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits')
+  AND :commit_date IS NOT NULL;
+
+-- Prompt when no date selected
+SELECT 'html' AS component
+WHERE :commit_date IS NULL AND EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+SELECT '<div style="margin:24px 0;padding:20px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#64748b;font-size:14px;"><strong>&#128070; Select a date</strong> to load commits for that day.</div>' AS html
+WHERE :commit_date IS NULL AND EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+
+-- No commits on selected date
+SELECT 'html' AS component
+WHERE :commit_date IS NOT NULL AND NOT EXISTS (SELECT 1 FROM qf_github_commits WHERE date(commit_date) = :commit_date);
+SELECT '<div style="margin:24px 0;padding:20px 24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;color:#64748b;font-size:14px;">No commits found for <strong>' || :commit_date || '</strong>.</div>' AS html
+WHERE :commit_date IS NOT NULL AND NOT EXISTS (SELECT 1 FROM qf_github_commits WHERE date(commit_date) = :commit_date);
+
+-- Commit metadata card (clean monochrome)
+SELECT 'html' AS component
+WHERE :commit_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM qf_github_commits WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)));
+SELECT '<style>
+  .commit-card{background:#fff;border-radius:10px;margin:16px 0 24px;box-shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.07);overflow:hidden;font-family:ui-sans-serif,system-ui,sans-serif;}
+  .commit-card-header{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:14px 20px;display:flex;align-items:center;gap:12px;}
+  .commit-card-icon{width:36px;height:36px;background:#1e293b;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .commit-card-msg{font-size:15px;font-weight:600;color:#0f172a;line-height:1.4;}
+  .commit-card-body{padding:16px 20px 18px;display:flex;flex-wrap:wrap;gap:16px 36px;}
+  .commit-meta-item{display:flex;flex-direction:column;gap:2px;}
+  .commit-meta-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;}
+  .commit-meta-value{font-size:13px;color:#334155;font-family:ui-monospace,monospace;}
+  .commit-sha-pill{display:inline-block;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:20px;padding:2px 12px;font-size:12px;color:#475569;font-family:ui-monospace,monospace;}
+  .commit-author-badge{display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:3px 12px 3px 5px;}
+  .commit-author-avatar{width:22px;height:22px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+  .commit-card-footer{border-top:1px solid #e2e8f0;padding:10px 20px;display:flex;justify-content:flex-end;}
+  .commit-github-btn{display:inline-flex;align-items:center;gap:7px;background:#0f172a;color:#fff;text-decoration:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:500;}
+  .commit-github-btn:hover{background:#1e293b;color:#fff;}
+</style>' AS html
+FROM qf_github_commits
+WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1))
+LIMIT 1;
+
+SELECT 'html' AS component
+WHERE :commit_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM qf_github_commits WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)));
+SELECT
+  '<div class="commit-card">
+    <div class="commit-card-header">
+      <div class="commit-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg></div>
+      <div class="commit-card-msg">' || COALESCE(REPLACE(REPLACE(message,'<','&lt;'),'>','&gt;'),'No message') || '</div>
+    </div>
+    <div class="commit-card-body">
+      <div class="commit-meta-item"><span class="commit-meta-label">SHA</span><span class="commit-sha-pill">' || SUBSTR(sha,1,12) || '</span></div>
+      <div class="commit-meta-item"><span class="commit-meta-label">Author</span>
+        <span class="commit-author-badge">
+          <span class="commit-author-avatar">' || UPPER(SUBSTR(COALESCE(author_name,'U'),1,1)) || '</span>
+          <span style="color:#334155;font-size:13px;">' || COALESCE(REPLACE(author_name,'<','&lt;'),'Unknown') || '</span>
+        </span>
+      </div>
+      <div class="commit-meta-item"><span class="commit-meta-label">Date</span><span class="commit-meta-value">' || COALESCE(commit_date,'—') || '</span></div>
+    </div>
+    <div class="commit-card-footer">
+      <a class="commit-github-btn" href="' || COALESCE(html_url,'#') || '" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="white" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+        View full commit on GitHub
+      </a>
+    </div>
+  </div>' AS html
+FROM qf_github_commits
+WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1));
+
+-- File diff section
+SELECT 'divider' AS component,
+       'File Changes' AS contents,
+       5 AS size
+WHERE :commit_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM qf_github_commit_files WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)));
+
+SELECT 'html' AS component
+WHERE :commit_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM qf_github_commit_files WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)));
+
+SELECT
+  '<style>
+    .diff-container{font-family:monospace;font-size:13px;border-radius:8px;overflow:hidden;margin-bottom:20px;border:1px solid #e2e8f0;}
+    .diff-file-header{background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:10px 16px;font-weight:600;color:#334155;display:flex;align-items:center;gap:8px;}
+    .diff-file-header svg{flex-shrink:0;}
+    .diff-stats{font-size:12px;margin-left:auto;display:flex;gap:8px;}
+    .diff-stat-add{color:#16a34a;font-weight:700;}
+    .diff-stat-del{color:#dc2626;font-weight:700;}
+    .diff-hunk-header{background:#f1f5f9;color:#475569;padding:4px 16px;font-size:12px;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;}
+    .diff-line{display:flex;white-space:pre;}
+    .diff-line-num{color:#94a3b8;text-align:right;padding:0 10px;min-width:50px;user-select:none;border-right:1px solid #e2e8f0;}
+    .diff-line-content{padding:0 12px;flex:1;overflow-x:auto;}
+    .diff-added{background:#f0fdf4;}
+    .diff-added .diff-line-num{background:#dcfce7;color:#16a34a;}
+    .diff-removed{background:#fef2f2;}
+    .diff-removed .diff-line-num{background:#fee2e2;color:#dc2626;}
+    .diff-context .diff-line-num{background:#f8fafc;}
+    .no-data-box{text-align:center;color:#94a3b8;padding:40px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:16px 0;}
+  </style>' AS html
+FROM qf_github_commit_files
+WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1))
+LIMIT 1;
+
+-- Render each file's patch as a styled diff block
+SELECT 'html' AS component
+WHERE :commit_date IS NOT NULL
+  AND EXISTS (SELECT 1 FROM qf_github_commit_files WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1)));
+
+WITH commit_data AS (
+    SELECT json_group_array(json_object(
+        'filename', filename, 'status', status,
+        'additions', additions, 'deletions', deletions, 'patch', patch
+    )) as files_json
+    FROM qf_github_commit_files
+    WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE date(commit_date) = :commit_date ORDER BY commit_date DESC LIMIT 1))
+)
+SELECT
+  '<div id="diff-root"></div>
+  <script>
+  (function() {
+    var filesJson = ' || COALESCE(files_json, '[]') || ';
+    var root = document.getElementById("diff-root");
+    if (!root) return;
+    if (!filesJson || filesJson.length === 0) {
+      root.innerHTML = "<div class=\\"no-data-box\\"><h3>No file changes recorded for this commit.</h3></div>";
+      return;
+    }
+    filesJson.forEach(function(f) {
+      var patch = f.patch || "";
+      var addCount = 0, delCount = 0;
+      var lines = patch.split("\n");
+      var diffLines = "";
+      var newNum = 0, oldNum = 0;
+      lines.forEach(function(line) {
+        var cls = "diff-context";
+        var prefix = line.charAt(0);
+        var numHtml = "";
+        if (line.startsWith("@@")) {
+          cls = "";
+          var m = line.match(/@@ -(\\d+)(?:,\\d+)? \\+(\\d+)(?:,\\d+)? @@/);
+          if (m) { oldNum = parseInt(m[1]) - 1; newNum = parseInt(m[2]) - 1; }
+          diffLines += "<div class=\\"diff-hunk-header\\">" + line.replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</div>";
+          return;
+        } else if (prefix === "+") {
+          cls = "diff-added"; addCount++; newNum++;
+          numHtml = "<span class=\\"diff-line-num\\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + newNum + "</span>";
+        } else if (prefix === "-") {
+          cls = "diff-removed"; delCount++; oldNum++;
+          numHtml = "<span class=\\"diff-line-num\\">" + oldNum + "</span>";
+        } else {
+          oldNum++; newNum++;
+          numHtml = "<span class=\\"diff-line-num\\">" + oldNum + "</span>";
+        }
+        var content = line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        diffLines += "<div class=\\"diff-line " + cls + "\\">" + numHtml + "<span class=\\"diff-line-content\\">" + content + "</span></div>";
+      });
+      var statusBadge = { "added": "🟢 Added", "removed": "🔴 Removed", "modified": "🟡 Modified", "renamed": "🔵 Renamed" }[f.status] || f.status || "";
+      var html = "<div class=\\"diff-container\\">" +
+        "<div class=\\"diff-file-header\\">" +
+        "<svg width=\\"16\\" height=\\"16\\" viewBox=\\"0 0 16 16\\" fill=\\"currentColor\\"><path d=\\"M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688ZM8 7.25a.75.75 0 0 1 .75.75v1.19l.47-.47a.749.749 0 1 1 1.06 1.06l-1.75 1.75a.749.749 0 0 1-1.06 0L5.72 9.78a.749.749 0 1 1 1.06-1.06l.47.47V8A.75.75 0 0 1 8 7.25Z\\"/></svg>" +
+        (f.filename || "unknown file") + " <small style=\\"color:#888;font-weight:400\\">&nbsp;" + statusBadge + "</small>" +
+        "<span class=\\"diff-stats\\"><span class=\\"diff-stat-add\\">+" + addCount + "</span><span class=\\"diff-stat-del\\">-" + delCount + "</span></span>" +
+        "</div>" +
+        (patch ? diffLines : "<div style=\\"padding:16px;color:#888;\\">Binary file or no textual diff available.</div>") +
+        "</div>";
+      root.innerHTML += html;
+    });
+  })();
+  </script>'
+AS html
+FROM commit_data;
+
+-- No data: github_commits table missing
+SELECT 'html' AS component,
+       '<div class="no-data-box" style="text-align:center;color:#888;padding:40px;background:#fafbfc;border:1px solid #e1e4e8;border-radius:8px;margin:16px 0;"><h3>⚠️ GitHub commits not yet ingested.</h3><p>Run the Singer Tap ingestion to populate GitHub commit data.</p></div>' AS html
+WHERE NOT EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
 
 ```
 
@@ -798,7 +1182,7 @@ ${pagination.navWithParams("project_name")};
 
 SELECT 'text' AS component,
 $page_description AS contents_md;
-${paginate("qf_case_status_tap", "WHERE project_name = $project_name")}
+${paginate("qf_case_status_tap", "WHERE project_name = $project_name AND LOWER(test_case_status) IN ('passed', 'ok')")}
 
 SELECT 'table' AS component,
        'Test Case ID' AS markdown,
@@ -828,9 +1212,11 @@ ${pagination.navWithParams("project_name")};
 SELECT 'text' AS component,
 $page_description AS contents_md;
 
+${paginate("qf_case_status_tap", "WHERE project_name = $project_name AND LOWER(test_case_status) IN ('failed', 'not ok')")}
+
 SELECT 'table' AS component,
        'Test Case ID' AS markdown,
-       'Total Passed Test Cases' AS title,
+       'Total Failed Test Cases' AS title,
        1 AS search,
        1 AS sort;
 
@@ -845,7 +1231,38 @@ SELECT
 FROM qf_case_status_tap
 WHERE LOWER(test_case_status) IN ('failed', 'not ok')
 AND project_name = $project_name
-ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER);
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER)
+${pagination.limit};
+${pagination.navWithParams("project_name")};
+```
+
+```sql closed-test-cases.sql { route: { caption: "Closed Test Cases" } }
+-- @route.description "Lists all test cases with a closed status, showing their test case ID, title, and latest execution cycle"
+
+${paginate("qf_case_status_tap", "WHERE project_name = $project_name AND LOWER(test_case_status) = 'closed'")}
+
+SELECT 'text' AS component,
+$page_description AS contents_md;
+
+SELECT 'table' AS component,
+       'Test Case ID' AS markdown,
+       'Total Closed Test Cases' AS title,
+       1 AS search,
+       1 AS sort;
+
+SELECT
+  ${md.link("test_case_id",
+        ["'testcasedetails.sql?testcaseid='", "test_case_id",
+         "'&project_name='", "$project_name"])} AS "Test Case ID",
+       test_case_title AS "Title",
+       test_case_status AS "Status",
+       latest_cycle AS "Latest Cycle"
+FROM qf_case_status_tap
+WHERE LOWER(test_case_status) = 'closed'
+AND project_name = $project_name
+ORDER BY CAST(SUBSTR(test_case_id, INSTR(test_case_id, ' ') + 1) AS INTEGER)
+${pagination.limit};
+${pagination.navWithParams("project_name")};
 ```
 
 ## Defects (Failed & Reopened)
@@ -981,20 +1398,56 @@ SELECT 'table' AS component,
        1 AS search,
        1 AS sort;
 
+-- Use qf_role_with_evidence_history so that historical cycles (ingested on
+-- previous dates) are visible, not just the most-recent ingest session.
+-- De-duplicate per testcaseid within the requested cycle (pick latest rn),
+-- then resolve the status the same way the history-summary page does.
+WITH ranked_history AS (
+  SELECT
+    tbl.testcaseid,
+    tbl.uniform_resource_id,
+    tbl.cycle,
+    tbl.project_name,
+    COALESCE(
+      (
+        -- Query qf_tap_results directly (spans ALL ingest sessions)
+        -- so historical TAP outcomes are resolved correctly.
+        SELECT tr.status
+        FROM qf_tap_results tr
+        WHERE UPPER(tr.test_case_id) = UPPER(tbl.testcaseid)
+          AND tr.tap_date = tbl.cycledate
+        ORDER BY tr.ingest_session_id DESC
+        LIMIT 1
+      ),
+      tbl.status
+    ) AS status_refined,
+    ROW_NUMBER() OVER (
+      PARTITION BY tbl.testcaseid, tbl.cycle, tbl.project_name
+      ORDER BY tbl.rn DESC
+    ) AS row_num
+  FROM qf_role_with_evidence_history tbl
+  WHERE tbl.project_name = $project_name
+    AND ($cycle IS NULL OR tbl.cycle = $cycle)
+)
 SELECT
- ${md.link("tbl1.testcaseid ",
-        ["'testcasedetails.sql?testcaseid='", "tbl1.testcaseid",
-         "'&project_name='", "$project_name"])} AS "Test Case ID",
-       tbl2.title  AS "Title",
-       tbl1.status_refined AS "Status",
-       tbl1.cycle AS "Latest Cycle"
-FROM qf_role_with_evidence_refined tbl1
-inner join qf_role_with_case tbl2
-on tbl1.testcaseid=tbl2.testcaseid
-and tbl1.uniform_resource_id=tbl2.uniform_resource_id
-WHERE ($cycle IS NULL OR tbl1.cycle = $cycle)
-  AND ($status IS NULL OR tbl1.status_refined = $status OR ($status='passed' AND tbl1.status_refined='ok') OR ($status='failed' AND tbl1.status_refined='not ok')) AND tbl1.project_name=$project_name
-ORDER BY CAST(SUBSTR(tbl1.testcaseid, INSTR(tbl1.testcaseid, ' ') + 1) AS INTEGER);
+  ${md.link("rh.testcaseid ",
+      ["'testcasedetails.sql?testcaseid='", "rh.testcaseid",
+       "'&project_name='", "$project_name"])} AS "Test Case ID",
+  tbl2.title AS "Title",
+  rh.status_refined AS "Status",
+  rh.cycle AS "Latest Cycle"
+FROM ranked_history rh
+INNER JOIN qf_role_with_case_history tbl2
+  ON rh.testcaseid = tbl2.testcaseid
+ AND rh.uniform_resource_id = tbl2.uniform_resource_id
+WHERE rh.row_num = 1
+  AND (
+    $status IS NULL
+    OR rh.status_refined = $status
+    OR ($status = 'passed' AND rh.status_refined = 'ok')
+    OR ($status = 'failed' AND rh.status_refined = 'not ok')
+  )
+ORDER BY CAST(SUBSTR(rh.testcaseid, INSTR(rh.testcaseid, ' ') + 1) AS INTEGER);
 ```
 
 ## Requirement-Filtered Test Cases
@@ -1108,9 +1561,17 @@ SELECT
     -- tbl.created_at,
     tbl.cycle,
     tbl.project_name,
-  coalesce( (select  case when tap.test_case_status='not ok' then 'failed' when tap.test_case_status='ok' then 'passed' else tap.test_case_status end from qf_case_status_tap tap where tap.test_case_id= tbl.testcaseid
-    and   tap.latest_cycle=tbl.cycle),tbl.status)
-     as status,
+  COALESCE(
+    (
+      SELECT tr.status
+      FROM qf_tap_results tr
+      WHERE UPPER(tr.test_case_id) = UPPER(tbl.testcaseid)
+        AND tr.tap_date = tbl.cycledate
+      ORDER BY tr.ingest_session_id DESC
+      LIMIT 1
+    ),
+    tbl.status
+  ) AS status,
 
     tbl.severity,
     tbl.testcaseid,
@@ -1122,10 +1583,7 @@ WHERE tbl.project_name = $project_name
 
 SELECT
   tbl3.cycle,
- tbl3.cycledate
-  ,
-
-  tbl3.project_name,
+  tbl3.cycledate,
   ${md.link(
       "SUM(tbl3.total_testcases)",
       [
@@ -1174,8 +1632,8 @@ FROM (
     tbl2.cycledate,
     tbl2.project_name,
     0 AS total_testcases,
-    SUM(CASE WHEN tbl2.status='passed'  THEN 1 ELSE 0 END) AS passed_cases,
-    SUM(CASE WHEN tbl2.status='failed'  THEN 1 ELSE 0 END) AS failed_cases,
+    SUM(CASE WHEN tbl2.status IN ('passed', 'ok')  THEN 1 ELSE 0 END) AS passed_cases,
+    SUM(CASE WHEN tbl2.status IN ('failed', 'not ok')  THEN 1 ELSE 0 END) AS failed_cases,
     SUM(CASE WHEN tbl2.status='reopen'  THEN 1 ELSE 0 END) AS reopen_cases,
     SUM(CASE WHEN tbl2.status='closed'  THEN 1 ELSE 0 END) AS closed_cases
 
@@ -1218,12 +1676,19 @@ ORDER BY
 ```sql testcasedetails.sql { route: { caption: "Test Case Details" } }
 -- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
 
-SELECT 'text' AS component,
-$page_description AS contents_md;
+SET tab = COALESCE($tab, 'Details');
+
+SELECT 'tab' as component;
+SELECT 'Details' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' as link, :tab = 'Details' as active, 'file-text' as icon;
+SELECT 'Versioning History' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Versioning History' as link, :tab = 'Versioning History' as active, 'history' as icon;
+
+-- Details Tab Content
+SELECT 'text' AS component, $page_description AS contents_md WHERE :tab = 'Details';
 
 SELECT 'card' AS component,
        'Test Cases Details' AS title,
-       1 AS columns;
+       1 AS columns
+WHERE :tab = 'Details';
 
 SELECT 'Test Case ID: ' || test_case_id AS title,
     '**Description:** ' || description || '
@@ -1260,9 +1725,93 @@ SELECT 'Test Case ID: ' || test_case_id AS title,
     AS description_md
 FROM qf_case_master as qcm
 INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid
-WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name
-
+WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name AND :tab = 'Details'
 ORDER BY qcm.test_case_id;
+
+-- Versioning History Tab Content
+SELECT 'text' AS component, 'Track historical edits and iterations of the test case, revealing the evolution of test case descriptions, preconditions, steps, and expected results.' AS contents_md WHERE :tab = 'Versioning History';
+
+SELECT 'html' AS component WHERE :tab = 'Versioning History';
+
+SELECT
+'<details class="card mb-4" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e9ecef;">' ||
+  '<summary class="card-header bg-light text-dark" style="border-bottom: 2px solid #0d6efd; cursor: pointer; display: flex; align-items: center; gap: 10px;">' ||
+    '<h3 class="card-title text-primary m-0" style="font-weight: 600;">Version ' || version_num || '</h3>' ||
+    '<span class="ms-auto text-muted" style="font-size: 0.85em; font-style: italic;">(Click to expand details)</span>' ||
+  '</summary>' ||
+  '<div class="card-body p-4">' ||
+    '<div class="row g-4">' ||
+      '<div class="col-md-6 border-end">' ||
+        '<h4 class="text-secondary mb-3"><i class="ti ti-history me-2"></i>Previous</h4>' ||
+        '<div class="p-3 bg-light rounded text-secondary" style="white-space: pre-wrap; font-size: 0.95em; min-height: 250px; ' || CASE WHEN version_num = 1 THEN 'display:none;' ELSE '' END || '">' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(prev_title, '') != COALESCE(curr_title, '') THEN 'background-color: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #f5c2c7;' ELSE 'margin-bottom: 8px;' END || '"><strong>Title:</strong> ' || COALESCE(prev_title, 'N/A') || '</div>' ||
+          '<div style="margin-bottom: 8px;"><strong>Test Case ID:</strong> ' || test_case_id || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(prev_desc, '') != COALESCE(curr_desc, '') THEN 'background-color: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #f5c2c7;' ELSE 'margin-bottom: 8px;' END || '"><strong>Description:</strong>' || char(10) || COALESCE(prev_desc, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(prev_prec, '') != COALESCE(curr_prec, '') THEN 'background-color: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #f5c2c7;' ELSE 'margin-bottom: 8px;' END || '"><strong>Preconditions:</strong>' || char(10) || COALESCE(prev_prec, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(prev_steps, '') != COALESCE(curr_steps, '') THEN 'background-color: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #f5c2c7;' ELSE 'margin-bottom: 8px;' END || '"><strong>Steps:</strong>' || char(10) || COALESCE(prev_steps, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(prev_exp, '') != COALESCE(curr_exp, '') THEN 'background-color: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #f5c2c7;' ELSE 'margin-bottom: 8px;' END || '"><strong>Expected Results:</strong>' || char(10) || COALESCE(prev_exp, 'N/A') || '</div>' ||
+        '</div>' ||
+        CASE WHEN version_num = 1 THEN '<div class="p-4 bg-light rounded text-muted d-flex align-items-center justify-content-center" style="min-height: 250px; font-style: italic;">Initial Version - No Previous History</div>' ELSE '' END ||
+      '</div>' ||
+      '<div class="col-md-6">' ||
+        '<h4 class="text-success mb-3"><i class="ti ti-check me-2"></i>Current</h4>' ||
+        '<div class="p-3 bg-white border rounded text-dark" style="white-space: pre-wrap; font-size: 0.95em; min-height: 250px; border-left: 4px solid #198754 !important;">' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(curr_title, '') != COALESCE(prev_title, '') THEN 'background-color: #d1e7dd; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #badbcc;' ELSE 'margin-bottom: 8px;' END || '"><strong>Title:</strong> ' || COALESCE(curr_title, 'N/A') || '</div>' ||
+          '<div style="margin-bottom: 8px;"><strong>Test Case ID:</strong> ' || test_case_id || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(curr_desc, '') != COALESCE(prev_desc, '') THEN 'background-color: #d1e7dd; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #badbcc;' ELSE 'margin-bottom: 8px;' END || '"><strong>Description:</strong>' || char(10) || COALESCE(curr_desc, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(curr_prec, '') != COALESCE(prev_prec, '') THEN 'background-color: #d1e7dd; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #badbcc;' ELSE 'margin-bottom: 8px;' END || '"><strong>Preconditions:</strong>' || char(10) || COALESCE(curr_prec, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(curr_steps, '') != COALESCE(prev_steps, '') THEN 'background-color: #d1e7dd; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #badbcc;' ELSE 'margin-bottom: 8px;' END || '"><strong>Steps:</strong>' || char(10) || COALESCE(curr_steps, 'N/A') || '</div>' ||
+          '<div style="' || CASE WHEN version_num > 1 AND COALESCE(curr_exp, '') != COALESCE(prev_exp, '') THEN 'background-color: #d1e7dd; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #badbcc;' ELSE 'margin-bottom: 8px;' END || '"><strong>Expected Results:</strong>' || char(10) || COALESCE(curr_exp, 'N/A') || '</div>' ||
+        '</div>' ||
+      '</div>' ||
+    '</div>' ||
+  '</div>' ||
+'</details>' AS html
+FROM (
+    WITH extracted AS (
+        SELECT
+          extracted_id AS test_case_id,
+          title AS test_case_title,
+          json_extract(body_json_string, '$[3].paragraph') AS description,
+          (SELECT group_concat((CAST(j.key AS INTEGER) + 1) || '. ' || json_extract(j.value, '$.item[0].paragraph'), char(10))
+           FROM json_each(json_extract(body_json_string, '$[5].list')) AS j) AS preconditions,
+          (SELECT group_concat((CAST(j.key AS INTEGER) + 1) || '. ' || json_extract(j.value, '$.item[0].paragraph'), char(10))
+           FROM json_each(json_extract(body_json_string, '$[7].list')) AS j) AS steps,
+          (SELECT group_concat((CAST(j.key AS INTEGER) + 1) || '. ' || json_extract(j.value, '$.item[0].paragraph'), char(10))
+           FROM json_each(json_extract(body_json_string, '$[9].list')) AS j) AS expected_results,
+          created_at
+        FROM qf_role_history
+        WHERE role_name = 'case' AND extracted_id = $testcaseid
+    ),
+    grouped_versions AS (
+        SELECT
+          test_case_id,
+          test_case_title,
+          description,
+          preconditions,
+          steps,
+          expected_results,
+          MIN(created_at) AS first_seen
+        FROM extracted
+        GROUP BY test_case_id, test_case_title, description, preconditions, steps, expected_results
+    )
+    SELECT
+      test_case_id,
+      test_case_title AS curr_title,
+      description AS curr_desc,
+      preconditions AS curr_prec,
+      steps AS curr_steps,
+      expected_results AS curr_exp,
+      ROW_NUMBER() OVER (ORDER BY first_seen ASC) as version_num,
+      LAG(test_case_title) OVER (ORDER BY first_seen ASC) as prev_title,
+      LAG(description) OVER (ORDER BY first_seen ASC) as prev_desc,
+      LAG(preconditions) OVER (ORDER BY first_seen ASC) as prev_prec,
+      LAG(steps) OVER (ORDER BY first_seen ASC) as prev_steps,
+      LAG(expected_results) OVER (ORDER BY first_seen ASC) as prev_exp
+    FROM grouped_versions
+)
+WHERE :tab = 'Versioning History'
+ORDER BY version_num DESC;
 ```
 
 ---
@@ -1274,7 +1823,7 @@ ORDER BY qcm.test_case_id;
 ```sql chart/pie-chart-left.sql { route: { caption: "" } }
 SELECT 'chart' AS component,
        'pie' AS type,
-       'Test case execution status(%)' AS title,
+       'Test Case Execution Status(%)' AS title,
        TRUE AS labels,
        'green' AS color,
        'orange' AS color,
@@ -1284,14 +1833,6 @@ SELECT 'chart' AS component,
 SELECT
   'Passed' AS label,
   COALESCE(passedpercentage, 0) AS value
-FROM qf_case_status_percentage
-WHERE projectname = $project_name
-
-UNION ALL
-
-SELECT
-  'To-do' AS label,
-  COALESCE(todopercentage, 0) AS value
 FROM qf_case_status_percentage
 WHERE projectname = $project_name
 
@@ -1915,32 +2456,25 @@ WHERE project_name=$project_name AND testcase_id=$testcaseid
 
 ```sql requirementdetails.sql { route: { caption: "Requirement Details" } }
 
+SELECT 'hero' AS component,
+    'Requirement Detail' as title,
+    $req as description,
+    'blue' as color,
+    'checklist' as icon;
+
+SELECT 'card' AS component, 1 AS columns;
+SELECT
+    'Detailed Specification' as title,
+    'Description and functional specification for ' || $req as description;
+
 SELECT 'text' AS component,
-$page_description AS contents_md;
-
-
- select
-    'html' as component;
-
-    SELECT 'html' AS component;
-    SELECT DISTINCT
-        CASE
-            WHEN length(rd.description) < 50 AND (rd.description LIKE 'Requirement:%' OR rd.description LIKE 'Verification:%') THEN
-                '<h3 style="color: #2f10a0; margin-top: 16px; margin-bottom: 8px; font-weight: 600;">' || rd.description || '</h3>'
-            ELSE
-                '<div style="margin-bottom: 8px; color: #4b5563; line-height: 1.6; padding-left: 12px; border-left: 2px solid #f3f4f6;">' || rd.description || '</div>'
-        END as html
-    FROM qf_plan_requirement_summary rs
-    INNER JOIN qf_plan_requirement_details rd
-        ON rs.rownum = rd.rownum
-    WHERE rs.uniform_resource_id = $uniform_resource_id
-      AND trim(rs.requirement_id) = trim($req)
-      AND EXISTS (
-          SELECT 1 FROM qf_role_with_project prj
-          WHERE prj.uniform_resource_id = rs.uniform_resource_id
-          AND prj.title = $project_name
-      )
-    ORDER BY rd.rownumdetail;
+       rd.description AS contents_md
+FROM qf_plan_requirement_summary rs
+INNER JOIN qf_plan_requirement_details rd
+    ON rs.rownum = rd.rownum
+WHERE rs.requirement_id LIKE '%' || $req || '%'
+  AND (rs.project_name = $project_name OR rs.project_name = 'Unknown')
+ORDER BY rd.rownumdetail;
 ```
 
 ```sql productivity.sql { route: { caption: "Productivity" } }
@@ -1959,99 +2493,67 @@ SELECT
    latest_assignee AS label,
    COUNT(*) AS value
 FROM
-   qf_evidence_status
+   qf_case_status
 WHERE
    project_name = $project_name
 GROUP BY
    latest_assignee
 ORDER BY
    value DESC;
-
-
 ```
 
 ```sql suitecasedetailsreport.sql { route: { caption: "Suite Details" } }
 
+SELECT 'hero' AS component,
+    'Test Suite Specification' as title,
+    COALESCE(
+        (SELECT suite_name FROM qf_role_with_suite WHERE trim(rownum) = trim($id) LIMIT 1),
+        'Suite: ' || $id
+    ) as description,
+    'purple' as color,
+    'package' as icon;
+
+SELECT 'card' AS component, 1 AS columns;
+SELECT
+    'Suite Content' as title,
+    'Detailed scope and test case mapping' as description,
+    'purple' as color,
+    'list-check' as icon;
+
 SELECT 'text' AS component,
-$page_description AS contents_md;
-
-SELECT 'html' AS component;
-SELECT DISTINCT
-    CASE
-        -- Known Main Headers (Bold, No bullet, Primary Color)
-        WHEN TRIM(rd.description) IN ('Scope', 'Test Cases') THEN
-            '<h2 style="font-size: 1.3rem; color: #2f10a0; border-bottom: 2px solid #f3f4f6; padding-bottom: 8px; margin-top: 32px; margin-bottom: 16px; font-weight: 800;">' ||
-            rd.description || '</h2>'
-
-        -- Generic Headers or List Titles (Bold, No bullet)
-        WHEN (LENGTH(rd.description) < 40 AND (rd.description LIKE '%:%' OR rd.description NOT LIKE '% % %')) THEN
-            '<div style="font-weight: 700; color: #111827; margin-top: 16px; margin-bottom: 8px; font-size: 1.05rem;">' ||
-            rd.description || '</div>'
-
-        -- Test Case Cards
-        WHEN rd.description LIKE 'SURVEILR-REGRESSION-%' THEN
-            '<div class="tc-item" style="padding: 12px 16px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 4px solid #2f10a0; font-family: inherit;">' ||
-            '<span style="font-weight: 800; color: #111827; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; margin-right: 12px; border: 1px solid #e5e7eb;">' ||
-            CASE WHEN INSTR(rd.description, ' - ') > 0 THEN SUBSTR(rd.description, 1, INSTR(rd.description, ' - ') - 1) ELSE rd.description END || '</span>' ||
-            '<span style="color: #4b5563; font-weight: 500;">' ||
-            CASE WHEN INSTR(rd.description, ' - ') > 0 THEN SUBSTR(rd.description, INSTR(rd.description, ' - ') + 3) ELSE '' END || '</span>' ||
-            '</div>'
-
-        -- General Bullet Points
-        ELSE
-            '<div style="padding: 4px 0 4px 12px; color: #374151; line-height: 1.6; display: flex; align-items: flex-start; gap: 8px;">' ||
-            '<span style="color: #2f10a0; font-weight: 900; margin-top: 1px;">•</span>' ||
-            '<span>' || rd.description || '</span>' ||
-            '</div>'
-    END as html
+       rd.description AS contents_md
 FROM qf_suite_description_summary rs
 INNER JOIN qf_suite_description_details rd
     ON rs.rownum = rd.rownum
-WHERE trim(rs.rownum) = $id
-  AND rs.uniform_resource_id = $uniform_resource_id
-  AND EXISTS (
-      SELECT 1 FROM qf_role_with_project prj
-      WHERE prj.uniform_resource_id = rs.uniform_resource_id
-      AND prj.title = $project_name
-  )
+WHERE trim(rs.rownum) = trim($id)
 ORDER BY rd.rownumdetail;
-
 ```
 
 ```sql plancasedetailsreport.sql { route: { caption: "Plan Details" } }
 
+SELECT 'hero' AS component,
+    'Test Plan Specification' as title,
+    COALESCE(
+        (SELECT plan_name FROM qf_role_with_plan WHERE trim(rownum) = trim($id) LIMIT 1),
+        'Plan: ' || $id
+    ) as description,
+    'green' as color,
+    'file-text' as icon;
+
+SELECT 'card' AS component, 1 AS columns;
+SELECT
+    'Plan Content' as title,
+    'Complete test strategies and criteria' as description,
+    'green' as color,
+    'clipboard-list' as icon;
+
 SELECT 'text' AS component,
-$page_description AS contents_md;
-select
-    'html' as component;
-
-SELECT distinct
-     case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-       and substring(rd.description,1,2)='**' then
-          case when (length(rd.description) - (length(replace(rd.description,'*','')))) =4
-           and substring(rd.description,1,2)='**'
-           and length(rd.description) >  instr(substring(rd.description,3,length(rd.description)),'**')+3
-            then
-                '<p><b>'||replace(substring(rd.description,1,instr(substring(rd.description,3,length(rd.description)),'**')+2),'*','') ||  '</b><br>'  ||
-                ' '||substring(rd.description, instr(substring(rd.description,3,length(rd.description)),'**')+3,length(rd.description)) ||  '<br>'
-           else
-                '<p><b><h3>'|| replace(rd.description,'*','') ||  '</h3></b><br>'
-          end
-         else
-         '' || rd.description ||  '<br>'
-         end  as html
-    FROM qf_plan_summary rs
-    INNER JOIN qf_plan_detail rd
-        ON rs.rownum = rd.rownum
-    WHERE trim(rs.rownum) = $id
-      AND rs.uniform_resource_id = $uniform_resource_id
-      AND EXISTS (
-          SELECT 1 FROM qf_role_with_project prj
-          WHERE prj.uniform_resource_id = rs.uniform_resource_id
-          AND prj.title = $project_name
-      )
-    ORDER BY rd.rownumdetail ;
-
+       rd.description AS contents_md
+FROM qf_plan_summary rs
+INNER JOIN qf_plan_detail rd
+    ON rs.rownum = rd.rownum
+WHERE trim(rs.rownum) = trim($id)
+ORDER BY rd.rownumdetail;
 ```
 
 ```sql test-suite-cases-summary.sql { route: { caption: "Test suite" } }
