@@ -15,7 +15,7 @@ const TooltipIconButton = forwardRef<HTMLButtonElement, TooltipIconButtonProps>(
   ({ children, tooltip, className, side = "bottom", asChild, ...props }, ref) => {
     return (
       <Tooltip>
-        <TooltipTrigger asChild={asChild}>
+        <TooltipTrigger asChild>
           <Button
             {...props}
             ref={ref}
