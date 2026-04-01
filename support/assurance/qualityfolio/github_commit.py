@@ -121,6 +121,30 @@ for commit_sha in all_commits:
     time.sleep(0.5)
 
 conn.commit()
+
+# Populate qf_github_commits table from github_commits view (created by singer tap)
+print("\n🔄 Refreshing qf_github_commits...")
+try:
+    cur.execute("DELETE FROM qf_github_commits")
+    cur.execute("""
+        INSERT INTO qf_github_commits (sha, message, author_name, commit_date, html_url)
+        SELECT sha,
+            json_extract("commit", '$.message'),
+            json_extract("commit", '$.author.name'),
+            json_extract("commit", '$.author.date'),
+            html_url
+        FROM (
+            SELECT sha, "commit", html_url,
+                ROW_NUMBER() OVER (PARTITION BY sha ORDER BY id DESC) as _rn
+            FROM github_commits
+        )
+        WHERE _rn = 1
+    """)
+    conn.commit()
+    print("✅ qf_github_commits refreshed.")
+except Exception as e:
+    print(f"⚠️ Could not refresh qf_github_commits: {e}")
+
 conn.close()
 
 print("\n✅ All commits processed.")

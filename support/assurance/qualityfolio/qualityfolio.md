@@ -935,26 +935,36 @@ WHERE (SELECT COUNT(*) FROM qf_requirement_summary WHERE project_name = CASE WHE
 ``````sql github-commit-changes.sql { route: { caption: "Commit Changes" } }
 -- @route.description "Shows the file changes introduced by a specific GitHub commit, with a diff-style view of added and removed lines."
 
-SELECT 'text' AS component, $page_description AS contents_md;
+SET github_configured = COALESCE(sqlpage.environment_variable('GITHUB_ACCESS_TOKEN'), '') != '' AND COALESCE(sqlpage.environment_variable('GITHUB_REPOSITORY'), '') != '' AND COALESCE(sqlpage.environment_variable('GITHUB_START_DATE'), '') != '';
+
+SELECT 'text' AS component, $page_description AS contents_md WHERE $github_configured;
+
+SELECT 'alert' AS component,
+       'GitHub Integration Not Configured' AS title,
+       'Please set GITHUB_ACCESS_TOKEN, GITHUB_REPOSITORY, and GITHUB_START_DATE in your .env file to enable this feature.' AS description,
+       'alert-circle' AS icon,
+       'yellow' AS color
+WHERE NOT $github_configured;
 
 -- Page title & commit selector form
 SELECT 'divider' AS component,
        'GitHub Commit Changes' AS contents,
        5 AS size,
-       'teal' AS color;
+       'teal' AS color
+WHERE $github_configured;
 
 -- Commit filter form
 SELECT 'form' AS component,
        'Fetch Commits' AS validate,
        'blue' as button_color
-WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+WHERE $github_configured AND EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
 
 SELECT 'commit_date' AS name,
        'Filter by Date' AS label,
        'date' AS type,
        :commit_date AS value,
        4 as width
-WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+WHERE $github_configured AND EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
 
 SELECT 'sha' AS name,
        'Select Commit' AS label,
@@ -968,14 +978,14 @@ SELECT 'sha' AS name,
             WHERE (:commit_date IS NULL OR date(commit_date) = :commit_date)
             ORDER BY commit_date DESC LIMIT 50
         )) AS options
-WHERE EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
+WHERE $github_configured AND EXISTS (SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = 'qf_github_commits');
 
 
 
 -- Commit metadata card
 
 SELECT 'card' AS component, 1 AS columns
-WHERE EXISTS (
+WHERE $github_configured AND EXISTS (
     SELECT 1 FROM qf_github_commits
     WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE (:commit_date IS NULL OR date(commit_date) = :commit_date) ORDER BY commit_date DESC LIMIT 1))
 );
@@ -992,21 +1002,21 @@ SELECT
     '🔗 View full commit on GitHub' AS footer,
     html_url AS link
 FROM qf_github_commits
-WHERE sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE (:commit_date IS NULL OR date(commit_date) = :commit_date) ORDER BY commit_date DESC LIMIT 1));
+WHERE $github_configured AND sha = COALESCE(:sha, (SELECT sha FROM qf_github_commits WHERE (:commit_date IS NULL OR date(commit_date) = :commit_date) ORDER BY commit_date DESC LIMIT 1));
 
 
 
 SELECT 'title' AS component,
-       'Commit Details: ' || coalesce($sha, :sha) AS title;
+       'Commit Details: ' || coalesce($sha, :sha) AS title WHERE $github_configured;
 
-SELECT 'text' AS component;
+SELECT 'text' AS component WHERE $github_configured;
 
 SELECT
     '### 📄 ' || filename || char(10) || char(10) ||
     '**Additions:** `+' || additions || '` | **Deletions:** `-' || deletions || '`' || char(10) || char(10) ||
     '`````diff' || char(10) || coalesce(patch, 'No patch details available') || char(10) || '`````' || char(10) || '---' AS contents_md
 FROM commit_files
-WHERE commit_sha = coalesce($sha, :sha);
+WHERE commit_sha = coalesce($sha, :sha) AND $github_configured;
 
 
 
@@ -1549,10 +1559,11 @@ ORDER BY
 -- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
 
 SET tab = COALESCE($tab, 'Details');
+SET github_configured = COALESCE(sqlpage.environment_variable('GITHUB_ACCESS_TOKEN'), '') != '' AND COALESCE(sqlpage.environment_variable('GITHUB_REPOSITORY'), '') != '' AND COALESCE(sqlpage.environment_variable('GITHUB_START_DATE'), '') != '';
 
 SELECT 'tab' as component;
 SELECT 'Details' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' as link, :tab = 'Details' as active, 'file-text' as icon;
-SELECT 'Revision History' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Revision History' as link, :tab = 'Revision History' as active, 'history' as icon;
+SELECT 'Revision History' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Revision History' as link, :tab = 'Revision History' as active, 'history' as icon WHERE $github_configured;
 
 -- Details Tab Content
 SELECT 'text' AS component, $page_description AS contents_md WHERE :tab = 'Details';
@@ -1602,7 +1613,7 @@ ORDER BY qcm.test_case_id;
 
 
 SELECT 'table' AS component, 'Test Cases' AS title
- WHERE :tab = 'Revision History';
+ WHERE :tab = 'Revision History' AND $github_configured;
 
 
 select
@@ -1617,7 +1628,7 @@ where cf.filename=(select cm.file_basename from qf_case_master cm
  where cm.test_case_id=$testcaseid
   limit 1
  )
- and  :tab = 'Revision History';
+ and  :tab = 'Revision History' AND $github_configured;
 
 ```
 
