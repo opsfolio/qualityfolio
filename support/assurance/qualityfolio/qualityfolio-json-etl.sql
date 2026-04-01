@@ -1,3 +1,19 @@
+ 
+CREATE TABLE IF NOT EXISTS commit_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commit_sha TEXT,
+    filename TEXT,
+    status TEXT,
+    additions INTEGER,
+    deletions INTEGER,
+    patch TEXT,
+    file_details text
+);
+
+
+
+
+
 -- SQLITE ETL SCRIPT — FINAL MODIFIED VERSION (Relying on Evidence Status)
 -- 1. CLEAN AND PARSE THE RAW CONTENT
 ------------------------------------------------------------------------------

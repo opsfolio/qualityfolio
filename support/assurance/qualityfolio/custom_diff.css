@@ -1,0 +1,33 @@
+/* SQLPage highlight.js overrides for diffs */
+pre {
+    background-color: #ffffff !important;
+    border: 1px solid #d0d7de !important;
+    border-radius: 6px !important;
+}
+
+pre code.language-diff {
+    background-color: #ffffff !important;
+    color: #24292f !important;
+    text-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Custom JS injected classes for SQLPage */
+.diff-addition {
+    background-color: #e6ffed !important;
+    display: inline-block !important;
+    width: 100% !important;
+}
+
+.diff-deletion {
+    background-color: #ffebe9 !important;
+    display: inline-block !important;
+    width: 100% !important;
+}
+
+.diff-meta {
+    color: #444d56 !important;
+    background-color: #f1f8ff !important;
+    display: inline-block !important;
+    width: 100% !important;
+}

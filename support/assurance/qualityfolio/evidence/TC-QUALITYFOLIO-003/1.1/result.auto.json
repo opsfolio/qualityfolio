@@ -1,0 +1,60 @@
+{
+  "test_case_fii": "TC-QUALITYFOLIO-003",
+  "title": "Verify login failure due to network timeout despite correct credentials",
+  "status": "failed",
+  "start_time": "2025-10-30T09:48:12.212Z",
+  "end_time": "2025-10-30T09:48:40.857Z",
+  "total_duration": "28.64 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Navigate to the login page.",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:12.221Z",
+      "end_time": "2025-10-30T09:48:15.398Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Enter valid user credentials (registered email and correct password).",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:15.399Z",
+      "end_time": "2025-10-30T09:48:18.781Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Before clicking Login, simulate a network slowdown or disconnection.",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:18.782Z",
+      "end_time": "2025-10-30T09:48:22.337Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Click on the Login button.",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:22.338Z",
+      "end_time": "2025-10-30T09:48:26.903Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Observe the system response during the timeout or connection drop.",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:26.904Z",
+      "end_time": "2025-10-30T09:48:31.640Z"
+    },
+    {
+      "step": 6,
+      "stepname": "Reconnect the network and check whether the session was created or access granted.",
+      "status": "failed",
+      "start_time": "2025-10-30T09:48:31.641Z",
+      "end_time": "2025-10-30T09:48:36.998Z",
+      "error_message": "After reconnecting the network, the system unexpectedly allowed access without re-authentication."
+    },
+    {
+      "step": 7,
+      "stepname": "Close the browser.",
+      "status": "passed",
+      "start_time": "2025-10-30T09:48:36.999Z",
+      "end_time": "2025-10-30T09:48:40.857Z"
+    }
+  ]
+}
