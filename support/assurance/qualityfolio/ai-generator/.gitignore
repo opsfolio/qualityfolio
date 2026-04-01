@@ -12,7 +12,6 @@ osquery-input.json
 
 # rust-specific
 /target
-sqlpage/
 data/
 
 regression*.sqlite.db
