@@ -4134,23 +4134,31 @@ WHERE
 -- if the standard adapt-singer flattening didn't capture them.
 -- Clean view for commit metadata showing Documentation-related changes
 DROP VIEW IF EXISTS qf_github_commits;
-CREATE VIEW qf_github_commits AS
-SELECT 
+ CREATE VIEW qf_github_commits AS
+SELECT
     sha,
     message,
     author_name,
     commit_date,
     html_url
 FROM (
-    SELECT 
-        sha, 
+    SELECT
+        sha,
         json_extract("commit", '$.message') as message,
         json_extract("commit", '$.author.name') as author_name,
         json_extract("commit", '$.author.date') as commit_date,
         html_url,
         ROW_NUMBER() OVER (PARTITION BY sha ORDER BY id DESC) as _rn
     FROM github_commits
-) gc WHERE _rn = 1;
+) gc WHERE _rn = 1  
+union ALL
+SELECT
+    NULL AS sha,
+    NULL AS message,
+    NULL AS author_name,
+    NULL AS commit_date,
+    NULL AS html_url
+WHERE 0;
 
 -- Create a view to link commits to actual documentation artifacts
 DROP VIEW IF EXISTS qf_github_commit_files;
