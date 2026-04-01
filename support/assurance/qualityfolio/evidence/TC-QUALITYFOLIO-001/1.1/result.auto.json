@@ -1,5 +1,5 @@
 {
-  "test_case_fii": "TC-GLUE-001",
+  "test_case_fii": "TC-QUALITYFOLIO-001",
   "title": "Verify successful login using registered email and correct password",
   "status": "passed",
   "start_time": "2025-10-30T08:45:10.120Z",
@@ -8,7 +8,7 @@
   "steps": [
     {
       "step": 1,
-      "stepname": "Navigate to https://owasp.glueup.com/.",
+      "stepname": "Navigate to https://qualityfolio.dev/.",
       "status": "passed",
       "start_time": "2025-10-30T08:45:10.135Z",
       "end_time": "2025-10-30T08:45:15.225Z"

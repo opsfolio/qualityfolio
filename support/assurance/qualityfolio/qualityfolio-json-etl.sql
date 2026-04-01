@@ -1,3 +1,18 @@
+CREATE TABLE IF NOT EXISTS commit_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    commit_sha TEXT,
+    filename TEXT,
+    status TEXT,
+    additions INTEGER,
+    deletions INTEGER,
+    patch TEXT,
+    file_details text
+);
+
+-- CREATE VIEW in case singer tap didn't run, so queries don't crash
+CREATE VIEW IF NOT EXISTS github_commits AS 
+SELECT NULL AS id, NULL AS sha, '{}' AS "commit", NULL AS html_url, '[]' AS files WHERE 1=0;
+
 -- SQLITE ETL SCRIPT — FINAL MODIFIED VERSION (Relying on Evidence Status)
 -- 1. CLEAN AND PARSE THE RAW CONTENT
 ------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 ---
 FII: "TR-GLUE-001"
-test_case_fii: "TC-GLUE-001"
+test_case_fii: "TC-QUALITYFOLIO-001"
 run_date: "2025-10-30"
 environment: "Production"
 ---

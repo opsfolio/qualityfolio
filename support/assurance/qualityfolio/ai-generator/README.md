@@ -1,4 +1,4 @@
-# Text to Markdown Converter - SQLPage Application
+# Qualityfolio AI Markdown Generator - SQLPage Application
 
 A simple web application built with SQLPage that allows you to enter text and convert it to downloadable markdown files.
 
@@ -25,7 +25,7 @@ You need to have SQLPage installed. Download it from:
 
 2. **Navigate to the project directory**:
    ```powershell
-   cd "d:\MyFolder Ajesh\MyProjects\QualitiFolio_MD_SqlPage\QF_SQLPAGE"
+   cd ".\QualitiFolio_MD_SqlPage\QF_SQLPAGE"
    ```
 
 ## Running the Application
