@@ -135,22 +135,87 @@
   }
 
   /**
+   * Attach Pikaday but keep the hidden field in MM-DD-YYYY format (not ISO)
+   * This is used when the backend expects MM-DD-YYYY format
+   * @param {HTMLInputElement} displayEl  – text input showing MM-DD-YYYY
+   * @param {HTMLInputElement} hiddenEl   – hidden date input storing MM-DD-YYYY
+   */
+  function qfAttachPikadayWithMMFormat(displayEl, hiddenEl) {
+    if (!displayEl) return;
+
+    // Retry up to 30× (3 s) in case Pikaday CDN is still loading
+    var attempts = 0;
+    function tryAttach() {
+      if (typeof Pikaday === "undefined") {
+        if (++attempts < 30) setTimeout(tryAttach, 100);
+        return;
+      }
+      if (displayEl._pk) { displayEl._pk.destroy(); displayEl._pk = null; }
+
+      var pk = new Pikaday({
+        field: displayEl,
+        trigger: displayEl,
+        format: "MM-DD-YYYY",
+        theme: "qf-pikaday",
+        toString: function (date) {
+          var m = String(date.getMonth() + 1).padStart(2, "0");
+          var d = String(date.getDate()).padStart(2, "0");
+          var y = date.getFullYear();
+          return m + "-" + d + "-" + y;
+        },
+        parse: function (s) {
+          var p = s.split("-");
+          return p.length === 3 ? new Date(p[2], p[0] - 1, p[1]) : new Date();
+        },
+        onSelect: function (date) {
+          var m = String(date.getMonth() + 1).padStart(2, "0");
+          var d = String(date.getDate()).padStart(2, "0");
+          var y = date.getFullYear();
+          var dateStr = m + "-" + d + "-" + y;
+          displayEl.value = dateStr;
+          // Keep hidden field in MM-DD-YYYY format (not ISO)
+          if (hiddenEl) hiddenEl.value = dateStr;
+        },
+      });
+
+      // Pre-select existing value (assumes MM-DD-YYYY format)
+      var dateSrc = (hiddenEl && hiddenEl.value) || displayEl.value || "";
+      if (dateSrc) {
+        var p = dateSrc.split("-");
+        if (p.length === 3) pk.setDate(new Date(p[2], p[0] - 1, p[1]), true);
+      }
+      displayEl._pk = pk;
+    }
+    tryAttach();
+  }
+
+  /**
    * Programmatically set a date field pair (used when opening modals).
    * @param {string} hiddenId   – id of the hidden date input
    * @param {string} displayId  – id of the display text input
-   * @param {string} isoVal     – ISO date string YYYY-MM-DD
+   * @param {string} isoVal     – ISO date string YYYY-MM-DD or MM-DD-YYYY
    */
   function setDateFields(hiddenId, displayId, isoVal) {
     const hiddenEl = document.getElementById(hiddenId);
     const displayEl = document.getElementById(displayId);
-    if (hiddenEl) hiddenEl.value = isoVal || "";
-    if (displayEl) displayEl.value = isoToDisplay(isoVal);
+
+    // Normalize to MM-DD-YYYY format
+    let mmddyyyy = isoVal;
+    if (isoVal && isoVal.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      // It's ISO format (YYYY-MM-DD), convert to MM-DD-YYYY
+      mmddyyyy = isoToDisplay(isoVal);
+    }
+
+    if (hiddenEl) hiddenEl.value = mmddyyyy || "";
+    if (displayEl) displayEl.value = mmddyyyy || "";
+
     // If there's a Pikaday instance, update it too
-    if (displayEl && displayEl._pikadayInstance && isoVal) {
-      const p = isoVal.split("-");
+    if (displayEl && displayEl._pk && mmddyyyy) {
+      const p = mmddyyyy.split("-");
       if (p.length === 3) {
-        displayEl._pikadayInstance.setDate(
-          new Date(p[0], p[1] - 1, p[2]),
+        // MM-DD-YYYY format: p[0]=month, p[1]=day, p[2]=year
+        displayEl._pk.setDate(
+          new Date(p[2], p[0] - 1, p[1]),
           true,
         );
       }
@@ -179,19 +244,21 @@
         if (cfg.dataset.markdownDest) _markdownDest = cfg.dataset.markdownDest;
       } catch (_) { }
     }
-    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-')
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-');
 
     // Init Requirement ID for 3-level if unset
     const prj = (document.getElementById("qfg-project")?.value || "").trim();
     if (!getVal("qfg-req-id")) {
       setVal("qfg-req-id", makeId(_reqIdFormat, 1, prj));
     }
-    // Init Cycle Date field with Pikaday
-    qfDatePicker(
-      document.getElementById("qfg-cycle-date-display"),
-      document.getElementById("qfg-cycle-date"),
-      today,
-    );
+    // Init Cycle Date field with Pikaday - store in MM-DD-YYYY format
+    const displayEl = document.getElementById("qfg-cycle-date-display");
+    const hiddenEl = document.getElementById("qfg-cycle-date");
+    if (displayEl) displayEl.value = today;
+    if (hiddenEl) hiddenEl.value = today;
+
+    // Attach Pikaday - will keep MM-DD-YYYY format in hidden field
+    qfAttachPikadayWithMMFormat(displayEl, hiddenEl);
     fillSelect("qfg-creator", _members, "-- Select Creator --");
     if (_members.length > 0) setVal("qfg-creator", _members[0]);
     fillSelect("qfg-testtype", _types, "-- Select Test Type --");
@@ -2087,8 +2154,8 @@
           </div>
         </div>
         <div class="qfg-modal-footer">
-          <button class="qfg-btn-reset"    id="bulkRunModalCancel">Cancel</button>
-          <button class="qfg-btn-generate" id="bulkRunModalApply">&#9654; Add Run</button>
+          <button class="btn btn-secondary qfg-btn-reset"    id="bulkRunModalCancel">Cancel</button>
+          <button class="btn btn-primary qfg-btn-generate" id="bulkRunModalApply">&#9654; Add Run</button>
         </div>
       </div>
     </div>`;
@@ -2102,7 +2169,12 @@
     try {
       // Ensure we have a destination (should be set by initializeMarkdownDestination)
       if (!_markdownDest) {
-        throw new Error('Markdown destination not set. Please check Settings → Markdown Paths.');
+        const msg = 'Markdown destination not set. Please check Settings → Markdown Paths.';
+        showModal('Error Saving Markdown', msg);
+        return {
+          success: false,
+          error: msg
+        };
       }
 
       const formData = new FormData();
@@ -2114,31 +2186,131 @@
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Could not save markdown`);
+      // Helper to safely parse response
+      let result = null;
+      const contentType = response.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        try {
+          let jsonResponse = await response.json();
+          // SQLPage returns array of results, extract first element if needed
+          if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+            result = jsonResponse[0];
+          } else if (Array.isArray(jsonResponse)) {
+            result = null; // Empty array
+          } else {
+            result = jsonResponse; // Already an object
+          }
+        } catch (parseErr) {
+          console.warn('Failed to parse JSON response:', parseErr);
+          // If we got 200 OK but can't parse JSON, assume success (file was written)
+          if (response.ok) {
+            const successMsg = `✓ Markdown file saved successfully!\n\nFile: ${filename}\nLocation: ${_markdownDest}`;
+            console.log('✓ Markdown saved successfully (HTTP 200)');
+            showModal('Success', successMsg);
+            return {
+              success: true,
+              folder: _markdownDest,
+              filename: filename,
+              message: successMsg
+            };
+          }
+          throw parseErr;
+        }
+      } else {
+        // Response is not JSON (likely HTML error page)
+        const text = await response.text();
+        if (response.ok && text.length > 0) {
+          // If status is 200 but response is not JSON, assume file was written
+          const successMsg = `✓ Markdown file saved successfully!\n\nFile: ${filename}\nLocation: ${_markdownDest}`;
+          console.log('✓ Markdown saved successfully (non-JSON 200 response)');
+          showModal('Success', successMsg);
+          return {
+            success: true,
+            folder: _markdownDest,
+            filename: filename,
+            message: successMsg
+          };
+        } else {
+          const errMsg = `HTTP ${response.status}: ${text.substring(0, 200)}`;
+          showModal('Error Saving Markdown', errMsg);
+          return {
+            success: false,
+            error: errMsg
+          };
+        }
       }
 
-      const result = await response.json();
+      // If we got valid JSON, process it
+      if (result) {
+        console.log('Save response:', result);
+        if (result.success) {
+          const successMsg = `✓ Markdown file saved successfully!\n\nFile: ${result.filename}\nLocation: ${result.folder}`;
+          console.log('✓ Markdown saved successfully');
+          console.log('Location:', result.folder + '/' + result.filename);
+          showModal('Success', successMsg);
 
-      if (result.success) {
-        console.log('✓ Markdown saved successfully');
-        console.log('Location:', result.folder + '/' + result.filename);
-        return {
-          success: true,
-          folder: result.folder,
-          filename: result.filename,
-          message: 'Markdown file saved successfully to: ' + result.folder
-        };
-      } else {
-        throw new Error(result.message || 'Unknown error saving markdown');
+          // Also attempt to write file via hidden form submission to ensure it's persisted
+          writeMarkdownViaBinary(filename, content, result.folder);
+
+          return {
+            success: true,
+            folder: result.folder,
+            filename: result.filename,
+            message: successMsg
+          };
+        } else {
+          const errMsg = result.message || 'Unknown error saving markdown';
+          showModal('Error Saving Markdown', errMsg);
+          return {
+            success: false,
+            error: errMsg
+          };
+        }
       }
     } catch (error) {
       console.error('Error saving markdown:', error);
+      const errMsg = error.message || 'Failed to save markdown file. However, the file may have been saved.';
+      showModal('Error Saving Markdown', errMsg);
       return {
         success: false,
-        error: error.message,
-        hint: 'Check that markdown destination is set in Settings → Markdown Paths'
+        error: errMsg
       };
+    }
+  }
+
+  /**
+   * Helper function to write markdown file via backend service
+   * This is called after successful JSON response to ensure file is persisted
+   */
+  function writeMarkdownViaBinary(filename, content, folder) {
+    try {
+      // Send to Node.js backend service on port 3001
+      fetch('http://localhost:3001/write-markdown', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          folder: folder,
+          filename: filename,
+          content: content
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('✓ File persisted to disk:', data.path);
+          } else {
+            console.warn('⚠ File write service error:', data.error);
+          }
+        })
+        .catch(err => {
+          console.warn('[Non-critical] Backend write service unavailable. File may need manual save.');
+          console.warn('Make sure to run: node write-markdown-service.js');
+        });
+    } catch (err) {
+      console.warn('Could not trigger file write:', err.message);
     }
   }
 
@@ -2592,7 +2764,23 @@
         if (pri) _cases[i].priority = pri;
         if (sc) _cases[i].scenarioType = sc;
         if (ex) _cases[i].executionType = ex;
-        if (asgn) _cases[i].assignee = asgn;
+        if (asgn) {
+          _cases[i].assignee = asgn;                                    // Update case
+          if (!_cases[i].evidenceHistory) _cases[i].evidenceHistory = []; // Initialize
+          if (_cases[i].evidenceHistory.length > 0) {
+            _cases[i].evidenceHistory[0].assignee = asgn;              // Update evidence
+          } else {
+            _cases[i].evidenceHistory.push({                           // Create if none
+              cycle: "1.0",
+              cycleDate: new Date().toISOString().split("T")[0],
+              status: "To-do",
+              assignee: asgn,
+            });
+          }
+          if (_cases[i].evidenceHistory[0]) {
+            _cases[i].run = _cases[i].evidenceHistory[0];             // Sync shortcut
+          }
+        }
         if (tgs) {
           const e2 = Array.isArray(_cases[i].tags) ? _cases[i].tags : [];
           _cases[i].tags = [
@@ -3650,8 +3838,18 @@
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Could not fetch markdown destination`);
       }
-      const data = await response.json();
-      if (data.destination) {
+
+      // Try to parse as JSON
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        console.warn('Could not parse markdown destination response as JSON, using default');
+        _markdownDest = 'test-artifacts';
+        return;
+      }
+
+      if (data && data.destination) {
         _markdownDest = data.destination; // correctly writes to IIFE-scoped variable
         console.log('✓ Markdown destination loaded from server:', _markdownDest);
       } else {

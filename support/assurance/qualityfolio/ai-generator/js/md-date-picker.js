@@ -39,14 +39,14 @@
       if (displayEl._pk) { displayEl._pk.destroy(); displayEl._pk = null; }
 
       var pk = new Pikaday({
-        field:   displayEl,
+        field: displayEl,
         trigger: displayEl,
-        format:  "MM-DD-YYYY",
-        theme:   "qf-pikaday",
+        format: "MM-DD-YYYY",
+        theme: "qf-pikaday",
         toString: function (date) {
-          var m  = String(date.getMonth() + 1).padStart(2, "0");
-          var d  = String(date.getDate()).padStart(2, "0");
-          var y  = date.getFullYear();
+          var m = String(date.getMonth() + 1).padStart(2, "0");
+          var d = String(date.getDate()).padStart(2, "0");
+          var y = date.getFullYear();
           return m + "-" + d + "-" + y;
         },
         parse: function (s) {
@@ -54,9 +54,9 @@
           return p.length === 3 ? new Date(p[2], p[0] - 1, p[1]) : new Date();
         },
         onSelect: function (date) {
-          var m  = String(date.getMonth() + 1).padStart(2, "0");
-          var d  = String(date.getDate()).padStart(2, "0");
-          var y  = date.getFullYear();
+          var m = String(date.getMonth() + 1).padStart(2, "0");
+          var d = String(date.getDate()).padStart(2, "0");
+          var y = date.getFullYear();
           displayEl.value = m + "-" + d + "-" + y;
           if (hiddenEl) hiddenEl.value = y + "-" + m + "-" + d;
         },
@@ -115,28 +115,28 @@
       mutations.forEach(function (mutation) {
         mutation.addedNodes.forEach(function (node) {
           if (node.nodeType !== 1) return;
-          
+
           // 1. Check if the node itself is a date field
           var isDate = node.classList && (
-            node.classList.contains("ev-date") || 
-            node.classList.contains("qf-date") || 
+            node.classList.contains("ev-date") ||
+            node.classList.contains("qf-date") ||
             node.classList.contains("qf-date-picker")
           );
-          
+
           // 2. Find all date fields within the added node
           var fields = node.querySelectorAll ? Array.from(node.querySelectorAll(".ev-date, .qf-date, .qf-date-picker")) : [];
           if (isDate) fields.push(node);
 
           fields.forEach(function (f) {
             if (f._pk) return; // already attached
-            
+
             // Find its hidden partner
             var p = f.parentNode;
             var hidden = p ? p.querySelector('input[type="hidden"]') : null;
             if (!hidden && f.id) {
-               hidden = document.getElementById(f.id.replace("Text", ""));
+              hidden = document.getElementById(f.id.replace("Text", ""));
             }
-            
+
             attachPikaday(f, hidden, f.dataset.iso || (hidden ? hidden.value : null));
           });
         });
@@ -153,7 +153,7 @@
     // ── Pre-fill and attach to all existing date fields ──────────
     // This catches everything currently in the DOM (static or injected early)
     var selectors = [
-      "#bulkCycleDateText", 
+      "#bulkCycleDateText",
       "#qfg-cycle-date-display",
       "#editPlanDate",
       "#editSuiteDate",
@@ -165,11 +165,11 @@
       ".qf-date"
     ];
 
-    selectors.forEach(function(sel) {
-      document.querySelectorAll(sel).forEach(function(el) {
+    selectors.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
         if (el && !el._pk) {
-          var hidden = el.parentNode.querySelector('input[type="hidden"]') || 
-                       document.getElementById(el.id.replace("Text", "").replace("-display", ""));
+          var hidden = el.parentNode.querySelector('input[type="hidden"]') ||
+            document.getElementById(el.id.replace("Text", "").replace("-display", ""));
           attachPikaday(el, hidden, el.value ? displayToIso(el.value) : iso);
         }
       });
