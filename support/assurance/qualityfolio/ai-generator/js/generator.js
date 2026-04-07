@@ -3096,6 +3096,7 @@
         preConditions: [],
         steps: ["1. Open application", "2. Perform action", "3. Verify result"],
         expectedResult: ["Application behaves as expected."],
+        reqDetails: "",
         tags: [],
         evidenceHistory: [
           {

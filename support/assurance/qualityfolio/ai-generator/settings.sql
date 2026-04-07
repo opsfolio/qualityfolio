@@ -236,7 +236,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Members</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tm-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="tm-table">
         <thead>
@@ -308,7 +308,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Test Types</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tt-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="tt-table">
         <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
@@ -369,7 +369,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Scenario Types</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''st-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="st-table">
         <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
@@ -430,7 +430,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Execution Types</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''et-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="et-table">
         <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
@@ -491,7 +491,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Tags</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tag-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="tag-table">
         <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
@@ -552,7 +552,7 @@ SELECT 'html' AS component, '
     <div class="cfg-table-wrap">
       <div class="cfg-table-header">
         <span class="cfg-table-header-title">All Statuses</span>
-        <input class="cfg-table-search" type="text" placeholder="Search…" oninput="filterTable(this, ''tcs-table'')" />
+        <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="tcs-table">
         <thead><tr><th>Status Name</th><th>Created</th><th>Actions</th></tr></thead>
@@ -574,7 +574,7 @@ SELECT 'html' AS component,
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
       <a class="btn btn-sm btn-delete-action" style="padding: 0.5rem !important; display:inline-flex; align-items:center;"
-         href="/pages/settings/delete_test_case_status.sql?id=' || id || '"
+         href="/pages/test_cases/delete_status.sql?id=' || id || '"
          title="Delete ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
       </a>

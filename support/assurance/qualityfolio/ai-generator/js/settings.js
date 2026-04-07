@@ -441,7 +441,7 @@
     });
   }
 
-  // ── Table filter (kept from original settings.sql inline script) ────
+  // ── Table filter (programmatic attachment for CSP compliance) ────
   window.filterTable = function (input, tableId) {
     const q = input.value.toLowerCase();
     const rows = document.getElementById(tableId).querySelectorAll("tbody tr");
@@ -449,6 +449,16 @@
       row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
     });
   };
+
+  // ── Attach search filter listeners programmatically ──────────────
+  function attachSearchFilters() {
+    document.querySelectorAll('.cfg-table-search').forEach(input => {
+      input.addEventListener('input', function () {
+        const tableId = this.closest('.cfg-table-wrap').querySelector('table').id;
+        filterTable(this, tableId);
+      });
+    });
+  }
 
   // ── Public API ────────────────────────────────────────────────────────
   window.CFGSettings = {
@@ -462,6 +472,7 @@
     createModals();
     wireAddButtons();
     wireTableActions();
+    attachSearchFilters();
   }
 
   if (document.readyState === "loading") {
