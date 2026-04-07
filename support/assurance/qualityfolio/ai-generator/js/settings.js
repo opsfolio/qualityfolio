@@ -3,6 +3,155 @@
 (function () {
   "use strict";
 
+  // ── Toaster ──────────────────────────────────────────────────────────
+  // Reads ?success=, ?error=, or ?warning= from the URL and shows a toast.
+  // Can also be called programmatically: CFGSettings.toast('message', 'success')
+  function initToaster() {
+    // Inject styles once
+    if (!document.getElementById("cfg-toast-style")) {
+      const style = document.createElement("style");
+      style.id = "cfg-toast-style";
+      style.textContent = `
+        #cfg-toast-container {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 99999;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          pointer-events: none;
+        }
+        .cfg-toast {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          min-width: 300px;
+          max-width: 420px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          line-height: 1.5;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+          pointer-events: auto;
+          animation: cfgToastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+          border: 1.5px solid transparent;
+          position: relative;
+          cursor: default;
+        }
+        .cfg-toast.cfg-toast-hide {
+          animation: cfgToastOut 0.28s ease forwards;
+        }
+        @keyframes cfgToastIn {
+          from { opacity: 0; transform: translateX(60px) scale(0.95); }
+          to   { opacity: 1; transform: translateX(0)    scale(1);    }
+        }
+        @keyframes cfgToastOut {
+          from { opacity: 1; transform: translateX(0)    scale(1);    max-height: 120px; margin-bottom: 0; }
+          to   { opacity: 0; transform: translateX(60px) scale(0.95); max-height: 0;     margin-bottom: -10px; }
+        }
+        .cfg-toast-success {
+          background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+          border-color: #6ee7b7;
+          color: #065f46;
+        }
+        .cfg-toast-error {
+          background: linear-gradient(135deg, #fef2f2, #fee2e2);
+          border-color: #fca5a5;
+          color: #991b1b;
+        }
+        .cfg-toast-warning {
+          background: linear-gradient(135deg, #fffbeb, #fef3c7);
+          border-color: #fcd34d;
+          color: #92400e;
+        }
+        .cfg-toast-icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+        .cfg-toast-body { flex: 1; }
+        .cfg-toast-close {
+          background: none; border: none; cursor: pointer;
+          font-size: 1rem; line-height: 1; opacity: 0.5;
+          padding: 0 0 0 8px; transition: opacity 0.15s; flex-shrink: 0;
+          color: inherit;
+        }
+        .cfg-toast-close:hover { opacity: 1; }
+        .cfg-toast-progress {
+          position: absolute;
+          bottom: 0; left: 0;
+          height: 3px;
+          border-radius: 0 0 12px 12px;
+          animation: cfgToastProgress linear forwards;
+          opacity: 0.5;
+        }
+        .cfg-toast-success .cfg-toast-progress { background: #10b981; }
+        .cfg-toast-error   .cfg-toast-progress { background: #ef4444; }
+        .cfg-toast-warning .cfg-toast-progress { background: #f59e0b; }
+        @keyframes cfgToastProgress {
+          from { width: 100%; }
+          to   { width: 0%;   }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Create container if missing
+    if (!document.getElementById("cfg-toast-container")) {
+      const container = document.createElement("div");
+      container.id = "cfg-toast-container";
+      document.body.appendChild(container);
+    }
+  }
+
+  function showToast(message, type, duration) {
+    type = type || "success";
+    duration = duration || 4000;
+
+    initToaster();
+
+    const icons = { success: "✅", error: "❌", warning: "⚠️" };
+    const container = document.getElementById("cfg-toast-container");
+
+    const toast = document.createElement("div");
+    toast.className = "cfg-toast cfg-toast-" + type;
+    toast.innerHTML = `
+      <span class="cfg-toast-icon">${icons[type] || "ℹ️"}</span>
+      <span class="cfg-toast-body">${esc(message)}</span>
+      <button class="cfg-toast-close" title="Dismiss">✕</button>
+      <span class="cfg-toast-progress" style="animation-duration:${duration}ms"></span>
+    `;
+
+    container.appendChild(toast);
+
+    function dismiss() {
+      toast.classList.add("cfg-toast-hide");
+      toast.addEventListener("animationend", () => toast.remove(), { once: true });
+    }
+
+    toast.querySelector(".cfg-toast-close").addEventListener("click", dismiss);
+    setTimeout(dismiss, duration);
+  }
+
+  // Read ?success / ?error / ?warning from URL and fire a toast
+  function checkUrlToasts() {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const error = params.get("error");
+    const warning = params.get("warning");
+
+    if (success) showToast(success, "success");
+    if (error) showToast(error, "error", 6000);
+    if (warning) showToast(warning, "warning", 5000);
+
+    // Clean params from URL without reloading
+    if (success || error || warning) {
+      params.delete("success");
+      params.delete("error");
+      params.delete("warning");
+      const clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+      history.replaceState(null, "", clean);
+    }
+  }
+
   // ── Modal Registry ──────────────────────────────────────────────────
   // Maps tab / entity names to their config:
   //   addUrl    – POST endpoint for add
@@ -464,7 +613,8 @@
   window.CFGSettings = {
     openAddModal,
     openEditModal,
-    openDeleteModal
+    openDeleteModal,
+    toast: showToast
   };
 
   // ── Boot ──────────────────────────────────────────────────────────────
@@ -473,6 +623,7 @@
     wireAddButtons();
     wireTableActions();
     attachSearchFilters();
+    checkUrlToasts();
   }
 
   if (document.readyState === "loading") {
