@@ -225,6 +225,26 @@
         { name: "destination_path", label: "Destination Path", type: "text", placeholder: "e.g. /home/user/markdown or ./docs/markdown", required: true },
         { name: "is_default", label: "Set as Default", type: "checkbox", required: false }
       ]
+    },
+    database_path: {
+      label: "Database Path",
+      addUrl: "/pages/settings/save_database_path.sql",
+      editUrl: "/pages/settings/save_database_path.sql",
+      deleteUrl: "/pages/settings/delete_database_path.sql",
+      fields: [
+        { name: "database_path", label: "Database Path", type: "text", placeholder: "e.g. ../resource-surveillance.sqlite.db", required: true }
+      ]
+    },
+    llm_keys: {
+      label: "LLM API Keys",
+      addUrl: "/pages/settings/save_llm_keys.sql",
+      editUrl: "/pages/settings/save_llm_keys.sql",
+      fields: [
+        { name: "openai_api_key", label: "OpenAI API Key", type: "password", placeholder: "sk-...", required: false },
+        { name: "gemini_api_key", label: "Gemini API Key", type: "password", placeholder: "AIza...", required: false },
+        { name: "groq_api_key", label: "Groq API Key", type: "password", placeholder: "gsk_...", required: false },
+        { name: "anthropic_api_key", label: "Anthropic API Key", type: "password", placeholder: "sk-ant-...", required: false }
+      ]
     }
   };
 

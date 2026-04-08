@@ -14,6 +14,7 @@ import {
   AttachmentPrimitive,
   ActionBarMorePrimitive,
   SuggestionPrimitive,
+  ErrorPrimitive,
 } from "@assistant-ui/react";
 import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
@@ -344,9 +345,21 @@ const AssistantMessage: FC = () => {
 
 const AssistantMessageError: FC = () => {
   return (
-    <div className="flex items-start gap-2 mt-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
-      <AlertCircleIcon className="size-4 mt-0.5 shrink-0" />
-      <span>Something went wrong. The AI failed to respond — please try again.</span>
+    <div className="flex flex-col gap-1.5 mt-3 rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3.5 text-sm text-destructive shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+      <div className="flex items-center gap-2 font-semibold">
+        <AlertCircleIcon className="size-4 shrink-0" />
+        <span>Service Notice</span>
+      </div>
+      <div className="pl-6 opacity-90 leading-relaxed break-words font-medium">
+        <ErrorPrimitive.Message />
+      </div>
+      <div className="pl-6 mt-1">
+        <ActionBarPrimitive.Reload asChild>
+          <button className="text-xs font-bold underline underline-offset-4 hover:text-destructive/80 transition-colors">
+            Try again
+          </button>
+        </ActionBarPrimitive.Reload>
+      </div>
     </div>
   );
 };
