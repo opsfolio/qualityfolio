@@ -433,7 +433,7 @@ SELECT 'html' AS component, '
   </div><!-- /card -->
 
   <!-- Results -->
-  <div id="qfg-results" class="qfg-card" style="display:none"></div>
+  <div id="qfg-results" class="qfg-card" style="display:none; overflow:visible !important"></div>
   <!-- Modal structure -->
 <div id="bulkModal" class="modal">
   <div class="modal-content">
@@ -455,7 +455,7 @@ SELECT 'html' AS component, '
 .modal {
   display: none;
   position: fixed;
-  z-index: 9999;
+  z-index: 20000;
   left: 0; top: 0;
   width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);

@@ -1302,7 +1302,7 @@
       '<span style="font-size:.72rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em">&#128196; Editable Markdown</span>' +
       '<span style="flex:1"></span>' +
       '<button id="qfg-md-copy-btn" style="padding:4px 12px;background:#334155;color:#94a3b8;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer">&#128203; Copy</button>' +
-      '<button id="qfg-md-format-btn" style="padding:4px 12px;background:#334155;color:#94a3b8;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer">&#9889; Re-generate</button>' +
+      '<button id="qfg-md-format-btn" style="display:none;padding:4px 12px;background:#334155;color:#94a3b8;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer">&#9889; Re-generate</button>' +
       '<button id="qfg-md-dl-btn" style="padding:4px 14px;background:#0d9488;color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer">&#11015; Download .md</button>' +
       "</div>" +
       '<textarea id="qfg-md-panel" spellcheck="false" style="width:100%;box-sizing:border-box;background:#0f172a;color:#e2e8f0;padding:20px;font-family:Consolas,monospace;font-size:0.78rem;line-height:1.7;resize:vertical;min-height:480px !important;border:none;outline:none;"></textarea>' +
@@ -1427,11 +1427,11 @@
           <button class="qfg-action-sm" id="editProjectBtn" style="background:#fff!important;color:#1e40af!important;border:none!important;box-shadow:0 1px 3px rgba(0,0,0,0.1)!important;padding:2px 8px;font-size:0.7rem;">&#128393; </button>
         </span>
         <span>&#128204; ${ctx.schema === "3_level" ? "3-Level Schema" : ctx.schema === "4_level" ? "4-Level Schema" : "5-Level Schema"}</span>
-        <span class="qfg-tooltip-wrap">
+        <span class="qfg-req-tooltip-wrap">
           &#128194; ${esc(ctx.reqId)}
-          <div class="qfg-tooltip-content">
-            <div class="qfg-tooltip-title">Requirement Details</div>
-            <div class="qfg-tooltip-text">${esc(ctx.reqText)}</div>
+          <div class="qfg-req-tooltip-content">
+            <div class="qfg-req-tooltip-title">Requirement Details</div>
+            <div class="qfg-req-tooltip-text">${esc(ctx.reqText)}</div>
           </div>
         </span>
         <span>&#9881; ${esc(ctx.testType)}</span>
@@ -1462,6 +1462,7 @@
       <button id="tab-btn-json"      class="qfg-tab-btn qfg-tab-json" data-tab="json">&#123;&#125; JSON</button>
     </div>
     <style>
+      /* Base tooltip styles kept for other components (e.g. Tab Bar) */
       .qfg-tooltip-wrap { position: relative; cursor: help; }
       .qfg-tooltip-content {
         visibility: hidden; opacity: 0;
@@ -1481,6 +1482,31 @@
       }
       .qfg-tooltip-title { font-weight: 800; color: #38bdf8; margin-bottom: 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #334155; padding-bottom: 4px; }
       .qfg-tooltip-text { white-space: pre-wrap; word-wrap: break-word; max-height: 450px; overflow-y: auto; padding-right: 4px; }
+	  /* isolated SPECIFIC FIX for the Requirement Tooltip only */
+      .qfg-req-tooltip-wrap { position: relative; cursor: help; }
+      .qfg-req-tooltip-content {
+        visibility: hidden; opacity: 0;
+        position: absolute; top: 135%; left: 50%; transform: translateX(-50%) translateY(-10px);
+        background: #1e293b; color: #f8fafc; border-radius: 8px; padding: 12px 6px 12px 14px;
+        min-width: 350px; max-width: 700px; width: max-content; z-index: 1000; font-size: 0.85rem; line-height: 1.6;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3); pointer-events: auto;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: left;
+      }
+      .qfg-req-tooltip-content::after {
+        content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -6px;
+        border-width: 6px; border-style: solid; border-color: transparent transparent #1e293b transparent;
+      }
+      .qfg-req-tooltip-wrap:hover .qfg-req-tooltip-content {
+        visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0);
+      }
+      .qfg-req-tooltip-title { font-weight: 800; color: #38bdf8; margin-bottom: 6px; font-size: 0.78rem; text-transform: uppercase; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+      .qfg-req-tooltip-text { 
+        white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; 
+        padding-right: 12px; margin-right: 4px;
+      }
+      .qfg-req-tooltip-text::-webkit-scrollbar { width: 6px; }
+      .qfg-req-tooltip-text::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+      .qfg-req-tooltip-text::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 10px; }
       
       /* Keep existing tab button styles below */
       .qfg-tab-btn{padding:7px 18px;border:none; border-radius: 5px 5px 0 0; font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;background:#e2e8f0;color:#475569;}
@@ -1702,7 +1728,7 @@
         <button class="qfg-case-id tc-view-btn" data-idx="${i}" title="View test case details">${esc(c.testCaseId || `TC-${String(i + 1).padStart(2, "0")}`)}</button>
         <span class="qfg-case-title">${esc(c.title || "Untitled")}</span>
         <span class="qfg-case-pill ${priCls}">${esc(c.priority || "Medium")}</span>
-        <span class="qfg-case-pill" style="background:#f1f5f9;color:#475569">${esc(c.scenarioType || c.scenario_type || "—")}</span>
+        ${String(c.scenarioType || c.scenario_type || "—").split(",").map(s => s.trim()).filter(Boolean).map(s => `<span class="qfg-case-pill" style="background:#f1f5f9;color:#475569">${esc(s)}</span>`).join("")}
         ${c.tags && c.tags.length > 0 ? `<span class="qfg-case-pill" style="background: #f3e8ff;color: #905fba;">&#127991; ${esc(Array.isArray(c.tags) ? c.tags.join(", ") : c.tags)}</span>` : ""}
         <span class="qfg-case-pill" style="background:#eff6ff;color:#677cc1;margin-left:auto;margin-right:1rem;">${esc(displayAssignee || "Unassigned")}</span>
         <div class="tc-actions">
@@ -1984,7 +2010,11 @@
             <div class="vc-section-label">⚙️ Pre-conditions</div>
             <ol id="vcPreConditions" class="vc-list"></ol>
           </div>
-          <!-- Steps -->
+		  <!-- Requirements -->
+          <div id="vcReqBlock" style="display:none">
+            <div class="vc-section-label">📌 Requirements</div>
+            <div id="vcReqDetails" class="vc-prose" style="background: #fdfcea; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 0 6px 6px 0;"></div>
+          </div>          <!-- Steps -->
           <div id="vcStepsBlock" style="display:none">
             <div class="vc-section-label">🪜 Steps</div>
             <ol id="vcSteps" class="vc-list vc-steps-list"></ol>
@@ -3234,6 +3264,15 @@
     };
 
     fillList("vcPreConditions", "vcPreBlock", c.preConditions || c.pre_conditions);
+    // Requirements (c.reqDetails)
+    const reqDet = c.reqDetails || "";
+    const reqBlock = document.getElementById("vcReqBlock");
+    if (reqDet.trim()) {
+      document.getElementById("vcReqDetails").textContent = reqDet;
+      reqBlock.style.display = "";
+    } else {
+      reqBlock.style.display = "none";
+    }
     fillList("vcSteps", "vcStepsBlock", c.steps);
     fillList("vcExpected", "vcExpBlock", c.expectedResult || c.expected_result);
 

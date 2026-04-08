@@ -162,7 +162,7 @@
     team_members: {
       label: "Team Member",
       addUrl: "/pages/settings/save_team_member.sql",
-      editUrl: "/pages/settings/update_team_member.sql",
+      editUrl: "/pages/settings/save_team_member.sql",
       deleteUrl: "/pages/settings/delete_team_member.sql",
       fields: [
         { name: "full_name", label: "Full Name", type: "text", placeholder: "e.g. Jane Smith", required: true },
@@ -172,7 +172,7 @@
     test_types: {
       label: "Test Type",
       addUrl: "/pages/settings/save_test_type.sql",
-      editUrl: "/pages/settings/update_test_type.sql",
+      editUrl: "/pages/settings/save_test_type.sql",
       deleteUrl: "/pages/settings/delete_test_type.sql",
       fields: [
         { name: "name", label: "Test Type Name", type: "text", placeholder: "e.g. Integration", required: true }
@@ -181,7 +181,7 @@
     scenario_types: {
       label: "Scenario Type",
       addUrl: "/pages/settings/save_scenario_type.sql",
-      editUrl: "/pages/settings/update_scenario_type.sql",
+      editUrl: "/pages/settings/save_scenario_type.sql",
       deleteUrl: "/pages/settings/delete_scenario_type.sql",
       fields: [
         { name: "name", label: "Scenario Type Name", type: "text", placeholder: "e.g. Happy Path", required: true }
@@ -190,7 +190,7 @@
     execution_types: {
       label: "Execution Type",
       addUrl: "/pages/settings/save_execution_type.sql",
-      editUrl: "/pages/settings/update_execution_type.sql",
+      editUrl: "/pages/settings/save_execution_type.sql",
       deleteUrl: "/pages/settings/delete_execution_type.sql",
       fields: [
         { name: "name", label: "Execution Type Name", type: "text", placeholder: "e.g. Automated", required: true }
@@ -199,7 +199,7 @@
     tags: {
       label: "Tag",
       addUrl: "/pages/settings/save_tag.sql",
-      editUrl: "/pages/settings/update_tag.sql",
+      editUrl: "/pages/settings/save_tag.sql",
       deleteUrl: "/pages/settings/delete_tag.sql",
       fields: [
         { name: "name", label: "Tag Name", type: "text", placeholder: "e.g. Regression", required: true }
@@ -208,7 +208,7 @@
     test_case_statuses: {
       label: "Status",
       addUrl: "/pages/test_cases/save_status.sql",
-      editUrl: "/pages/test_cases/update_status.sql",
+      editUrl: "/pages/test_cases/save_status.sql",
       deleteUrl: "/pages/test_cases/delete_status.sql",
       fields: [
         { name: "name", label: "Status Name", type: "text", placeholder: "e.g. Passed", required: true }
