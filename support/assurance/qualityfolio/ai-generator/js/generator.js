@@ -436,7 +436,11 @@
   let planSuiteCounters = {}; // planIdx -> suite counter within that plan
 
   function addPlan() {
-    planCount++;
+    const existing = Array.from(document.querySelectorAll(".qfg-plan-block"));
+    const maxVal = existing.reduce((m, p) => Math.max(m, parseInt(p.dataset.plan || 0)), 0);
+    const pid = maxVal + 1;
+
+    planCount = pid;
     const today = new Date().toISOString().slice(0, 10);
     const todayFmt = (() => {
       const p = today.split("-");
@@ -445,7 +449,6 @@
     const opts = _members
       .map((m) => `<option value="${esc(m)}">${esc(m)}</option>`)
       .join("");
-    const pid = planCount;
     planSuiteCounters[pid] = 0;
 
     const div = document.createElement("div");
@@ -498,7 +501,11 @@
   // ── Suite builder (reference-framework aligned) ──────────────────
   let suiteCount = 0;
   function addSuite() {
-    suiteCount++;
+    const existing = Array.from(document.querySelectorAll(".qfg-suite-block"));
+    const maxVal = existing.reduce((m, s) => Math.max(m, parseInt(s.dataset.suite || 0)), 0);
+    const sc = maxVal + 1;
+
+    suiteCount = sc;
     const today = new Date().toISOString().slice(0, 10);
     const todayFmt = (() => {
       const p = today.split("-");
@@ -509,7 +516,7 @@
       .join("");
     const div = document.createElement("div");
     div.className = "qfg-suite-block";
-    div.dataset.suite = suiteCount;
+    div.dataset.suite = sc;
     div.innerHTML = `
       <button class="qfg-remove-suite" title="Remove Suite">✕</button>
       <div style="font-weight:700;font-size:.82rem;color:#0ea5e9;margin-bottom:10px">📋 Suite ${suiteCount}</div>
@@ -579,9 +586,12 @@
 
   // Shared suite-block builder for containers (used by plan-owned suites in 5-level)
   function addSuiteToContainer(planIdKey, container) {
+    const existing = Array.from(container.querySelectorAll(".qfg-suite-block"));
+    const maxVal = existing.reduce((m, s) => Math.max(m, parseInt(s.dataset.suite || 0)), 0);
+    const sc = maxVal + 1;
+
     if (!planSuiteCounters[planIdKey]) planSuiteCounters[planIdKey] = 0;
-    planSuiteCounters[planIdKey]++;
-    const sc = planSuiteCounters[planIdKey];
+    planSuiteCounters[planIdKey] = sc;
     const today = new Date().toISOString().slice(0, 10);
     const todayFmt = (() => {
       const p = today.split("-");
@@ -1643,7 +1653,7 @@
           Bulk Update
           </button>
           <button id="qfg-add-case-btn" class="btn btn-primary btn-bulk-action">
-          &#43;ADD NEW TEST CASE
+          &#43;Add New Test Case
           </button>
 
         </div>
@@ -1697,7 +1707,7 @@
       <span class="qfg-group-icon">&#128203;</span>
       <span class="qfg-group-label">Suite: <strong>${esc(suite.name || "Suite")}</strong></span>
       <div class="qfg-group-actions">
-        <button class="qfg-action-btn add-case-to-suite-btn" data-suiteidx="${si}">+ Add Case</button>
+        <button class="qfg-action-btn add-case-to-suite-btn" data-suiteidx="${si}">+ Add Test Case</button>
         <button class="qfg-action-btn edit-suite-results-btn" data-suiteidx="${si}">&#9998; Edit Suite</button>
         <button class="qfg-action-btn del delete-suite-results-btn" data-suiteidx="${si}">&#128465; Delete Suite</button>
       </div>
@@ -1883,7 +1893,7 @@
           
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
               <div class="qfg-field">
-                  <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">ID (@id) <span style="color:#ef4444">*</span></label>
+                  <label style="font-size: 0.8rem; color: #475569; display: block; margin-bottom: 4px;">Test Case ID<span style="color:#ef4444">*</span></label>
                   <input type="text" id="ecId" placeholder="e.g. TC-BIM-0001" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc;" />
               </div>
               <div class="qfg-field">

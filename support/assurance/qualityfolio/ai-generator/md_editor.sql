@@ -923,7 +923,7 @@ SELECT 'html' AS component, '
             <div class="modal-body">
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div class="form-group">
-                        <label>ID (@id)</label>
+                        <label>Test Case ID</label>
                         <input type="text" id="editTcId" class="form-input" placeholder="e.g. TC-001" />
                     </div>
                     <div class="form-group">

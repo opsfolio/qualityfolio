@@ -269,7 +269,7 @@ SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell" data-field="full_name" data-value="' || REPLACE(full_name, '"', '&quot;') || '">' || full_name || '</td>
     <td data-field="designation" data-value="' || COALESCE(REPLACE(designation, '"', '&quot;'), '') || '">' || COALESCE(designation, '<span style="color:var(--slate-300)">—</span>') || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td>
       <div class="cfg-actions-cell">
         <button class="btn btn-sm btn-edit-action" style="padding: 0.5rem !important;"
@@ -333,7 +333,7 @@ WHERE $tab = 'test_types';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
@@ -394,7 +394,7 @@ WHERE $tab = 'scenario_types';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
@@ -455,7 +455,7 @@ WHERE $tab = 'execution_types';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
@@ -516,7 +516,7 @@ WHERE $tab = 'tags';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
@@ -577,7 +577,7 @@ WHERE $tab = 'test_case_statuses';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
-    <td class="cfg-date-cell">' || datetime(created_at, 'localtime') || '</td>
+    <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
               data-action="editMember"
