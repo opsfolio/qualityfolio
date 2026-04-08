@@ -106,7 +106,7 @@ SELECT 'html' AS component,
     </style>
 
     <div class="qfg-wrap">
-      <h2 style="margin-bottom: 24px; color: #0f172a;">QualityFolio Dashboard</h2>
+      <h2 style="margin-bottom: 24px; color: #0f172a;">Qualityfolio Dashboard</h2>
       
       
       <a href="execute_dashboard.sql"><button class="view_dash_btn" id="sqlpageDashboardBtn">
