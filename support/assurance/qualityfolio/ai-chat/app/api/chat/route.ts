@@ -4,6 +4,7 @@ import {
   stepCountIs,
   createUIMessageStream,
 } from "ai";
+import path from "path";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
@@ -60,7 +61,7 @@ const open_model = createOpenAICompatible({
 const mcpClient = await createMCPClient({
   transport: new StdioClientTransport({
     command: "surveilr",
-    args: ["mcp", "server", "-d", process.env.RSSD_PATH!],
+    args: ["mcp", "server", "-d", path.resolve(process.cwd(), process.env.RSSD_PATH!)],
   }),
 });
 
@@ -73,6 +74,26 @@ console.log(tools);
 console.log(
   "-----------------------------------------------------------------------------",
 );
+
+function getFriendlyErrorMessage(err: unknown): string {
+  const error = err instanceof Error ? err : new Error(String(err));
+  const message = error.message.toLowerCase();
+
+  if (message.includes("429") || message.includes("too many requests") || message.includes("rate limit")) {
+    return "Rate limit reached. Please wait a moment before sending another message.";
+  }
+  if (message.includes("408") || message.includes("504") || message.includes("timeout") || message.includes("deadline exceeded")) {
+    return "The request timed out. Please try again in a few moments.";
+  }
+  if (message.includes("401") || message.includes("403") || message.includes("auth") || message.includes("api key")) {
+    return "Authentication failed. Please check your API configuration.";
+  }
+  if (message.includes("quota") || message.includes("insufficient")) {
+    return "Quota exceeded. Please check your account limits.";
+  }
+
+  return "An unexpected error occurred. Please try again.";
+}
 
 export async function POST(req: Request) {
   try {
@@ -135,7 +156,7 @@ Analysis & Recommendations:
 - When asked for recommendations: base them on actual data retrieved from the RSSD and supplement with testing best practices.
 - Never refuse to provide recommendations simply because you are a database tool — you are an AI analyst that uses the database as your data source.
 - If the data is insufficient to give a full recommendation, state what data was found and what additional data would help.
-
+ 
 Behavioral Rules:
 1. Always start with list_tables() on the FIRST turn of a conversation. On subsequent turns, reuse schema already discovered — do not re-run list_tables() or get_table_columns() for already-inspected tables.
 2. Never call get_schema() unless the user explicitly asks for full schema metadata. It is expensive (25k-80k tokens).
@@ -172,19 +193,19 @@ Anti-Patterns to Avoid:
     return result.toUIMessageStreamResponse({
       onError: (err) => {
         console.error("STREAM ERROR:", err);
-        return err instanceof Error ? err.message : "An error occurred while processing your request.";
+        return getFriendlyErrorMessage(err);
       },
     });
   } catch (err) {
     console.error("API ERROR:", err);
-    const errorMessage =
-      err instanceof Error ? err.message : "An unexpected server error occurred.";
+    const friendlyMessage = getFriendlyErrorMessage(err);
     const stream = createUIMessageStream({
       execute: ({ writer }) => {
-        writer.write({
+         writer.write({
           type: "error",
-          errorText: errorMessage,
+          errorText: friendlyMessage,
         });
+        console.error("CRITICAL API ERROR(FRIENDLY):", friendlyMessage);
       },
     });
     return new Response(stream, {

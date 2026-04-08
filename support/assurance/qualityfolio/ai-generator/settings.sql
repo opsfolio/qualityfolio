@@ -1,4 +1,12 @@
 -- Settings page for managing master data - UI matching entries.sql design system
+
+SET _scn_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'scn_id_format'), 'SCN-{NUM}');
+SET _req_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'req_id_format'), 'RQ-{NUM}');
+SET _openai_key = COALESCE((SELECT value FROM app_settings WHERE key = 'openai_api_key'), '');
+SET _gemini_key = COALESCE((SELECT value FROM app_settings WHERE key = 'gemini_api_key'), '');
+SET _groq_key = COALESCE((SELECT value FROM app_settings WHERE key = 'groq_api_key'), '');
+SET _anthropic_key = COALESCE((SELECT value FROM app_settings WHERE key = 'anthropic_api_key'), '');
+
 SELECT 'shell' AS component,
        'Qualityfolio AI' AS title,
        'logo.png' AS image,
@@ -212,6 +220,12 @@ SELECT 'html' AS component, '
     </a>
     <a href="settings.sql?tab=markdown_paths" class="cfg-tab-btn ' || CASE WHEN $tab = 'markdown_paths' THEN 'active' ELSE '' END || '">
     Markdown Folder
+    </a>
+    <a href="settings.sql?tab=database_path" class="cfg-tab-btn ' || CASE WHEN $tab = 'database_path' THEN 'active' ELSE '' END || '">
+    Database Path
+    </a>
+    <a href="settings.sql?tab=llm_keys" class="cfg-tab-btn ' || CASE WHEN $tab = 'llm_keys' THEN 'active' ELSE '' END || '">
+    LLM API Keys
     </a>
   </div>
 </div>
@@ -675,29 +689,85 @@ SELECT 'html' AS component, '
 ' AS html
 WHERE $tab = 'id_formats';
 
-SELECT 'html' AS component,'
-  <div class="cfg-wrap" style="padding-top:0">
-  <div class="cfg-card">
-    <div class="cfg-card-title"> Markdown Destination Folder</div>
-    <div class="cfg-card-desc">Set the folder where generated markdown files will be saved.</div>
-    <form method="POST" action="/pages/settings/save_path_settings.sql" class="cfg-format-form">
-      <div class="cfg-format-field">
-        <label>Destination Path</label>
-        <input type="text"
-               name="artifact_destination"
-               placeholder="e.g. /home/user/markdown  or  ./docs/output"
-               value="' || COALESCE(destination_path, '') || '"
-               autocomplete="off" />
-        <span class="hint">Enter the foldername (e.g. outputs)</span>
-      </div>
-      <div class="cfg-footer-btns">
-        <button type="submit" class="btn btn-primary qfg-tc-btn">💾 Save Folder Name</button>
-      </div>
-    </form>
-  </div>
-</div>
-'
-AS html
-FROM path_settings
-WHERE setting_key = 'markdown_destination'
-  AND $tab = 'markdown_paths';
+-- ============================================
+-- PATH SETTINGS TABS (Markdown / Database)
+-- ============================================
+SELECT 'html' AS component,
+  CASE 
+    WHEN $tab = 'markdown_paths' THEN '
+      <div class="cfg-wrap" style="padding-top:0">
+        <div class="cfg-card">
+          <div class="cfg-card-title"> Markdown Destination Folder</div>
+          <div class="cfg-card-desc">Set the folder where generated markdown files will be saved.</div>
+          <form method="POST" action="/pages/settings/save_path_settings.sql" class="cfg-format-form">
+            <div class="cfg-format-field">
+              <label>Destination Path</label>
+              <input type="text"
+                     name="artifact_destination"
+                     placeholder="e.g. /home/user/markdown  or  ./docs/output"
+                     value="' || COALESCE((SELECT destination_path FROM path_settings WHERE setting_key = 'markdown_destination'), '') || '"
+                     autocomplete="off" />
+              <span class="hint">Enter the foldername (e.g. outputs)</span>
+            </div>
+            <div class="cfg-footer-btns">
+              <button type="submit" class="btn btn-primary qfg-tc-btn">💾 Save Folder Name</button>
+            </div>
+          </form>
+        </div>
+      </div>'
+    WHEN $tab = 'database_path' THEN '
+      <div class="cfg-wrap" style="padding-top:0">
+        <div class="cfg-card">
+          <div class="cfg-card-title"> Database Path (RSSD)</div>
+          <div class="cfg-card-desc">Set the path to the Resource Surveillance SQLite database file. This is used by the AI Chat.</div>
+          <form method="POST" action="/pages/settings/save_database_path.sql" class="cfg-format-form">
+            <div class="cfg-format-field">
+              <label>Database Path</label>
+              <input type="text"
+                     name="database_path"
+                     placeholder="e.g. ../resource-surveillance.sqlite.db"
+                     value="' || COALESCE((SELECT destination_path FROM path_settings WHERE setting_key = 'database_path'), '') || '"
+                     autocomplete="off" />
+              <span class="hint">Enter the path to the .db file (e.g. ../resource-surveillance.sqlite.db)</span>
+            </div>
+            <div class="cfg-footer-btns">
+              <button type="submit" class="btn btn-primary qfg-tc-btn">💾 Save Database Path</button>
+            </div>
+          </form>
+        </div>
+      </div>'
+    WHEN $tab = 'llm_keys' THEN '
+      <div class="cfg-wrap" style="padding-top:0">
+        <div class="cfg-card">
+          <div class="cfg-card-title"> LLM API Keys</div>
+          <div class="cfg-card-desc">Set your API keys for various LLM providers. These are saved to the root .env file.</div>
+          <form method="POST" action="/pages/settings/save_llm_keys.sql" class="cfg-format-form">
+            <div class="cfg-format-group">
+              <div class="cfg-format-field">
+                <label>OpenAI API Key</label>
+                <input type="password" name="openai_api_key" placeholder="sk-..." value="' || $_openai_key || '" autocomplete="off" />
+              </div>
+              <div class="cfg-format-field">
+                <label>Gemini API Key</label>
+                <input type="password" name="gemini_api_key" placeholder="AIza..." value="' || $_gemini_key || '" autocomplete="off" />
+              </div>
+            </div>
+            <div class="cfg-format-group">
+              <div class="cfg-format-field">
+                <label>Groq API Key</label>
+                <input type="password" name="groq_api_key" placeholder="gsk_..." value="' || $_groq_key || '" autocomplete="off" />
+              </div>
+              <div class="cfg-format-field">
+                <label>Anthropic API Key</label>
+                <input type="password" name="anthropic_api_key" placeholder="sk-ant-..." value="' || $_anthropic_key || '" autocomplete="off" />
+              </div>
+            </div>
+            <div class="cfg-footer-btns">
+              <button type="submit" class="btn btn-primary qfg-tc-btn">💾 Save API Keys</button>
+            </div>
+          </form>
+        </div>
+      </div>'
+    ELSE ''
+  END AS html
+WHERE $tab IN ('markdown_paths', 'database_path', 'llm_keys');
