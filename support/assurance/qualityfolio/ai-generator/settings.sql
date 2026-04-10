@@ -1,7 +1,10 @@
 -- Settings page for managing master data - UI matching entries.sql design system
 
+SET _tc_id_format  = COALESCE((SELECT value FROM app_settings WHERE key = 'tc_id_format'),  'TC-{PRJ}-{NUM}');
 SET _scn_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'scn_id_format'), 'SCN-{NUM}');
 SET _req_id_format = COALESCE((SELECT value FROM app_settings WHERE key = 'req_id_format'), 'RQ-{NUM}');
+SET _pl_id_format  = COALESCE((SELECT value FROM app_settings WHERE key = 'pl_id_format'),  'PL-{NUM}');
+SET _st_id_format  = COALESCE((SELECT value FROM app_settings WHERE key = 'st_id_format'),  'ST-{NUM}');
 SET _openai_key = COALESCE((SELECT value FROM app_settings WHERE key = 'openai_api_key'), '');
 SET _gemini_key = COALESCE((SELECT value FROM app_settings WHERE key = 'gemini_api_key'), '');
 SET _groq_key = COALESCE((SELECT value FROM app_settings WHERE key = 'groq_api_key'), '');
