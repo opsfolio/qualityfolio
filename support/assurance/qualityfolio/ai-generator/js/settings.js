@@ -175,7 +175,8 @@
       editUrl: "/pages/settings/save_test_type.sql",
       deleteUrl: "/pages/settings/delete_test_type.sql",
       fields: [
-        { name: "name", label: "Test Type Name", type: "text", placeholder: "e.g. Integration", required: true }
+        { name: "name", label: "Test Type Name", type: "text", placeholder: "e.g. Integration", required: true },
+        { name: "description", label: "Description", type: "text", placeholder: "e.g. Testing specific functions or features", required: false }
       ]
     },
     scenario_types: {

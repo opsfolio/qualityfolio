@@ -325,7 +325,7 @@ SELECT 'html' AS component, '
         <input class="cfg-table-search" type="text" placeholder="Search…" />
       </div>
       <table class="cfg-table" id="tt-table">
-        <thead><tr><th>Name</th><th>Created</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Description</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody>
 ' AS html
 WHERE $tab = 'test_types';
@@ -333,6 +333,7 @@ WHERE $tab = 'test_types';
 SELECT 'html' AS component,
   '<tr>
     <td class="cfg-name-cell">' || name || '</td>
+    <td class="cfg-date-cell">' || COALESCE(description, '') || '</td>
     <td class="cfg-date-cell">' || strftime('%m-%d-%Y %H:%M:%S', created_at, 'localtime') || '</td>
     <td><div class="cfg-actions-cell">
       <button class="btn btn-sm btn-edit-action"
@@ -340,6 +341,7 @@ SELECT 'html' AS component,
               data-entity="test_types"
               data-id="' || id || '"
               data-name="' || REPLACE(name, '"', '&quot;') || '"
+              data-description="' || REPLACE(COALESCE(description, ''), '"', '&quot;') || '"
               title="Edit ' || REPLACE(name, '"', '&quot;') || '">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>

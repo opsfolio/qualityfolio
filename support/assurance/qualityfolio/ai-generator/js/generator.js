@@ -2834,6 +2834,7 @@
       });
       document.getElementById("bulkEditModal").style.display = "none";
       renderResults(_cases, _ctx);
+      showToast(`Bulk update applied to ${ids.length} test case${ids.length === 1 ? "" : "s"}.`);
     });
 
     // Bulk run modal
@@ -2900,7 +2901,7 @@
         okCount++;
       });
       document.getElementById("bulkRunModal").style.display = "none";
-      if (okCount > 0) showModal("Run Added", `Run cycle "${cycle}" added to ${okCount} case(s).`);
+      if (okCount > 0) showToast(`Run cycle "${cycle}" added to ${okCount} case${okCount === 1 ? "" : "s"}.`);
       renderResults(_cases, _ctx);
     });
 
@@ -3008,6 +3009,8 @@
 
       mo.style.display = "none";
       renderResults(_cases, _ctx);
+      const isNew = !iStr || iStr === "-1";
+      showToast(isNew ? "Test case added successfully." : "Test case updated successfully.");
     });
     ["editCaseModalClose", "editCaseModalCancel"].forEach((id) =>
       on(id, "click", () => {
@@ -3073,6 +3076,7 @@
       };
       document.getElementById("editSuiteModal").style.display = "none";
       renderResults(_cases, _ctx);
+      showToast("Suite updated successfully.");
     });
     ["editSuiteModalClose", "editSuiteModalCancel"].forEach((id) =>
       on(id, "click", () => {
@@ -3105,6 +3109,7 @@
       }
       document.getElementById("editPlanModal").style.display = "none";
       renderResults(_cases, _ctx);
+      showToast("Plan updated successfully.");
     });
     ["editPlanModalClose", "editPlanModalCancel"].forEach((id) =>
       on(id, "click", () => {
@@ -3840,6 +3845,77 @@
     document.getElementById("bulkModalTitle").textContent = title;
     document.getElementById("bulkModalMessage").textContent = message;
     document.getElementById("bulkModal").style.display = "block";
+  }
+
+  /**
+   * Show a lightweight, auto-dismissing toast notification.
+   * @param {string} message  – text to display
+   * @param {"success"|"error"|"info"} [type]  – visual style (default: "success")
+   * @param {number} [duration]  – ms before auto-dismiss (default: 3000)
+   */
+  function showToast(message, type = "success", duration = 3000) {
+    // Inject styles once
+    if (!document.getElementById("qfg-toast-style")) {
+      const s = document.createElement("style");
+      s.id = "qfg-toast-style";
+      s.textContent = `
+        #qfg-toast-container {
+          position: fixed; bottom: 28px; right: 28px;
+          display: flex; flex-direction: column; gap: 10px;
+          z-index: 99999; pointer-events: none;
+        }
+        .qfg-toast {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 18px; border-radius: 10px;
+          font-size: .85rem; font-weight: 600; line-height: 1.4;
+          box-shadow: 0 6px 24px rgba(0,0,0,.18);
+          pointer-events: auto; cursor: default;
+          animation: qfgToastIn .25s cubic-bezier(.4,0,.2,1) forwards;
+          max-width: 340px;
+        }
+        .qfg-toast.qfg-toast-out {
+          animation: qfgToastOut .3s cubic-bezier(.4,0,.2,1) forwards;
+        }
+        .qfg-toast-success { background:#166534; color:#dcfce7; border-left:4px solid #4ade80; }
+        .qfg-toast-error   { background:#7f1d1d; color:#fee2e2; border-left:4px solid #f87171; }
+        .qfg-toast-info    { background:#1e3a5f; color:#dbeafe; border-left:4px solid #60a5fa; }
+        .qfg-toast-icon    { font-size:1.1rem; flex-shrink:0; }
+        .qfg-toast-close   {
+          margin-left:auto; background:none; border:none; cursor:pointer;
+          color:inherit; opacity:.7; font-size:.9rem; padding:0 2px;
+          flex-shrink:0; line-height:1;
+        }
+        .qfg-toast-close:hover { opacity:1; }
+        @keyframes qfgToastIn  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes qfgToastOut { from{opacity:1;transform:translateY(0)}    to{opacity:0;transform:translateY(16px)} }
+      `;
+      document.head.appendChild(s);
+    }
+
+    // Ensure container exists
+    let container = document.getElementById("qfg-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "qfg-toast-container";
+      document.body.appendChild(container);
+    }
+
+    const icons = { success: "✅", error: "❌", info: "ℹ️" };
+    const toast = document.createElement("div");
+    toast.className = `qfg-toast qfg-toast-${type}`;
+    toast.innerHTML = `
+      <span class="qfg-toast-icon">${icons[type] || icons.success}</span>
+      <span>${message}</span>
+      <button class="qfg-toast-close" title="Dismiss">✕</button>
+    `;
+
+    const dismiss = () => {
+      toast.classList.add("qfg-toast-out");
+      toast.addEventListener("animationend", () => toast.remove(), { once: true });
+    };
+    toast.querySelector(".qfg-toast-close").addEventListener("click", dismiss);
+    container.appendChild(toast);
+    setTimeout(dismiss, duration);
   }
 
   function closeModal() {
