@@ -640,6 +640,20 @@ SELECT 'html' AS component, '
                  value="' || COALESCE($_req_id_format, 'RQ-{NUM}') || '" />
           <span class="hint">Tokens: {NUM}, {PRJ}, {SUITE}</span>
         </div>
+        <div class="cfg-format-field">
+          <label>Plan ID Format</label>
+          <input type="text" name="pl_id_format" placeholder="PL-{NUM}"
+                 value="' || COALESCE($_pl_id_format, 'PL-{NUM}') || '" />
+          <span class="hint">Tokens: {NUM}, {PRJ}, {SUITE}</span>
+        </div>
+      </div>
+      <div class="cfg-format-group">
+        <div class="cfg-format-field">
+          <label>Suite ID Format</label>
+          <input type="text" name="st_id_format" placeholder="ST-{NUM}"
+                 value="' || COALESCE($_st_id_format, 'ST-{NUM}') || '" />
+          <span class="hint">Tokens: {NUM}, {PRJ}, {SUITE}</span>
+        </div>
       </div>
       <div class="cfg-footer-btns">
         <button type="submit" class="btn btn-primary qfg-tc-btn">💾 Save Formats</button>

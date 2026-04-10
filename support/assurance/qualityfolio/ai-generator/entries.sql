@@ -288,7 +288,7 @@ SELECT 'html' AS component, '
      MODALS
      ============================================ */
   .qfg-modal-overlay {position: fixed;inset: 0;background: rgba(0, 0, 0, 0.45);z-index: 9999;display: flex;align-items: flex-start;justify-content: center;overflow-y: auto;padding: 40px 20px;}
-  .qfg-modal {background: #ffffff;border-radius: 14px;padding: 24px 28px;width: min(580px, 95vw);max-height: 90vh;overflow-y: auto;box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);}
+  .qfg-modal {background: #ffffff;border-radius: 14px;padding: 24px 28px;width: min(800px, 95vw);max-height: 90vh;overflow-y: auto;box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);}
   .qfg-modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.05rem; color: var(--text-primary); margin-bottom: 16px; }
   .qfg-modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--slate-500); transition: all 0.2s ease; }
   .qfg-modal-close:hover { color: var(--danger); }
@@ -407,7 +407,7 @@ SELECT 'html' AS component, '
         </div>
         <div class="qfg-row3" style="margin-bottom:8px">
           <div class="qfg-field"><label>Test Type</label><select id="qfg-testtype"></select></div>
-          <div class="qfg-field"><label>Cycle</label><input type="text" id="qfg-cycle" value="1.0" placeholder="Ver 1.0" /></div>
+          <div class="qfg-field"><label>Cycle ID</label><input type="text" id="qfg-cycle" value="1.0" placeholder="Ver 1.0" /></div>
           <div class="qfg-field"><label>Cycle Date</label>
             <div style="position:relative;display:flex;align-items:center;">
               <input type="text" id="qfg-cycle-date-display" placeholder="MM-DD-YYYY"

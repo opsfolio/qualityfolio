@@ -1645,7 +1645,7 @@ function addEvidenceRowToModal(ev) {
         <button type="button" class="remove-evidence" style="position: absolute; top: -10px; right: -10px; background: #fff; border: 1px solid #fee2e2; color: #ef4444; cursor: pointer; font-size: 0.9rem; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;">&times;</button>
         <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.75rem; margin-bottom: 0.75rem;">
             <div class="qfg-field">
-                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px; display: block;">Run</label>
+                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px; display: block;">Cycle ID</label>
                 <input type="text" class="form-input ev-cycle" value="${ev.cycle || ""}" placeholder="e.g. 1.0" style="padding: 0.5rem 0.75rem; font-size: 0.88rem;">
             </div>
             <div class="qfg-field">
@@ -1657,7 +1657,7 @@ function addEvidenceRowToModal(ev) {
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.75rem;">
             <div class="qfg-field" style="position: relative;">
-                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px; display: block;">Date</label>
+                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px; display: block;">Cycle Date</label>
                 <div style="display: flex; align-items: center; position: relative;">
                     <input type="text" class="form-input ev-date" value="${displayDate}" placeholder="MM-DD-YYYY" style="width: 100%; background: #fff; cursor: pointer; padding: 0.5rem 0.75rem; font-size: 0.88rem;">
                     <input type="hidden" class="ev-date-iso" value="${isoDate}">

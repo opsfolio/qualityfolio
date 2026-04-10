@@ -1801,11 +1801,11 @@
     };
 
     const fieldStyle =
-      "width:100%; padding:7px 9px; border:1.5px solid #e2e8f0; border-radius:7px; font-size:0.83rem; color:#1e293b; background:#fff; box-sizing:border-box;";
+      "width:100%; padding:12px 9px !important; border:1.5px solid #e2e8f0; border-radius:7px; font-size:0.83rem; color:#1e293b; background:#fff; box-sizing:border-box;";
 
     // Cycle input
     const cWrap = document.createElement("div");
-    cWrap.appendChild(mkLabel("Cycle"));
+    cWrap.appendChild(mkLabel("Cycle ID"));
     const cInp = document.createElement("input");
     cInp.type = "text";
     cInp.className = "ec-ev-cycle";
@@ -1834,7 +1834,7 @@
 
     // Date field – text input, Pikaday attached after DOM insert
     const dWrap = document.createElement("div");
-    dWrap.appendChild(mkLabel("📅 Date"));
+    dWrap.appendChild(mkLabel("Cycle Date"));
     const dTextInp = document.createElement("input");
     dTextInp.type = "text";
     dTextInp.value = displayDate;
@@ -1884,7 +1884,7 @@
   function editCaseModalHTML(mOpts) {
     return `
     <div class="qfg-modal-overlay" id="editCaseModal" style="display:none">
-      <div class="qfg-modal" style="width:min(680px,96vw)">
+      <div class="qfg-modal" style="width:min(820px,96vw)">
         <div class="qfg-modal-header">
           <span id="editCaseModalTitle">&#9998; Edit Test Case</span>
           <button class="qfg-modal-close" id="editCaseModalClose">&#10005;</button>
@@ -2036,7 +2036,7 @@
           </div>
           <!-- Evidence History -->
           <div id="vcEvBlock" style="display:none">
-            <div class="vc-section-label">📎 Evidence History</div>
+            <div class="vc-section-label">A Evidence History</div>
             <div id="vcEvidenceList" style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
         </div>

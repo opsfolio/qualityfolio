@@ -1002,7 +1002,7 @@ function restoreSession() {
             }
             if (typeof window.refreshAllUI === 'function') window.refreshAllUI();
             syncCurrentFileToVirtualMap();
-            showToast("Test Case applied (Unsaved).", "success");
+            showToast("Test Case Updated. Click 'Save Changes' button to apply changes.", "success");
           }, 30);
         });
       }
@@ -1019,7 +1019,7 @@ function restoreSession() {
             }
             if (typeof window.refreshAllUI === 'function') window.refreshAllUI();
             syncCurrentFileToVirtualMap();
-            showToast("Plan applied (Unsaved).", "success");
+            showToast("Plan applied! Click 'Save Changes' to persist changes.", "success");
           }, 30);
         });
       }
@@ -1036,7 +1036,7 @@ function restoreSession() {
             }
             if (typeof window.refreshAllUI === 'function') window.refreshAllUI();
             syncCurrentFileToVirtualMap();
-            showToast("Suite applied (Unsaved).", "success");
+            showToast("Suite applied! Click 'Save Changes' to persist changes.", "success");
           }, 30);
         });
       }
@@ -1204,7 +1204,7 @@ function restoreSession() {
 
           if (typeof addEvidenceRowToModal === "function") {
             addEvidenceRowToModal({
-              cycle: nextCycle,
+              cycle: "nextec-ev-cycle",
               status: "To-do",
               cycleDate: isoToday,
               assignee: "",
