@@ -455,7 +455,7 @@
     div.className = "qfg-plan-block";
     div.dataset.plan = pid;
     div.innerHTML = `
-      <button class="qfg-remove-suite qfg-remove-plan" title="Remove Plan" style="top:10px;right:12px">✕</button>
+      <button type="button" class="qfg-remove-suite qfg-remove-plan" title="Remove Plan" style="top:10px;right:12px">✕</button>
       <div style="font-weight:700;font-size:.85rem;color:#35a0d0;margin-bottom:12px"> Plan ${pid}</div>
       <div class="qfg-row" style="margin-bottom:10px">
         <div class="qfg-field"><label>Plan Name<span class="req">*</span></label><input type="text" class="plan-name" placeholder="e.g. Regression Plan ${pid}"/></div>
@@ -480,7 +480,38 @@
     div
       .querySelector(".qfg-remove-plan")
       .addEventListener("click", function () {
-        this.closest(".qfg-plan-block").remove();
+        const planBlock = this.closest(".qfg-plan-block");
+
+        // Toggle off any existing inline confirm banner
+        const existing = planBlock.querySelector(".qfg-plan-confirm-banner");
+        if (existing) { existing.remove(); return; }
+
+        const planNameEl = planBlock.querySelector(".plan-name");
+        const planName = (planNameEl && planNameEl.value.trim()) || ("Plan " + pid);
+        const numSuites = planBlock.querySelectorAll(".qfg-suite-block").length;
+        const suiteWord = numSuites === 1 ? "suite" : "suites";
+        const msgText = numSuites > 0
+          ? ("Delete plan \"" + planName + "\" and its " + numSuites + " " + suiteWord + "? All test cases under this plan will also be removed.")
+          : ("Delete plan \"" + planName + "\"? This will remove the plan and all its suites and test cases.");
+
+        const banner = document.createElement("div");
+        banner.className = "qfg-plan-confirm-banner";
+        banner.style.cssText = "margin:8px 0 4px;padding:10px 14px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.82rem;color:#9a3412;";
+        banner.innerHTML =
+          '<span style="flex:1;line-height:1.5">⚠️ ' + msgText + '</span>' +
+          '<button type="button" class="qfg-plan-confirm-yes" style="padding:5px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;">Delete</button>' +
+          '<button type="button" class="qfg-plan-confirm-no" style="padding:5px 14px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;">Cancel</button>';
+
+        banner.querySelector(".qfg-plan-confirm-yes").addEventListener("click", function () { planBlock.remove(); });
+        banner.querySelector(".qfg-plan-confirm-no").addEventListener("click", function () { banner.remove(); });
+
+        // Insert banner just above the suites section
+        const suitesSection = planBlock.querySelector(".plan-suite-list") ? planBlock.querySelector(".plan-suite-list").parentElement : null;
+        if (suitesSection && suitesSection !== planBlock) {
+          planBlock.insertBefore(banner, suitesSection);
+        } else {
+          planBlock.appendChild(banner);
+        }
       });
     div
       .querySelector(".add-plan-suite-btn")
@@ -518,7 +549,7 @@
     div.className = "qfg-suite-block";
     div.dataset.suite = sc;
     div.innerHTML = `
-      <button class="qfg-remove-suite" title="Remove Suite">✕</button>
+      <button type="button" class="qfg-remove-suite" title="Remove Suite">✕</button>
       <div style="font-weight:700;font-size:.82rem;color:#0ea5e9;margin-bottom:10px">📋 Suite ${suiteCount}</div>
       <div class="qfg-row">
         <div class="qfg-field"><label>Suite Name<span class="req">*</span></label><input type="text" class="suite-name" placeholder="e.g. Login Suite"/></div>
@@ -615,7 +646,7 @@
     div.style.cssText =
       "background:#fafafe;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:10px;position:relative;";
     div.innerHTML = `
-      <button class="qfg-remove-suite" title="Remove Suite" style="top:8px;right:10px">✕</button>
+      <button type="button" class="qfg-remove-suite" title="Remove Suite" style="top:8px;right:10px">✕</button>
       <div style="font-weight:700;font-size:.82rem;color:#35a0d0;margin-bottom:10px">Suite ${sc}</div>
       <div class="qfg-row">
         <div class="qfg-field"><label>Suite Name<span class="req">*</span></label><input type="text" class="suite-name" placeholder="e.g. Login Suite"/></div>
@@ -2632,6 +2663,12 @@
         }
         if (planDelBtn) {
           const pi = parseInt(planDelBtn.dataset.planidx || 0);
+          let planBlockId = pi + 1;
+          const planBlock = document.querySelector(`.qfg-plan-block[data-plan="${planBlockId}"]`);
+          console.log(planBlock)
+          if (planBlock) {
+            planBlock.remove();
+          }
           const plan = _ctx.plans && _ctx.plans[pi];
           const pname = plan?.planName || "this plan";
           if (confirm(`Delete plan "${pname}" and all its suites/cases?`)) {
@@ -2645,6 +2682,8 @@
               _cases = _cases.filter((c) => !planCaseSet.has(c));
               // Remove the plan from context
               _ctx.plans.splice(pi, 1);
+
+
               // If no plans remain, clear the results panel
               if (_ctx.plans.length === 0) {
                 document.getElementById("qfg-results").style.display = "none";
