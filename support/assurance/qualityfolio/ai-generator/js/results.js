@@ -2839,10 +2839,14 @@ window.openPlanEditModal = function (stIdx, pIdx) {
       .map((u) => `<option value="${u.name}">${u.name}</option>`)
       .join("");
 
-    if (meta.createdBy) {
-      editPlanCreatedBy.value = meta.createdBy;
-    } else if (plan.planCreatedBy) {
-      editPlanCreatedBy.value = plan.planCreatedBy;
+    // Resolve creator: yamlMetadata["created-by"] > plan.planCreatedBy > meta.createdBy
+    const resolvedPlanCreator =
+      (plan.yamlMetadata && plan.yamlMetadata["created-by"]) ||
+      plan.planCreatedBy ||
+      meta.createdBy ||
+      "";
+    if (resolvedPlanCreator) {
+      editPlanCreatedBy.value = resolvedPlanCreator;
     }
   }
 
@@ -2850,7 +2854,12 @@ window.openPlanEditModal = function (stIdx, pIdx) {
   if (editPlanYaml) {
     const pName = plan.planName || "";
     const pDate = plan.planDate || new Date().toISOString().split("T")[0];
-    const pCreatedBy = plan.planCreatedBy || "User";
+    // Use the same resolved creator so the YAML textarea always matches the dropdown
+    const pCreatedBy =
+      (plan.yamlMetadata && plan.yamlMetadata["created-by"]) ||
+      plan.planCreatedBy ||
+      (editPlanCreatedBy ? editPlanCreatedBy.value : "") ||
+      "User";
 
     let yamlStr = `  plan-name: ${pName}\n  plan-date: ${pDate}\n  created-by: ${pCreatedBy}`;
 
@@ -2980,18 +2989,26 @@ window.openSuiteEditModal = function (stIdx, pIdx, sIdx) {
       .map((u) => `<option value="${u.name}">${u.name}</option>`)
       .join("");
 
-    if (meta.createdBy) {
-      editSuiteCreatedBy.value = meta.createdBy;
-    } else {
-      // Try fallback to local storage default? Or just first option.
-      // Maybe plan creator?
+    // Resolve creator: yamlMetadata["created-by"] > suite.suiteCreatedBy > meta.createdBy
+    const resolvedSuiteCreator =
+      (suite.yamlMetadata && suite.yamlMetadata["created-by"]) ||
+      suite.suiteCreatedBy ||
+      meta.createdBy ||
+      "";
+    if (resolvedSuiteCreator) {
+      editSuiteCreatedBy.value = resolvedSuiteCreator;
     }
   }
 
   if (editSuiteYaml) {
     const sName = suite.suiteName || "";
     const sDate = suite.suiteDate || new Date().toISOString().split("T")[0];
-    const sCreatedBy = suite.suiteCreatedBy || "User";
+    // Use the same resolved creator so the YAML textarea always matches the dropdown
+    const sCreatedBy =
+      (suite.yamlMetadata && suite.yamlMetadata["created-by"]) ||
+      suite.suiteCreatedBy ||
+      (editSuiteCreatedBy ? editSuiteCreatedBy.value : "") ||
+      "User";
 
     let yamlStr = `  suite-name: ${sName}\n  suite-date: ${sDate}\n  created-by: ${sCreatedBy}`;
 
@@ -4810,6 +4827,7 @@ function setupInputSync() {
     }
   });
 }
+
 
 // Helper to set both Text Display and Hidden Date Picker
 function setDualDateInput(textInput, isoDate) {

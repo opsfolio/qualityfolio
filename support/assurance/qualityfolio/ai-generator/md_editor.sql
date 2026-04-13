@@ -795,8 +795,8 @@ SELECT 'html' AS component, '
                     <!-- Bulk Toolbar: Sticky -->
                     <div class="qfg-bulk-toolbar">
                       
-                      <!-- Row 1: Selection | Divider | Actions | Divider | Properties | Spacer | Apply -->
-                      <div class="qfg-bulk-row" style="border-bottom: 1px solid rgba(226, 232, 240, 0.4); padding-bottom: 12px; margin-bottom: 12px;">
+					  <!-- Row 1: Selection | Divider | Actions -->
+                      <div class="qfg-bulk-row">
                         <!-- Left: Selection -->
                         <div class="qfg-bulk-group">
                             <label class="qfg-select-all-label" style="display:flex;align-items:center;gap:8px;">
@@ -818,29 +818,34 @@ SELECT 'html' AS component, '
                             </button>
                         </div>
 
-                        <div class="qfg-bulk-divider"></div>
+                        </div>
+						<!-- Row 1.5: Properties | Spacer | Apply -->
+						<div class="qfg-bulk-row" style="border-bottom: 1px solid rgba(226, 232, 240, 0.4); padding-bottom: 12px; margin-bottom: 12px;">
 
                         <!-- Center: Properties (Scenario/Exec) -->
                         <div class="qfg-bulk-group" style="gap:14px;">
-                            <label class="qfg-bulk-label">Scenario</label>
+                            <label class="qfg-bulk-label">Scenario Type</label>
                             <select id="bulkScenarioType" class="qfg-bulk-select">
                               <option value="">-- Scenario Type --</option>
                             </select>
-                            <label class="qfg-bulk-label">Exec</label>
+                            <label class="qfg-bulk-label">Execution Type</label>
                             <select id="bulkExecutionType" class="qfg-bulk-select">
                               <option value="">-- Exec Type --</option>
                             </select>
+							<label class="qfg-bulk-label">Tags</label>
                             <input type="text" id="bulkTags" class="qfg-bulk-input" placeholder="+ Tag" style="width: 110px; font-weight: 500;" />
                         </div>
 
 
                         <!-- Right: Assign/Prio Apply -->
                         <div class="qfg-bulk-group">
+							<label class="qfg-bulk-label">Assignee</label>
                             <select id="bulkAssignSelect" class="qfg-bulk-select" >
                               <option value="">-- Assignee --</option>
                             </select>
+							<label class="qfg-bulk-label">Priority</label>
                             <select id="bulkPrioritySelect" class="qfg-bulk-select" >
-                              <option value="">-- Prio --</option>
+                              <option value="">-- Priority --</option>
                               <option value="Critical">Critical</option>
                               <option value="High">High</option>
                               <option value="Medium">Medium</option>

@@ -977,6 +977,20 @@
       return { planName, planId, planDate, planCreator, suites: planSuites };
     });
 
+    // ── Check for duplicate Suite IDs ──
+    const allSuiteIds = [];
+    if (schema === "4_level") {
+      suites.forEach(s => { if (s.id) allSuiteIds.push(s.id.toLowerCase()); });
+    } else if (schema !== "3_level") {
+      plansInput.forEach(p => {
+        p.suites.forEach(s => { if (s.id) allSuiteIds.push(s.id.toLowerCase()); });
+      });
+    }
+    if (new Set(allSuiteIds).size !== allSuiteIds.length) {
+      showModal("Duplicate Suite ID", "Multiple suites cannot have the same ID. Please ensure all Suite IDs are unique.");
+      return;
+    }
+
     const genBtn = document.getElementById("qfg-gen-btn");
     const btnIcon = document.getElementById("qfg-btn-icon");
     const btnText = document.getElementById("qfg-btn-text");
