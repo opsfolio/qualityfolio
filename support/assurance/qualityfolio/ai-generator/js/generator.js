@@ -592,6 +592,15 @@
 
     if (!planSuiteCounters[planIdKey]) planSuiteCounters[planIdKey] = 0;
     planSuiteCounters[planIdKey] = sc;
+
+    // Build a plan-scoped suite ID: e.g. ST-PL001-001
+    // We derive the plan's numeric index from planIdKey (1-based)
+    const planNum = String(planIdKey).padStart(3, "0");
+    const suiteNum = String(sc).padStart(3, "0");
+    // Honour the suite format prefix (everything before the first {NUM} token)
+    const suitePrefix = (_suiteIdFormat || "ST-{NUM}").split("{NUM}")[0]; // e.g. "ST-"
+    const planPrefix = (_planIdFormat || "PL-{NUM}").split("{NUM}")[0]; // e.g. "PL-"
+    const scopedSuiteId = `${suitePrefix}${planPrefix}${planNum}-${suiteNum}`;
     const today = new Date().toISOString().slice(0, 10);
     const todayFmt = (() => {
       const p = today.split("-");
@@ -610,7 +619,7 @@
       <div style="font-weight:700;font-size:.82rem;color:#35a0d0;margin-bottom:10px">Suite ${sc}</div>
       <div class="qfg-row">
         <div class="qfg-field"><label>Suite Name<span class="req">*</span></label><input type="text" class="suite-name" placeholder="e.g. Login Suite"/></div>
-        <div class="qfg-field"><label>Suite ID<span class="req">*</span></label><input type="text" class="suite-id" value="${makeId(_suiteIdFormat, sc, getVal("qfg-project"))}" placeholder="e.g. SUITE-00${sc}"/></div>
+        <div class="qfg-field"><label>Suite ID<span class="req">*</span></label><input type="text" class="suite-id" value="SU-${String(planIdKey).padStart(2, '0')}-${String(sc).padStart(3, '0')}" placeholder="e.g. SU-${String(planIdKey).padStart(2, '0')}-${String(sc).padStart(3, '0')}"/></div>
       </div>
       <div class="qfg-row">
         <div class="qfg-field"><label>Suite Date</label>
@@ -2626,15 +2635,21 @@
           const plan = _ctx.plans && _ctx.plans[pi];
           const pname = plan?.planName || "this plan";
           if (confirm(`Delete plan "${pname}" and all its suites/cases?`)) {
-            // Remove all cases of this plan
             if (plan) {
+              // Collect all case references that belong to this plan
+              const planCaseSet = new Set();
               plan.suitesWithCases.forEach((suite) => {
-                (suite.cases || []).forEach((sc) => {
-                  const idx = _cases.indexOf(sc);
-                  if (idx !== -1) _cases.splice(idx, 1);
-                });
+                (suite.cases || []).forEach((sc) => planCaseSet.add(sc));
               });
+              // Rebuild _cases excluding any case that belongs to this plan
+              _cases = _cases.filter((c) => !planCaseSet.has(c));
+              // Remove the plan from context
               _ctx.plans.splice(pi, 1);
+              // If no plans remain, clear the results panel
+              if (_ctx.plans.length === 0) {
+                document.getElementById("qfg-results").style.display = "none";
+                return;
+              }
             }
             renderResults(_cases, _ctx);
           }
