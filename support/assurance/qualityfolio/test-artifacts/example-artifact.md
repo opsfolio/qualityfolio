@@ -151,6 +151,7 @@ priority: High
 tags: ["Login", "Positive", "Authentication"]
 scenario-type: Happy Path
 Execution Type: Automation
+Test Type: Functional
 ```
 
 **Description**
@@ -201,6 +202,7 @@ priority: High
 tags: ["Login", "Network Timeout", "Negative", "Resilience"]
 scenario-type: Happy Path
 Execution Type: Manual
+Test Type: Functional
 ```
 
 **Description**
@@ -276,6 +278,7 @@ priority: High
 tags: ["Login", "Session", "Negative", "Security"]
 scenario-type: Negative Path
 Execution Type: Manual
+Test Type: Functional
 ```
 
 **Description**

@@ -9,9 +9,23 @@ CREATE TABLE IF NOT EXISTS commit_files (
     file_details text
 );
 
+CREATE TABLE IF NOT EXISTS qf_testcase_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    testcase_id TEXT,
+    comment_text TEXT,
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Defensive table for GitHub Metadata (synced by github_commit.py)
+CREATE TABLE IF NOT EXISTS qf_github_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
 -- CREATE VIEW in case singer tap didn't run, so queries don't crash
 CREATE VIEW IF NOT EXISTS github_commits AS 
-SELECT NULL AS id, NULL AS sha, '{}' AS "commit", NULL AS html_url, '[]' AS files WHERE 1=0;
+SELECT NULL AS id, NULL AS sha, '{}' AS "commit", NULL AS html_url, '[]' AS files, NULL AS _sdc_repository WHERE 1=0;
 
 -- SQLITE ETL SCRIPT — FINAL MODIFIED VERSION (Relying on Evidence Status)
 -- 1. CLEAN AND PARSE THE RAW CONTENT
@@ -67,10 +81,12 @@ SELECT
 FROM
   ranked
 WHERE
-  rn = 1;
+  rn = 1
+  AND ingest_session_id = (SELECT MAX(ingest_session_id) FROM ur_ingest_session_fs_path_entry);
+
 -- 2. LOAD doc-classify ROLE→DEPTH MAP
-  ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS qf_depth_master;
+------------------------------------------------------------------------------
+DROP TABLE IF EXISTS qf_depth_master;
 CREATE TABLE qf_depth_master AS
 SELECT
   ur.uniform_resource_id,
@@ -99,9 +115,10 @@ FROM
   JSON_EACH(ur.frontmatter, '$.doc-classify') AS role_map
 WHERE
   ur.frontmatter IS NOT NULL;
+
 -- 3. JSON TRAVERSAL
-  ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS qf_depth;
+------------------------------------------------------------------------------
+DROP TABLE IF EXISTS qf_depth;
 CREATE TABLE qf_depth AS
 SELECT
   td.uniform_resource_id,
@@ -114,631 +131,182 @@ FROM
   json_tree(td.cleaned_json_text, '$') AS jt
 WHERE
   jt.key = 'section';
--- 4. NORMALIZE + ROLE ATTACH & CODE EXTRACTION (CRITICAL: Robust Delimiter Injection)
-  ------------------------------------------------------------------------------
-  DROP TABLE IF EXISTS qf_role;
+
+-- 4. NORMALIZE + ROLE ATTACH & CODE EXTRACTION
+------------------------------------------------------------------------------
+DROP TABLE IF EXISTS qf_role;
 CREATE TABLE qf_role AS
-select
-  t.rownum,
-  t.uniform_resource_id,
-  t.file_basename,
-  t.depth,
-  t.title,
-  t.body_json_string,
-  t.extracted_id,
-  t.code_content,
-  t.role_name
-from
-  (
-    SELECT
-      ROW_NUMBER() OVER (
-        ORDER BY
-          s.uniform_resource_id
-      ) AS rownum,
-      s.uniform_resource_id,
-      s.file_basename,
-      s.depth,
-      s.title,
-      s.body_json_string,
-      TRIM(
-        SUBSTR(
-          s.body_json_string,
-          INSTR(s.body_json_string, '@id') + 4,
-          INSTR(
-            SUBSTR(
-              s.body_json_string,
-              INSTR(s.body_json_string, '@id') + 4
-            ),
-            '"'
-          ) - 1
-        )
-      ) AS extracted_id,
-      REPLACE(
-        REPLACE(
-          REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            REPLACE(
-                              REPLACE(
-                                REPLACE(
-                                  REPLACE(
-                                    SUBSTR(
-                                      s.body_json_string,
-                                      INSTR(s.body_json_string, '"code":"') + 8,
-                                      INSTR(s.body_json_string, '","type":') - (INSTR(s.body_json_string, '"code":"') + 8)
-                                    ),
-                                    'Tags:',
-                                    CHAR(10) || 'Tags:'
-                                  ),
-                                  'Scenario Type:',
-                                  CHAR(10) || 'Scenario Type:'
-                                ),
-                                'Priority:',
-                                CHAR(10) || 'Priority:'
-                              ),
-                              'requirementID:',
-                              CHAR(10) || 'requirementID:'
-                            ),
-                            -- IMPORTANT: cycle-date MUST come before cycle
-                            'cycle-date:',
-                            CHAR(10) || 'cycle-date:'
-                          ),
-                          'cycle:',
-                          CHAR(10) || 'cycle:'
-                        ),
-                        'severity:',
-                        CHAR(10) || 'severity:'
-                      ),
-                      'assignee:',
-                      CHAR(10) || 'assignee:'
-                    ),
-                    'status:',
-                    CHAR(10) || 'status:'
-                  ),
-                  'issue_id:',
-                  CHAR(10) || 'issue_id:'
-                ),
-                'plan-name:',
-                CHAR(10) || 'plan-name:'
-              ),
-              'plan-date:',
-              CHAR(10) || 'plan-date:'
-            ),
-            'created-by:',
-            CHAR(10) || 'created-by:'
-          ),
-          'suite-name:',
-          CHAR(10) || 'suite-name:'
-        ),
-        'suite-date:',
-        CHAR(10) || 'suite-date:'
-      ) AS code_content,
-      rm.role_name
-    FROM
-      qf_depth s
-      LEFT JOIN qf_depth_master rm ON s.uniform_resource_id = rm.uniform_resource_id
-      AND s.depth = rm.role_depth
-  ) t
-where
-  t.depth != 5
-union all
+WITH base AS (
+  SELECT
+    ROW_NUMBER() OVER (ORDER BY s.uniform_resource_id) AS rownum,
+    s.uniform_resource_id,
+    s.file_basename,
+    s.depth,
+    s.title,
+    s.body_json_string,
+    TRIM(
+      SUBSTR(
+        s.body_json_string,
+        INSTR(s.body_json_string, '@id') + 4,
+        INSTR(
+          SUBSTR(s.body_json_string, INSTR(s.body_json_string, '@id') + 4),
+          '"'
+        ) - 1
+      )
+    ) AS extracted_id,
+    CASE
+      WHEN s.depth = 5 THEN NULL -- Handled by union
+      WHEN INSTR(s.body_json_string, '"code":"') > 0 THEN SUBSTR(
+        s.body_json_string,
+        INSTR(s.body_json_string, '"code":"') + 8,
+        INSTR(
+          SUBSTR(s.body_json_string, INSTR(s.body_json_string, '"code":"') + 8),
+          '","type":'
+        ) - 1
+      )
+      ELSE NULL
+    END AS raw_code,
+    rm.role_name
+  FROM
+    qf_depth s
+    LEFT JOIN qf_depth_master rm ON s.uniform_resource_id = rm.uniform_resource_id AND s.depth = rm.role_depth
+  WHERE s.depth != 5
+  UNION ALL
+  SELECT
+    ROW_NUMBER() OVER (ORDER BY s.uniform_resource_id) AS rownum,
+    s.uniform_resource_id,
+    s.file_basename,
+    s.depth,
+    s.title,
+    s.body_json_string,
+    TRIM(
+      SUBSTR(
+        s.body_json_string,
+        INSTR(s.body_json_string, '@id') + 4,
+        INSTR(
+          SUBSTR(s.body_json_string, INSTR(s.body_json_string, '@id') + 4),
+          '"'
+        ) - 1
+      )
+    ) AS extracted_id,
+    CASE
+      WHEN json_type(value, '$.code_block') IS NOT NULL 
+      THEN REPLACE(REPLACE(json_extract(value, '$.code_block'), '{"code":"', ''), '","type":"code","language":"yaml","metadata":"HFM"}', '')
+      ELSE NULL
+    END AS raw_code,
+    rm.role_name
+  FROM
+    qf_depth s
+    LEFT JOIN qf_depth_master rm ON s.uniform_resource_id = rm.uniform_resource_id AND s.depth = rm.role_depth,
+    json_each(s.body_json_string)
+  WHERE s.depth = 5 AND json_type(value, '$.code_block') IS NOT NULL
+)
 SELECT
-  ROW_NUMBER() OVER (
-    ORDER BY
-      s.uniform_resource_id
-  ) AS rownum,
-  s.uniform_resource_id,
-  s.file_basename,
-  s.depth,
-  s.title,
-  s.body_json_string,
-  TRIM(
-    SUBSTR(
-      s.body_json_string,
-      INSTR(s.body_json_string, '@id') + 4,
-      INSTR(
-        SUBSTR(
-          s.body_json_string,
-          INSTR(s.body_json_string, '@id') + 4
-        ),
-        '"'
-      ) - 1
-    )
-  ) AS extracted_id,
-  REPLACE(
-    REPLACE(
-      REPLACE(
-        REPLACE(
-          REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            REPLACE(
-                              REPLACE(
-                                REPLACE(
-                                  REPLACE(
-                                    json_extract(value, '$.code_block'),
-                                    '{"code":"',
-                                    ''
-                                  ),
-                                  '","type":"code","language":"yaml","metadata":"HFM"}',
-                                  ''
-                                ),
-                                'Tags:',
-                                CHAR(10) || 'Tags:'
-                              ),
-                              'Scenario Type:',
-                              CHAR(10) || 'Scenario Type:'
-                            ),
-                            'Priority:',
-                            CHAR(10) || 'Priority:'
-                          ),
-                          'requirementID:',
-                          CHAR(10) || 'requirementID:'
-                        ),
-                        -- IMPORTANT: cycle-date MUST come before cycle
-                        'cycle-date:',
-                        CHAR(10) || 'cycle-date:'
-                      ),
-                      'cycle:',
-                      CHAR(10) || 'cycle:'
-                    ),
-                    'severity:',
-                    CHAR(10) || 'severity:'
-                  ),
-                  'assignee:',
-                  CHAR(10) || 'assignee:'
-                ),
-                'status:',
-                CHAR(10) || 'status:'
-              ),
-              'issue_id:',
-              CHAR(10) || 'issue_id:'
-            ),
-            'plan-name:',
-            CHAR(10) || 'plan-name:'
-          ),
-          'plan-date:',
-          CHAR(10) || 'plan-date:'
-        ),
-        'created-by:',
-        CHAR(10) || 'created-by:'
-      ),
-      'suite-name:',
-      CHAR(10) || 'suite-name:'
-    ),
-    'suite-date:',
-    CHAR(10) || 'suite-date:'
-  ) as code_content,
-  rm.role_name
-FROM
-  qf_depth s
-  LEFT JOIN qf_depth_master rm ON s.uniform_resource_id = rm.uniform_resource_id
-  AND s.depth = rm.role_depth,
-  json_each(s.body_json_string)
-WHERE
-  json_type(value, '$.code_block') IS NOT NULL
-  and s.depth = 5;
+  rownum, uniform_resource_id, file_basename, depth, title, body_json_string, extracted_id,
+  REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+    raw_code,
+    'Tags:', CHAR(10)||'Tags:'), 'tags:', CHAR(10)||'tags:'),
+    'Scenario Type:', CHAR(10)||'Scenario Type:'), 'scenario-type:', CHAR(10)||'scenario-type:'),
+    'Priority:', CHAR(10)||'Priority:'), 'priority:', CHAR(10)||'priority:'),
+    'requirementID:', CHAR(10)||'requirementID:'), 'requirementid:', CHAR(10)||'requirementid:'),
+    'cycle-date:', CHAR(10)||'cycle-date:'), 'cycle:', CHAR(10)||'cycle:'),
+    'severity:', CHAR(10)||'severity:'), 'assignee:', CHAR(10)||'assignee:'),
+    'status:', CHAR(10)||'status:'), 'issue_id:', CHAR(10)||'issue_id:'),
+    'plan-name:', CHAR(10)||'plan-name:'), 'plan-date:', CHAR(10)||'plan-date:'),
+    'created-by:', CHAR(10)||'created-by:'), 'suite-name:', CHAR(10)||'suite-name:'),
+    'suite-date:', CHAR(10)||'suite-date:'), 'Execution Type:', CHAR(10)||'Execution Type:'),
+    'execution-type:', CHAR(10)||'execution-type:'), 'Test Type:', CHAR(10)||'Test Type:'),
+    'test-type:', CHAR(10)||'test-type:'
+  ) AS code_content,
+  role_name
+FROM base;
+
 -- 5. EVIDENCE HISTORY JSON ARRAY (Aggregates all evidence history)
-  ------------------------------------------------------------------------------
-  -- Logic for cycle, severity, assignee, and status parsing is retained from previous fix.
-  DROP TABLE IF EXISTS qf_evidence_event;
-CREATE TABLE qf_evidence_event AS WITH RECURSIVE -- Step 1: get all evidence rows with normalized code_content
+------------------------------------------------------------------------------
+DROP TABLE IF EXISTS qf_evidence_event;
+CREATE TABLE qf_evidence_event AS WITH RECURSIVE
   evidence_source AS (
     SELECT
-      tas.uniform_resource_id,
-      tas.extracted_id AS test_case_id,
-      tas.file_basename,
-      -- Ensure code_content starts with 'cycle:' so the splitting works uniformly.
+      tas.uniform_resource_id, tas.extracted_id AS test_case_id, tas.file_basename,
       CASE
         WHEN SUBSTR(TRIM(tas.code_content), 1, 6) = 'cycle:' THEN TRIM(tas.code_content)
-        WHEN INSTR(tas.code_content, 'cycle:') > 0 THEN SUBSTR(
-          tas.code_content,
-          INSTR(tas.code_content, 'cycle:')
-        )
+        WHEN INSTR(tas.code_content, 'cycle:') > 0 THEN SUBSTR(tas.code_content, INSTR(tas.code_content, 'cycle:'))
         ELSE tas.code_content
       END AS code_content
-    FROM
-      qf_role tas
-    WHERE
-      tas.role_name = 'evidence'
-      AND tas.extracted_id IS NOT NULL
-      AND tas.code_content IS NOT NULL
+    FROM qf_role tas
+    WHERE tas.role_name = 'evidence' AND tas.extracted_id IS NOT NULL AND tas.code_content IS NOT NULL
   ),
-  -- Step 2: recursively split code_content on CHAR(10)||'cycle:' to get one block per cycle
-  cycle_blocks(
-    uniform_resource_id,
-    test_case_id,
-    file_basename,
-    remaining,
-    block
-  ) AS (
+  cycle_blocks(uniform_resource_id, test_case_id, file_basename, remaining, block) AS (
     SELECT
-      uniform_resource_id,
-      test_case_id,
-      file_basename,
-      CASE
-        WHEN INSTR(code_content, CHAR(10) || 'cycle:') > 0 THEN SUBSTR(
-          code_content,
-          INSTR(code_content, CHAR(10) || 'cycle:') + 1
-        )
-        ELSE NULL
-      END AS remaining,
-      CASE
-        WHEN INSTR(code_content, CHAR(10) || 'cycle:') > 0 THEN TRIM(
-          SUBSTR(
-            code_content,
-            1,
-            INSTR(code_content, CHAR(10) || 'cycle:') - 1
-          )
-        )
-        ELSE TRIM(code_content)
-      END AS block
-    FROM
-      evidence_source
+      uniform_resource_id, test_case_id, file_basename,
+      CASE WHEN INSTR(code_content, CHAR(10) || 'cycle:') > 0 THEN SUBSTR(code_content, INSTR(code_content, CHAR(10) || 'cycle:') + 1) ELSE NULL END,
+      CASE WHEN INSTR(code_content, CHAR(10) || 'cycle:') > 0 THEN TRIM(SUBSTR(code_content, 1, INSTR(code_content, CHAR(10) || 'cycle:') - 1)) ELSE TRIM(code_content) END
+    FROM evidence_source
     UNION ALL
     SELECT
-      uniform_resource_id,
-      test_case_id,
-      file_basename,
-      CASE
-        WHEN INSTR(remaining, CHAR(10) || 'cycle:') > 0 THEN SUBSTR(
-          remaining,
-          INSTR(remaining, CHAR(10) || 'cycle:') + 1
-        )
-        ELSE NULL
-      END,
-      CASE
-        WHEN INSTR(remaining, CHAR(10) || 'cycle:') > 0 THEN TRIM(
-          SUBSTR(
-            remaining,
-            1,
-            INSTR(remaining, CHAR(10) || 'cycle:') - 1
-          )
-        )
-        ELSE TRIM(remaining)
-      END
-    FROM
-      cycle_blocks
-    WHERE
-      remaining IS NOT NULL
+      uniform_resource_id, test_case_id, file_basename,
+      CASE WHEN INSTR(remaining, CHAR(10) || 'cycle:') > 0 THEN SUBSTR(remaining, INSTR(remaining, CHAR(10) || 'cycle:') + 1) ELSE NULL END,
+      CASE WHEN INSTR(remaining, CHAR(10) || 'cycle:') > 0 THEN TRIM(SUBSTR(remaining, 1, INSTR(remaining, CHAR(10) || 'cycle:') - 1)) ELSE TRIM(remaining) END
+    FROM cycle_blocks
+    WHERE remaining IS NOT NULL
   ),
-  -- Step 3: parse each individual cycle block for its fields
   evidence_temp AS (
     SELECT
-      uniform_resource_id,
-      test_case_id,
-      file_basename,
-      -- cycle
-      TRIM(
-        REPLACE(
-          SUBSTR(
-            block,
-            INSTR(block, 'cycle:') + 6,
-            CASE
-              WHEN INSTR(
-                SUBSTR(block, INSTR(block, 'cycle:') + 6),
-                CHAR(10)
-              ) = 0 THEN LENGTH(block)
-              ELSE INSTR(
-                SUBSTR(block, INSTR(block, 'cycle:') + 6),
-                CHAR(10)
-              )
-            END
-          ),
-          CHAR(10),
-          ''
-        )
-      ) AS val_cycle,
-      -- severity
-      CASE
-        WHEN INSTR(block, 'severity:') > 0 THEN TRIM(
-          REPLACE(
-            SUBSTR(
-              block,
-              INSTR(block, 'severity:') + 9,
-              CASE
-                WHEN INSTR(
-                  SUBSTR(block, INSTR(block, 'severity:') + 9),
-                  CHAR(10)
-                ) = 0 THEN LENGTH(block)
-                ELSE INSTR(
-                  SUBSTR(block, INSTR(block, 'severity:') + 9),
-                  CHAR(10)
-                )
-              END
-            ),
-            CHAR(10),
-            ''
-          )
-        )
-        ELSE NULL
-      END AS val_severity,
-      -- assignee
-      CASE
-        WHEN INSTR(block, 'assignee:') > 0 THEN TRIM(
-          REPLACE(
-            SUBSTR(
-              block,
-              INSTR(block, 'assignee:') + 9,
-              CASE
-                WHEN INSTR(
-                  SUBSTR(block, INSTR(block, 'assignee:') + 9),
-                  CHAR(10)
-                ) = 0 THEN LENGTH(block)
-                ELSE INSTR(
-                  SUBSTR(block, INSTR(block, 'assignee:') + 9),
-                  CHAR(10)
-                )
-              END
-            ),
-            CHAR(10),
-            ''
-          )
-        )
-        ELSE NULL
-      END AS val_assignee,
-      -- status
-      CASE
-        WHEN INSTR(block, 'status:') > 0 THEN LOWER(TRIM(
-          REPLACE(
-            SUBSTR(
-              block,
-              INSTR(block, 'status:') + 7,
-              CASE
-                WHEN INSTR(
-                  SUBSTR(block, INSTR(block, 'status:') + 7),
-                  CHAR(10)
-                ) = 0 THEN LENGTH(block)
-                ELSE INSTR(
-                  SUBSTR(block, INSTR(block, 'status:') + 7),
-                  CHAR(10)
-                )
-              END
-            ),
-            CHAR(10),
-            ''
-          )
-        ))
-        ELSE NULL
-      END AS val_status,
-      -- issue_id
-      CASE
-        WHEN INSTR(block, 'issue_id:') > 0 THEN TRIM(
-          REPLACE(
-            SUBSTR(
-              block,
-              INSTR(block, 'issue_id:') + 9,
-              CASE
-                WHEN INSTR(
-                  SUBSTR(block, INSTR(block, 'issue_id:') + 9),
-                  CHAR(10)
-                ) = 0 THEN LENGTH(block)
-                ELSE INSTR(
-                  SUBSTR(block, INSTR(block, 'issue_id:') + 9),
-                  CHAR(10)
-                )
-              END
-            ),
-            CHAR(10),
-            ''
-          )
-        )
-        ELSE ''
-      END AS val_issue_id,
-      -- cycle_date (was improperly named val_created_date, now correctly handles cycle-date)
-      CASE
-        WHEN INSTR(block, 'cycle-date:') > 0 THEN TRIM(
-          REPLACE(
-            SUBSTR(
-              block,
-              INSTR(block, 'cycle-date:') + 11,
-              CASE
-                WHEN INSTR(
-                  SUBSTR(block, INSTR(block, 'cycle-date:') + 11),
-                  CHAR(10)
-                ) = 0 THEN LENGTH(block)
-                ELSE INSTR(
-                  SUBSTR(block, INSTR(block, 'cycle-date:') + 11),
-                  CHAR(10)
-                )
-              END
-            ),
-            CHAR(10),
-            ''
-          )
-        )
-        ELSE NULL
-      END AS val_cycle_date
-    FROM
-      cycle_blocks
-    WHERE
-      block IS NOT NULL
-      AND TRIM(block) != ''
-      AND INSTR(block, 'cycle:') > 0
-  ) -- Stage 2: Aggregate the extracted values into a structured JSON string (array)
-SELECT
-  et.uniform_resource_id,
-  et.test_case_id,
-  '[' || GROUP_CONCAT(
-    JSON_OBJECT(
-      'cycle',
-      et.val_cycle,
-      'severity',
-      et.val_severity,
-      'assignee',
-      et.val_assignee,
-      'status',
-      et.val_status,
-      'issue_id',
-      et.val_issue_id,
-      'created_date',
-      et.val_cycle_date,
-      'file_basename',
-      et.file_basename
-    ),
-    ','
-  ) || ']' AS evidence_history_json
-FROM
-  evidence_temp et
-WHERE
-  (
-    NULLIF(et.val_cycle_date, '') IS NULL
-    OR DATE(
-      SUBSTR(et.val_cycle_date, 7, 4) || '-' || SUBSTR(et.val_cycle_date, 1, 2) || '-' || SUBSTR(et.val_cycle_date, 4, 2)
-    ) <= DATE('now', 'localtime')
+      uniform_resource_id, test_case_id, file_basename,
+      TRIM(REPLACE(SUBSTR(block, INSTR(block, 'cycle:') + 6, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'cycle:') + 6), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'cycle:') + 6), CHAR(10)) END), CHAR(10), '')) AS val_cycle,
+      CASE WHEN INSTR(block, 'severity:') > 0 THEN TRIM(REPLACE(SUBSTR(block, INSTR(block, 'severity:') + 9, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'severity:') + 9), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'severity:') + 9), CHAR(10)) END), CHAR(10), '')) ELSE NULL END AS val_severity,
+      CASE WHEN INSTR(block, 'assignee:') > 0 THEN TRIM(REPLACE(SUBSTR(block, INSTR(block, 'assignee:') + 9, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'assignee:') + 9), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'assignee:') + 9), CHAR(10)) END), CHAR(10), '')) ELSE NULL END AS val_assignee,
+      CASE WHEN INSTR(block, 'status:') > 0 THEN LOWER(TRIM(REPLACE(SUBSTR(block, INSTR(block, 'status:') + 7, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'status:') + 7), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'status:') + 7), CHAR(10)) END), CHAR(10), ''))) ELSE NULL END AS val_status,
+      CASE WHEN INSTR(block, 'issue_id:') > 0 THEN TRIM(REPLACE(SUBSTR(block, INSTR(block, 'issue_id:') + 9, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'issue_id:') + 9), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'issue_id:') + 9), CHAR(10)) END), CHAR(10), '')) ELSE '' END AS val_issue_id,
+      CASE WHEN INSTR(block, 'cycle-date:') > 0 THEN TRIM(REPLACE(SUBSTR(block, INSTR(block, 'cycle-date:') + 11, CASE WHEN INSTR(SUBSTR(block, INSTR(block, 'cycle-date:') + 11), CHAR(10)) = 0 THEN LENGTH(block) ELSE INSTR(SUBSTR(block, INSTR(block, 'cycle-date:') + 11), CHAR(10)) END), CHAR(10), '')) ELSE NULL END AS val_cycle_date
+    FROM cycle_blocks
+    WHERE block IS NOT NULL AND TRIM(block) != '' AND INSTR(block, 'cycle:') > 0
   )
-GROUP BY
-  et.uniform_resource_id,
-  et.test_case_id;
--- 6. TEST CASE DETAILS (Aggregates case details and latest evidence status)
-  ------------------------------------------------------------------------------
-  DROP VIEW IF EXISTS qf_case_status;
+SELECT
+  et.uniform_resource_id, et.test_case_id,
+  '[' || GROUP_CONCAT(JSON_OBJECT('cycle', et.val_cycle, 'severity', et.val_severity, 'assignee', et.val_assignee, 'status', et.val_status, 'issue_id', et.val_issue_id, 'created_date', et.val_cycle_date, 'file_basename', et.file_basename), ',') || ']' AS evidence_history_json
+FROM evidence_temp et
+WHERE (NULLIF(et.val_cycle_date, '') IS NULL OR DATE(SUBSTR(et.val_cycle_date, 7, 4) || '-' || SUBSTR(et.val_cycle_date, 1, 2) || '-' || SUBSTR(et.val_cycle_date, 4, 2)) <= DATE('now', 'localtime'))
+GROUP BY et.uniform_resource_id, et.test_case_id;
+
+-- 6. TEST CASE DETAILS
+------------------------------------------------------------------------------
+DROP VIEW IF EXISTS qf_case_status;
 CREATE VIEW qf_case_status AS
 SELECT
-  s.uniform_resource_id,
-  s.file_basename,
-  s.extracted_id AS test_case_id,
-  s.title AS test_case_title,
-  -- Dynamic Status and Severity pulled from the latest evidence record
-  les.latest_status AS test_case_status,
-  -- Status from latest evidence is the most appropriate dynamic status
-  les.latest_severity AS severity,
-  -- Severity from latest evidence
-  les.latest_cycle,
-  les.latest_cycle_date,
-  les.latest_assignee,
-  les.latest_issue_id,
-  (
-    SELECT
-      p.title
-    FROM
-      qf_role p
-    WHERE
-      p.uniform_resource_id = s.uniform_resource_id
-      AND p.role_name = 'project'
-    ORDER BY
-      p.depth
-    LIMIT
-      1
-  ) AS project_name,
-  /*CASE
-                  WHEN INSTR(s.code_content, 'requirementID:') > 0 THEN
-                     TRIM(SUBSTR(s.code_content, INSTR(s.code_content, 'requirementID:') + 14,    INSTR(s.code_content, 'Priority:') -(15+INSTR(s.code_content, 'requirementID:')) ))    
-                     else  '' end as requirement_ID  */
-  CASE
-    WHEN INSTR(lower(s.code_content), 'requirementid:') > 0 THEN 
-      TRIM(REPLACE(REPLACE(SUBSTR(
-        s.code_content,
-        INSTR(lower(s.code_content), 'requirementid:') + 14,
-        CASE
-          WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') > 0
-          THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') - 1
-          WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) > 0
-          THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) - 1
-          ELSE 50
-        END
-      ), CHAR(10), ''), CHAR(13), ''))
-    else ''
-  end as requirement_ID
-FROM
-  qf_role s
-  LEFT JOIN qf_evidence_status les ON s.uniform_resource_id = les.uniform_resource_id
-  AND s.extracted_id = les.test_case_id
-WHERE
-  s.role_name = 'case'
-  AND s.extracted_id IS NOT NULL;
+  s.uniform_resource_id, s.file_basename, s.extracted_id AS test_case_id, s.title AS test_case_title,
+  les.latest_status AS test_case_status, les.latest_severity AS severity, les.latest_cycle, les.latest_cycle_date, les.latest_assignee, les.latest_issue_id,
+  (SELECT p.title FROM qf_role p WHERE p.uniform_resource_id = s.uniform_resource_id AND p.role_name = 'project' ORDER BY p.depth LIMIT 1) AS project_name,
+  CASE WHEN INSTR(lower(s.code_content), 'requirementid:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'requirementid:') + 14, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), 'priority:') - 1 WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'requirementid:') + 14), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '') ELSE '' END AS requirement_ID,
+  CASE WHEN INSTR(lower(s.code_content), 'priority:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'priority:') + 10, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'priority:') + 10), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'priority:') + 10), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '') ELSE '' END AS priority,
+  CASE WHEN INSTR(lower(s.code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'tags:') + 6, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'tags:') + 6), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'tags:') + 6), CHAR(10)) - 1 ELSE 100 END), CHAR(10), ''), CHAR(13), '')), '\', ''), '[', ''), ']', ''), '"', '') ELSE '' END AS tags,
+  CASE 
+    WHEN INSTR(lower(s.code_content), 'scenario-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'scenario-type:') + 15, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'scenario-type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'scenario-type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(s.code_content), 'scenario type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'scenario type:') + 15, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'scenario type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'scenario type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS scenario_type,
+  CASE 
+    WHEN INSTR(lower(s.code_content), 'execution type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'execution type:') + 16, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'execution type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'execution type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(s.code_content), 'execution-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'execution-type:') + 16, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'execution-type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'execution-type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS execution_type,
+  CASE 
+    WHEN INSTR(lower(s.code_content), 'test type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'test type:') + 11, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'test type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'test type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(s.code_content), 'test-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(s.code_content, INSTR(lower(s.code_content), 'test-type:') + 11, CASE WHEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'test-type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(s.code_content), INSTR(lower(s.code_content), 'test-type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS test_type
+FROM qf_role s
+LEFT JOIN qf_evidence_status les ON s.uniform_resource_id = les.uniform_resource_id AND s.extracted_id = les.test_case_id
+WHERE s.role_name = 'case' AND s.extracted_id IS NOT NULL;
+
 DROP VIEW IF EXISTS qf_case_count;
 CREATE VIEW qf_case_count AS
 SELECT
   s.file_basename,
-  -- Project title
-  (
-    SELECT
-      p.title
-    FROM
-      qf_role p
-    WHERE
-      p.uniform_resource_id = s.uniform_resource_id
-      AND p.role_name = 'project'
-    ORDER BY
-      p.depth
-    LIMIT
-      1
-  ) AS project_title,
-  -- Inner hierarchy (strategy / plan / suite)
-  GROUP_CONCAT(
-    CASE
-      s.role_name
-      WHEN 'strategy' THEN 'Strategy: ' || s.title
-      WHEN 'plan' THEN 'Plan: ' || s.title
-      WHEN 'suite' THEN 'Suite: ' || s.title
-      ELSE NULL
-    END,
-    ' | '
-  ) AS inner_sections,
-  -- Test case count
-  COUNT(
-    CASE
-      WHEN s.role_name = 'case' THEN 1
-      ELSE NULL
-    END
-  ) AS test_case_count
-FROM
-  qf_role s
-GROUP BY
-  s.uniform_resource_id,
-  s.file_basename;
--- DROP VIEW IF EXISTS qf_success_rate;
-  -- CREATE VIEW qf_success_rate AS
-  -- SELECT
-  --   tenant_id,
-  --   project_name,
-  --   COUNT(
-  --     CASE
-  --       WHEN test_case_status = 'passed' THEN 1
-  --     END
-  --   ) AS successful_cases,
-  --   COUNT(
-  --     CASE
-  --       WHEN test_case_status = 'failed' THEN 1
-  --     END
-  --   ) AS failed_cases,
-  --   COUNT(*) AS total_cases,
-  --   ROUND(
-  --     (
-  --       COUNT(
-  --         CASE
-  --           WHEN test_case_status = 'passed' THEN 1
-  --         END
-  --       ) * 100.0
-  --     ) / COUNT(*)
-  --   ) || '%' AS success_percentage,
-  --   ROUND(
-  --     (
-  --       COUNT(
-  --         CASE
-  --           WHEN test_case_status = 'failed' THEN 1
-  --         END
-  --       ) * 100.0
-  --     ) / COUNT(*)
-  --   ) || '%' AS failed_percentage
-  -- FROM
-  --   qf_case_status
-  -- GROUP BY
-  --   tenant_id, project_name;
-  DROP VIEW IF EXISTS qf_success_rate;
+  (SELECT p.title FROM qf_role p WHERE p.uniform_resource_id = s.uniform_resource_id AND p.role_name = 'project' ORDER BY p.depth LIMIT 1) AS project_title,
+  GROUP_CONCAT(CASE s.role_name WHEN 'strategy' THEN 'Strategy: ' || s.title WHEN 'plan' THEN 'Plan: ' || s.title WHEN 'suite' THEN 'Suite: ' || s.title ELSE NULL END, ' | ') AS inner_sections,
+  COUNT(CASE WHEN s.role_name = 'case' THEN 1 ELSE NULL END) AS test_case_count
+FROM qf_role s
+GROUP BY s.uniform_resource_id, s.file_basename;
+
+DROP VIEW IF EXISTS qf_success_rate;
 CREATE VIEW qf_success_rate AS
 SELECT
   project_name,
@@ -959,26 +527,9 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
       ur.created_at,
       urt.uniform_resource_transform_id,
       urpe.file_basename,
-      REPLACE(
-        REPLACE(
-          REPLACE(
-            REPLACE(
-              SUBSTR(
-                CAST(urt.content AS TEXT),
-                2,
-                LENGTH(CAST(urt.content AS TEXT)) - 2
-              ),
-              CHAR(10),
-              ''
-            ),
-            CHAR(13),
-            ''
-          ),
-          '\x22',
-          '"'
-        ),
-        '\n',
-        ''
+      REPLACE(REPLACE(REPLACE(REPLACE(
+        SUBSTR(CAST(urt.content AS TEXT), 2, LENGTH(CAST(urt.content AS TEXT)) - 2),
+        CHAR(10), ''), CHAR(13), ''), '\x22', '"'), '\n', ''
       ) AS cleaned_json_text
     FROM
       uniform_resource_transform urt
@@ -991,25 +542,7 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
     SELECT
       ur.uniform_resource_id,
       JSON_EXTRACT(role_map.value, '$.role') AS role_name,
-      CAST(
-        SUBSTR(
-          JSON_EXTRACT(role_map.value, '$.select'),
-          INSTR(
-            JSON_EXTRACT(role_map.value, '$.select'),
-            'depth="'
-          ) + 7,
-          INSTR(
-            SUBSTR(
-              JSON_EXTRACT(role_map.value, '$.select'),
-              INSTR(
-                JSON_EXTRACT(role_map.value, '$.select'),
-                'depth="'
-              ) + 7
-            ),
-            '"'
-          ) - 1
-        ) AS INTEGER
-      ) AS role_depth
+      CAST(SUBSTR(JSON_EXTRACT(role_map.value, '$.select'), INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7, INSTR(SUBSTR(JSON_EXTRACT(role_map.value, '$.select'), INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7), '"') - 1) AS INTEGER) AS role_depth
     FROM
       uniform_resource ur,
       JSON_EACH(ur.frontmatter, '$.doc-classify') AS role_map
@@ -1024,7 +557,8 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
       rtd.created_at AS last_modified_at,
       jt_title.value AS title,
       CAST(jt_depth.value AS INTEGER) AS depth,
-      jt_body.value AS body_json_string
+      jt_body.value AS body_json_string,
+      TRIM(SUBSTR(jt_body.value, INSTR(jt_body.value, '@id') + 4, INSTR(SUBSTR(jt_body.value, INSTR(jt_body.value, '@id') + 4), '"') - 1)) AS extracted_id
     FROM
       raw_transform_data rtd,
       json_tree(rtd.cleaned_json_text, '$') AS jt_section,
@@ -1033,216 +567,65 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
       json_tree(rtd.cleaned_json_text, '$') AS jt_body
     WHERE
       jt_section.key = 'section'
-      AND jt_depth.parent = jt_section.id
-      AND jt_depth.key = 'depth'
-      AND jt_title.parent = jt_section.id
-      AND jt_title.key = 'title'
-      AND jt_body.parent = jt_section.id
-      AND jt_body.key = 'body'
+      AND jt_depth.parent = jt_section.id AND jt_depth.key = 'depth'
+      AND jt_title.parent = jt_section.id AND jt_title.key = 'title'
+      AND jt_body.parent = jt_section.id AND jt_body.key = 'body'
+  ),
+  sections_raw AS (
+    SELECT
+      sp.*,
+      CASE WHEN INSTR(sp.body_json_string, '"code":"') > 0 THEN 
+        SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '"code":"') + 8, INSTR(sp.body_json_string, '","type":') - (INSTR(sp.body_json_string, '"code":"') + 8))
+      ELSE '' END as block1,
+      CASE WHEN INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') > 0 THEN
+        CHAR(10) || SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8, CASE WHEN INSTR(SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8), '","type":') > 0 THEN INSTR(SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8), '","type":') - 1 ELSE 2000 END)
+      ELSE '' END as block2,
+      rdm.role_name
+    FROM sections_parsed sp
+    LEFT JOIN role_depth_mapping rdm ON sp.uniform_resource_id = rdm.uniform_resource_id AND sp.depth = rdm.role_depth
   ),
   sections_with_roles AS (
     SELECT
-      sp.uniform_resource_id,
-      sp.uniform_resource_transform_id,
-      sp.file_basename,
-      sp.last_modified_at,
-      sp.depth,
-      sp.title,
-      sp.body_json_string,
-      TRIM(
-        SUBSTR(
-          sp.body_json_string,
-          INSTR(sp.body_json_string, '@id') + 4,
-          INSTR(
-            SUBSTR(
-              sp.body_json_string,
-              INSTR(sp.body_json_string, '@id') + 4
-            ),
-            '"'
-          ) - 1
-        )
-      ) AS extracted_id,
-      CASE
-        WHEN INSTR(sp.body_json_string, '"code":"') > 0 THEN REPLACE(
-          REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            SUBSTR(
-                              sp.body_json_string,
-                              INSTR(sp.body_json_string, '"code":"') + 8,
-                              INSTR(sp.body_json_string, '","type":') - (INSTR(sp.body_json_string, '"code":"') + 8)
-                            ),
-                            'Tags:',
-                            CHAR(10) || 'Tags:'
-                          ),
-                          'Scenario Type:',
-                          CHAR(10) || 'Scenario Type:'
-                        ),
-                        'Priority:',
-                        CHAR(10) || 'Priority:'
-                      ),
-                      'requirementID:',
-                      CHAR(10) || 'requirementID:'
-                    ),
-                    -- IMPORTANT: cycle-date MUST come before cycle
-                    'cycle-date:',
-                    CHAR(10) || 'cycle-date:'
-                  ),
-                  'cycle:',
-                  CHAR(10) || 'cycle:'
-                ),
-                'severity:',
-                CHAR(10) || 'severity:'
-              ),
-              'assignee:',
-              CHAR(10) || 'assignee:'
-            ),
-            'status:',
-            CHAR(10) || 'status:'
-          ),
-          'issue_id:',
-          CHAR(10) || 'issue_id:'
-        ) -- Append second code block if present
-        || CASE
-          WHEN INSTR(
-            SUBSTR(
-              sp.body_json_string,
-              INSTR(sp.body_json_string, '","type":') + 9
-            ),
-            '"code":"'
-          ) > 0 THEN CHAR(10) || REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            REPLACE(
-                              SUBSTR(
-                                SUBSTR(
-                                  sp.body_json_string,
-                                  INSTR(sp.body_json_string, '","type":') + 9
-                                ),
-                                INSTR(
-                                  SUBSTR(
-                                    sp.body_json_string,
-                                    INSTR(sp.body_json_string, '","type":') + 9
-                                  ),
-                                  '"code":"'
-                                ) + 8,
-                                CASE
-                                  WHEN INSTR(
-                                    SUBSTR(
-                                      SUBSTR(
-                                        sp.body_json_string,
-                                        INSTR(sp.body_json_string, '","type":') + 9
-                                      ),
-                                      INSTR(
-                                        SUBSTR(
-                                          sp.body_json_string,
-                                          INSTR(sp.body_json_string, '","type":') + 9
-                                        ),
-                                        '"code":"'
-                                      ) + 8
-                                    ),
-                                    '","type":'
-                                  ) > 0 THEN INSTR(
-                                    SUBSTR(
-                                      SUBSTR(
-                                        sp.body_json_string,
-                                        INSTR(sp.body_json_string, '","type":') + 9
-                                      ),
-                                      INSTR(
-                                        SUBSTR(
-                                          sp.body_json_string,
-                                          INSTR(sp.body_json_string, '","type":') + 9
-                                        ),
-                                        '"code":"'
-                                      ) + 8
-                                    ),
-                                    '","type":'
-                                  ) - 1
-                                  ELSE LENGTH(sp.body_json_string)
-                                END
-                              ),
-                              'Tags:',
-                              CHAR(10) || 'Tags:'
-                            ),
-                            'Scenario Type:',
-                            CHAR(10) || 'Scenario Type:'
-                          ),
-                          'Priority:',
-                          CHAR(10) || 'Priority:'
-                        ),
-                        'requirementID:',
-                        CHAR(10) || 'requirementID:'
-                      ),
-                      'cycle-date:',
-                      CHAR(10) || 'cycle-date:'
-                    ),
-                    'cycle:',
-                    CHAR(10) || 'cycle:'
-                  ),
-                  'severity:',
-                  CHAR(10) || 'severity:'
-                ),
-                'assignee:',
-                CHAR(10) || 'assignee:'
-              ),
-              'status:',
-              CHAR(10) || 'status:'
-            ),
-            'issue_id:',
-            CHAR(10) || 'issue_id:'
-          )
-          ELSE ''
-        END
-        ELSE NULL
-      END AS code_content,
-      rdm.role_name
-    FROM
-      sections_parsed sp
-      LEFT JOIN role_depth_mapping rdm ON sp.uniform_resource_id = rdm.uniform_resource_id
-      AND sp.depth = rdm.role_depth
+      uniform_resource_id, uniform_resource_transform_id, file_basename, last_modified_at, depth, title, body_json_string, extracted_id, role_name,
+      REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+        block1 || block2,
+        'Tags:', CHAR(10)||'Tags:'), 'tags:', CHAR(10)||'tags:'),
+        'Scenario Type:', CHAR(10)||'Scenario Type:'), 'scenario-type:', CHAR(10)||'scenario-type:'),
+        'Priority:', CHAR(10)||'Priority:'), 'priority:', CHAR(10)||'priority:'),
+        'requirementID:', CHAR(10)||'requirementID:'), 'requirementid:', CHAR(10)||'requirementid:'),
+        'cycle-date:', CHAR(10)||'cycle-date:'), 'cycle:', CHAR(10)||'cycle:'),
+        'severity:', CHAR(10)||'severity:'), 'assignee:', CHAR(10)||'assignee:'),
+        'status:', CHAR(10)||'status:'), 'issue_id:', CHAR(10)||'issue_id:'),
+        'plan-name:', CHAR(10)||'plan-name:'), 'plan-date:', CHAR(10)||'plan-date:'),
+        'created-by:', CHAR(10)||'created-by:'), 'suite-name:', CHAR(10)||'suite-name:'),
+        'suite-date:', CHAR(10)||'suite-date:'), 'Execution Type:', CHAR(10)||'Execution Type:'),
+        'execution-type:', CHAR(10)||'execution-type:'), 'Test Type:', CHAR(10)||'Test Type:'),
+        'test-type:', CHAR(10)||'test-type:'
+      ) AS code_content
+    FROM sections_raw
   ),
-  -- ✅ NEW: case title lookup
   case_titles AS (
-    SELECT
-      uniform_resource_id,
-      extracted_id AS test_case_id,
-      title AS test_case_title
-    FROM
-      sections_with_roles
-    WHERE
-      role_name = 'case'
-      AND extracted_id IS NOT NULL
+    SELECT uniform_resource_id, extracted_id AS test_case_id, title AS test_case_title
+    FROM sections_with_roles WHERE role_name = 'case' AND extracted_id IS NOT NULL
   ),
   evidence_extraction_positions AS (
     SELECT
-      swr.uniform_resource_id,
-      swr.uniform_resource_transform_id,
-      swr.file_basename,
-      swr.last_modified_at,
-      swr.extracted_id AS test_case_id,
-      swr.code_content,
+      swr.*,
       CASE
         WHEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'severity:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'assignee:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'status:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'requirementID:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'requirementID:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Priority:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Priority:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Tags:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Tags:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:')
+        WHEN INSTR(lower(swr.code_content), 'requirementid:') > 0 THEN INSTR(lower(swr.code_content), 'requirementid:')
+        WHEN INSTR(lower(swr.code_content), 'priority:') > 0 THEN INSTR(lower(swr.code_content), 'priority:')
+        WHEN INSTR(lower(swr.code_content), 'tags:') > 0 THEN INSTR(lower(swr.code_content), 'tags:')
+        WHEN INSTR(lower(swr.code_content), 'scenario-type:') > 0 THEN INSTR(lower(swr.code_content), 'scenario-type:')
+        WHEN INSTR(lower(swr.code_content), 'scenario type:') > 0 THEN INSTR(lower(swr.code_content), 'scenario type:')
+        WHEN INSTR(lower(swr.code_content), 'execution-type:') > 0 THEN INSTR(lower(swr.code_content), 'execution-type:')
+        WHEN INSTR(lower(swr.code_content), 'execution type:') > 0 THEN INSTR(lower(swr.code_content), 'execution type:')
+        WHEN INSTR(lower(swr.code_content), 'test-type:') > 0 THEN INSTR(lower(swr.code_content), 'test-type:')
+        WHEN INSTR(lower(swr.code_content), 'test type:') > 0 THEN INSTR(lower(swr.code_content), 'test type:')
         ELSE LENGTH(swr.code_content) + 1
       END AS end_of_cycle_pos,
       CASE
@@ -1260,7 +643,6 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
         WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
         ELSE LENGTH(swr.code_content) + 1
       END AS end_of_status_pos,
-      -- ✅ NEW: end of cycle-date
       CASE
         WHEN INSTR(swr.code_content, CHAR(10) || 'cycle:') > INSTR(swr.code_content, 'cycle-date:') THEN INSTR(swr.code_content, CHAR(10) || 'cycle:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'severity:') > INSTR(swr.code_content, 'cycle-date:') THEN INSTR(swr.code_content, CHAR(10) || 'severity:')
@@ -1272,89 +654,37 @@ CREATE VIEW qf_evidence_history AS WITH raw_transform_data AS (
     FROM
       sections_with_roles swr
     WHERE
-      swr.role_name = 'evidence'
-      AND swr.extracted_id IS NOT NULL
-      AND swr.code_content IS NOT NULL
+      swr.role_name = 'evidence' AND swr.extracted_id IS NOT NULL AND swr.code_content IS NOT NULL
   )
 SELECT
-  eep.uniform_resource_id,
-  eep.uniform_resource_transform_id,
-  eep.file_basename,
-  eep.last_modified_at AS ingestion_timestamp,
-  eep.test_case_id,
-  ct.test_case_title,
-  -- ✅ ADDED
-  CASE
-    WHEN TRIM(
-      SUBSTR(
-        eep.code_content,
-        INSTR(eep.code_content, 'cycle:') + 6,
-        eep.end_of_cycle_pos - (INSTR(eep.code_content, 'cycle:') + 6)
-      )
-    ) LIKE '%:%' THEN NULL
-    ELSE TRIM(
-      SUBSTR(
-        eep.code_content,
-        INSTR(eep.code_content, 'cycle:') + 6,
-        eep.end_of_cycle_pos - (INSTR(eep.code_content, 'cycle:') + 6)
-      )
-    )
-  END AS latest_cycle,
-  TRIM(
-    SUBSTR(
-      eep.code_content,
-      INSTR(eep.code_content, 'severity:') + 9,
-      eep.end_of_severity_pos - (INSTR(eep.code_content, 'severity:') + 9)
-    )
-  ) AS severity,
-  TRIM(
-    SUBSTR(
-      eep.code_content,
-      INSTR(eep.code_content, 'assignee:') + 9,
-      eep.end_of_assignee_pos - (INSTR(eep.code_content, 'assignee:') + 9)
-    )
-  ) AS assignee,
-  TRIM(
-    SUBSTR(
-      eep.code_content,
-      INSTR(eep.code_content, 'status:') + 7,
-      eep.end_of_status_pos - (INSTR(eep.code_content, 'status:') + 7)
-    )
-  ) AS status,
-  CASE
-    WHEN INSTR(eep.code_content, 'issue_id:') > 0 THEN TRIM(
-      SUBSTR(
-        eep.code_content,
-        INSTR(eep.code_content, 'issue_id:') + 9
-      )
-    )
-    ELSE NULL
-  END AS issue_id,
-  CASE
-    WHEN INSTR(eep.code_content, 'cycle-date:') > 0 THEN TRIM(
-      SUBSTR(
-        eep.code_content,
-        INSTR(eep.code_content, 'cycle-date:') + 11,
-        eep.end_of_cycle_date_pos - (INSTR(eep.code_content, 'cycle-date:') + 11)
-      )
-    )
-    ELSE NULL
-  END AS cycle_date
+  eep.uniform_resource_id, eep.uniform_resource_transform_id, eep.file_basename, eep.last_modified_at AS ingestion_timestamp, eep.test_case_id, ct.test_case_title,
+  CASE WHEN TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'cycle:') + 6, eep.end_of_cycle_pos - (INSTR(eep.code_content, 'cycle:') + 6))) LIKE '%:%' THEN NULL ELSE TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'cycle:') + 6, eep.end_of_cycle_pos - (INSTR(eep.code_content, 'cycle:') + 6))) END AS latest_cycle,
+  TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'severity:') + 9, eep.end_of_severity_pos - (INSTR(eep.code_content, 'severity:') + 9))) AS severity,
+  TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'assignee:') + 9, eep.end_of_assignee_pos - (INSTR(eep.code_content, 'assignee:') + 9))) AS assignee,
+  TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'status:') + 7, eep.end_of_status_pos - (INSTR(eep.code_content, 'status:') + 7))) AS status,
+  CASE WHEN INSTR(eep.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'issue_id:') + 9)) ELSE NULL END AS issue_id,
+  CASE WHEN INSTR(eep.code_content, 'cycle-date:') > 0 THEN TRIM(SUBSTR(eep.code_content, INSTR(eep.code_content, 'cycle-date:') + 11, eep.end_of_cycle_date_pos - (INSTR(eep.code_content, 'cycle-date:') + 11))) ELSE NULL END AS cycle_date,
+  CASE WHEN INSTR(lower(ewfh.code_content), 'priority:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'priority:') + 10, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'priority:') + 10), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'priority:') + 10), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '') ELSE '' END AS priority,
+  CASE WHEN INSTR(lower(ewfh.code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'tags:') + 6, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'tags:') + 6), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'tags:') + 6), CHAR(10)) - 1 ELSE 100 END), CHAR(10), ''), CHAR(13), '')), '\', ''), '[', ''), ']', ''), '"', '') ELSE '' END AS tags,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'scenario-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'scenario-type:') + 15, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'scenario-type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'scenario-type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(ewfh.code_content), 'scenario type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'scenario type:') + 15, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'scenario type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'scenario type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS scenario_type,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'execution type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'execution type:') + 16, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'execution type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'execution type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(ewfh.code_content), 'execution-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'execution-type:') + 16, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'execution-type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'execution-type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS execution_type,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'test type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'test type:') + 11, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'test type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'test type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(ewfh.code_content), 'test-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'test-type:') + 11, CASE WHEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'test-type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(ewfh.code_content), INSTR(lower(ewfh.code_content), 'test-type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS test_type
 FROM
   evidence_extraction_positions eep
-  LEFT JOIN case_titles ct ON ct.uniform_resource_id = eep.uniform_resource_id
-  AND ct.test_case_id = eep.test_case_id
+  LEFT JOIN case_titles ct ON ct.uniform_resource_id = eep.uniform_resource_id AND ct.test_case_id = eep.test_case_id
 WHERE
-  (
-    NULLIF(cycle_date, '') IS NULL
-    OR DATE(
-      SUBSTR(cycle_date, 7, 4) || '-' || SUBSTR(cycle_date, 1, 2) || '-' || SUBSTR(cycle_date, 4, 2)
-    ) <= DATE('now', 'localtime')
-  )
+  (NULLIF(cycle_date, '') IS NULL OR DATE(SUBSTR(cycle_date, 7, 4) || '-' || SUBSTR(cycle_date, 1, 2) || '-' || SUBSTR(cycle_date, 4, 2)) <= DATE('now', 'localtime'))
 ORDER BY
-  eep.test_case_id,
-  eep.last_modified_at DESC,
-  latest_cycle DESC;
+  eep.test_case_id, eep.last_modified_at DESC, latest_cycle DESC;
 --CASE DEPTH WISE ANALYSIS
   DROP VIEW IF EXISTS qf_case_depth;
 CREATE VIEW qf_case_depth AS
@@ -1389,48 +719,30 @@ SELECT
   extracted_id AS code,
   code_content AS content,
   depth,
-  REPLACE(
-    json_extract(body_json_string, '$[0].paragraph'),
-    '@id ',
-    ''
-  ) AS test_case_id,
-  -- Description (index 3)
+  REPLACE(json_extract(body_json_string, '$[0].paragraph'), '@id ', '') AS test_case_id,
   json_extract(body_json_string, '$[3].paragraph') AS description,
-  -- Preconditions list (index 5)
   json_extract(body_json_string, '$[5].list') AS preconditions,
-  -- Steps list (index 7)
   json_extract(body_json_string, '$[7].list') AS steps,
-  -- Expected Results list (index 9)
   json_extract(body_json_string, '$[9].list') AS expected_results,
-  -- Single JSON object with everything
-  json_object(
-    'test_case_id',
-    REPLACE(
-      json_extract(body_json_string, '$[0].paragraph'),
-      '@id ',
-      ''
-    ),
-    'description',
-    json_extract(body_json_string, '$[3].paragraph'),
-    'preconditions',
-    json_extract(body_json_string, '$[5].list'),
-    'steps',
-    json_extract(body_json_string, '$[7].list'),
-    'expected_results',
-    json_extract(body_json_string, '$[9].list'),
-    'file_basename',
-    file_basename,
-    'code',
-    extracted_id,
-    'content',
-    code_content,
-    'depth',
-    depth
-  ) AS case_summary_json
+  CASE WHEN INSTR(lower(code_content), 'priority:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'priority:') + 10, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'priority:') + 10), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'priority:') + 10), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '') ELSE '' END AS priority,
+  CASE WHEN INSTR(lower(code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'tags:') + 6, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'tags:') + 6), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'tags:') + 6), CHAR(10)) - 1 ELSE 100 END), CHAR(10), ''), CHAR(13), '')), '\', ''), '[', ''), ']', ''), '"', '') ELSE '' END AS tags,
+  CASE 
+    WHEN INSTR(lower(code_content), 'scenario-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'scenario-type:') + 15, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'scenario-type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'scenario-type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(code_content), 'scenario type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'scenario type:') + 15, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'scenario type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'scenario type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS scenario_type,
+  CASE 
+    WHEN INSTR(lower(code_content), 'execution type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'execution type:') + 16, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'execution type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'execution type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(code_content), 'execution-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'execution-type:') + 16, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'execution-type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'execution-type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS execution_type,
+  CASE 
+    WHEN INSTR(lower(code_content), 'test type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'test type:') + 11, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'test type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'test type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(code_content), 'test-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(code_content, INSTR(lower(code_content), 'test-type:') + 11, CASE WHEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'test-type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(code_content), INSTR(lower(code_content), 'test-type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS test_type
 FROM
   qf_role
 WHERE
-  role_name = 'case';
+  role_name = 'case'
+  AND extracted_id IS NOT NULL;
 DROP VIEW IF EXISTS qf_agewise_opencases;
 CREATE VIEW qf_agewise_opencases AS
 select
@@ -1512,65 +824,23 @@ CREATE VIEW qf_evidence_history_all AS WITH raw_transform_data AS (
       ur.created_at,
       urt.uniform_resource_transform_id,
       urpe.file_basename,
-      REPLACE(
-        REPLACE(
-          REPLACE(
-            REPLACE(
-              SUBSTR(
-                CAST(urt.content AS TEXT),
-                2,
-                LENGTH(CAST(urt.content AS TEXT)) - 2
-              ),
-              CHAR(10),
-              ''
-            ),
-            CHAR(13),
-            ''
-          ),
-          '\x22',
-          '"'
-        ),
-        '\n',
-        ''
+      REPLACE(REPLACE(REPLACE(REPLACE(
+        SUBSTR(CAST(urt.content AS TEXT), 2, LENGTH(CAST(urt.content AS TEXT)) - 2),
+        CHAR(10), ''), CHAR(13), ''), '\x22', '"'), '\n', ''
       ) AS cleaned_json_text
     FROM
       uniform_resource_transform urt
       JOIN uniform_resource ur ON ur.uniform_resource_id = urt.uniform_resource_id
-      JOIN ur_ingest_session_fs_path_entry urpe ON ur.uniform_resource_id = urpe.uniform_resource_id -- ✅ REMOVED: WHERE ur.last_modified_at IS NOT NULL
-      -- This now includes ALL files, not just changed ones
+      JOIN ur_ingest_session_fs_path_entry urpe ON ur.uniform_resource_id = urpe.uniform_resource_id
   ),
-  -- ✅ NEW: Get all ingestion timestamps
   all_ingestion_timestamps AS (
-    SELECT
-      DISTINCT created_at AS ingestion_timestamp
-    FROM
-      uniform_resource
-    WHERE
-      created_at IS NOT NULL
+    SELECT DISTINCT created_at AS ingestion_timestamp FROM uniform_resource WHERE created_at IS NOT NULL
   ),
   role_depth_mapping AS (
     SELECT
       ur.uniform_resource_id,
       JSON_EXTRACT(role_map.value, '$.role') AS role_name,
-      CAST(
-        SUBSTR(
-          JSON_EXTRACT(role_map.value, '$.select'),
-          INSTR(
-            JSON_EXTRACT(role_map.value, '$.select'),
-            'depth="'
-          ) + 7,
-          INSTR(
-            SUBSTR(
-              JSON_EXTRACT(role_map.value, '$.select'),
-              INSTR(
-                JSON_EXTRACT(role_map.value, '$.select'),
-                'depth="'
-              ) + 7
-            ),
-            '"'
-          ) - 1
-        ) AS INTEGER
-      ) AS role_depth
+      CAST(SUBSTR(JSON_EXTRACT(role_map.value, '$.select'), INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7, INSTR(SUBSTR(JSON_EXTRACT(role_map.value, '$.select'), INSTR(JSON_EXTRACT(role_map.value, '$.select'), 'depth="') + 7), '"') - 1) AS INTEGER) AS role_depth
     FROM
       uniform_resource ur,
       JSON_EACH(ur.frontmatter, '$.doc-classify') AS role_map
@@ -1585,7 +855,8 @@ CREATE VIEW qf_evidence_history_all AS WITH raw_transform_data AS (
       rtd.created_at AS last_modified_at,
       jt_title.value AS title,
       CAST(jt_depth.value AS INTEGER) AS depth,
-      jt_body.value AS body_json_string
+      jt_body.value AS body_json_string,
+      TRIM(SUBSTR(jt_body.value, INSTR(jt_body.value, '@id') + 4, INSTR(SUBSTR(jt_body.value, INSTR(jt_body.value, '@id') + 4), '"') - 1)) AS extracted_id
     FROM
       raw_transform_data rtd,
       json_tree(rtd.cleaned_json_text, '$') AS jt_section,
@@ -1594,214 +865,65 @@ CREATE VIEW qf_evidence_history_all AS WITH raw_transform_data AS (
       json_tree(rtd.cleaned_json_text, '$') AS jt_body
     WHERE
       jt_section.key = 'section'
-      AND jt_depth.parent = jt_section.id
-      AND jt_depth.key = 'depth'
-      AND jt_title.parent = jt_section.id
-      AND jt_title.key = 'title'
-      AND jt_body.parent = jt_section.id
-      AND jt_body.key = 'body'
+      AND jt_depth.parent = jt_section.id AND jt_depth.key = 'depth'
+      AND jt_title.parent = jt_section.id AND jt_title.key = 'title'
+      AND jt_body.parent = jt_section.id AND jt_body.key = 'body'
+  ),
+  sections_raw AS (
+    SELECT
+      sp.*,
+      CASE WHEN INSTR(sp.body_json_string, '"code":"') > 0 THEN 
+        SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '"code":"') + 8, INSTR(sp.body_json_string, '","type":') - (INSTR(sp.body_json_string, '"code":"') + 8))
+      ELSE '' END as block1,
+      CASE WHEN INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') > 0 THEN
+        CHAR(10) || SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8, CASE WHEN INSTR(SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8), '","type":') > 0 THEN INSTR(SUBSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), INSTR(SUBSTR(sp.body_json_string, INSTR(sp.body_json_string, '","type":') + 9), '"code":"') + 8), '","type":') - 1 ELSE 2000 END)
+      ELSE '' END as block2,
+      rdm.role_name
+    FROM sections_parsed sp
+    LEFT JOIN role_depth_mapping rdm ON sp.uniform_resource_id = rdm.uniform_resource_id AND sp.depth = rdm.role_depth
   ),
   sections_with_roles AS (
     SELECT
-      sp.uniform_resource_id,
-      sp.uniform_resource_transform_id,
-      sp.file_basename,
-      sp.last_modified_at,
-      sp.depth,
-      sp.title,
-      sp.body_json_string,
-      TRIM(
-        SUBSTR(
-          sp.body_json_string,
-          INSTR(sp.body_json_string, '@id') + 4,
-          INSTR(
-            SUBSTR(
-              sp.body_json_string,
-              INSTR(sp.body_json_string, '@id') + 4
-            ),
-            '"'
-          ) - 1
-        )
-      ) AS extracted_id,
-      CASE
-        WHEN INSTR(sp.body_json_string, '"code":"') > 0 THEN REPLACE(
-          REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            SUBSTR(
-                              sp.body_json_string,
-                              INSTR(sp.body_json_string, '"code":"') + 8,
-                              INSTR(sp.body_json_string, '","type":') - (INSTR(sp.body_json_string, '"code":"') + 8)
-                            ),
-                            'Tags:',
-                            CHAR(10) || 'Tags:'
-                          ),
-                          'Scenario Type:',
-                          CHAR(10) || 'Scenario Type:'
-                        ),
-                        'Priority:',
-                        CHAR(10) || 'Priority:'
-                      ),
-                      'requirementID:',
-                      CHAR(10) || 'requirementID:'
-                    ),
-                    'cycle-date:',
-                    CHAR(10) || 'cycle-date:'
-                  ),
-                  'cycle:',
-                  CHAR(10) || 'cycle:'
-                ),
-                'severity:',
-                CHAR(10) || 'severity:'
-              ),
-              'assignee:',
-              CHAR(10) || 'assignee:'
-            ),
-            'status:',
-            CHAR(10) || 'status:'
-          ),
-          'issue_id:',
-          CHAR(10) || 'issue_id:'
-        ) -- Append second code block if present
-        || CASE
-          WHEN INSTR(
-            SUBSTR(
-              sp.body_json_string,
-              INSTR(sp.body_json_string, '","type":') + 9
-            ),
-            '"code":"'
-          ) > 0 THEN CHAR(10) || REPLACE(
-            REPLACE(
-              REPLACE(
-                REPLACE(
-                  REPLACE(
-                    REPLACE(
-                      REPLACE(
-                        REPLACE(
-                          REPLACE(
-                            REPLACE(
-                              SUBSTR(
-                                SUBSTR(
-                                  sp.body_json_string,
-                                  INSTR(sp.body_json_string, '","type":') + 9
-                                ),
-                                INSTR(
-                                  SUBSTR(
-                                    sp.body_json_string,
-                                    INSTR(sp.body_json_string, '","type":') + 9
-                                  ),
-                                  '"code":"'
-                                ) + 8,
-                                CASE
-                                  WHEN INSTR(
-                                    SUBSTR(
-                                      SUBSTR(
-                                        sp.body_json_string,
-                                        INSTR(sp.body_json_string, '","type":') + 9
-                                      ),
-                                      INSTR(
-                                        SUBSTR(
-                                          sp.body_json_string,
-                                          INSTR(sp.body_json_string, '","type":') + 9
-                                        ),
-                                        '"code":"'
-                                      ) + 8
-                                    ),
-                                    '","type":'
-                                  ) > 0 THEN INSTR(
-                                    SUBSTR(
-                                      SUBSTR(
-                                        sp.body_json_string,
-                                        INSTR(sp.body_json_string, '","type":') + 9
-                                      ),
-                                      INSTR(
-                                        SUBSTR(
-                                          sp.body_json_string,
-                                          INSTR(sp.body_json_string, '","type":') + 9
-                                        ),
-                                        '"code":"'
-                                      ) + 8
-                                    ),
-                                    '","type":'
-                                  ) - 1
-                                  ELSE LENGTH(sp.body_json_string)
-                                END
-                              ),
-                              'Tags:',
-                              CHAR(10) || 'Tags:'
-                            ),
-                            'Scenario Type:',
-                            CHAR(10) || 'Scenario Type:'
-                          ),
-                          'Priority:',
-                          CHAR(10) || 'Priority:'
-                        ),
-                        'requirementID:',
-                        CHAR(10) || 'requirementID:'
-                      ),
-                      'cycle-date:',
-                      CHAR(10) || 'cycle-date:'
-                    ),
-                    'cycle:',
-                    CHAR(10) || 'cycle:'
-                  ),
-                  'severity:',
-                  CHAR(10) || 'severity:'
-                ),
-                'assignee:',
-                CHAR(10) || 'assignee:'
-              ),
-              'status:',
-              CHAR(10) || 'status:'
-            ),
-            'issue_id:',
-            CHAR(10) || 'issue_id:'
-          )
-          ELSE ''
-        END
-        ELSE NULL
-      END AS code_content,
-      rdm.role_name
-    FROM
-      sections_parsed sp
-      LEFT JOIN role_depth_mapping rdm ON sp.uniform_resource_id = rdm.uniform_resource_id
-      AND sp.depth = rdm.role_depth
+      uniform_resource_id, uniform_resource_transform_id, file_basename, last_modified_at, depth, title, body_json_string, extracted_id, role_name,
+      REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+        block1 || block2,
+        'Tags:', CHAR(10)||'Tags:'), 'tags:', CHAR(10)||'tags:'),
+        'Scenario Type:', CHAR(10)||'Scenario Type:'), 'scenario-type:', CHAR(10)||'scenario-type:'),
+        'Priority:', CHAR(10)||'Priority:'), 'priority:', CHAR(10)||'priority:'),
+        'requirementID:', CHAR(10)||'requirementID:'), 'requirementid:', CHAR(10)||'requirementid:'),
+        'cycle-date:', CHAR(10)||'cycle-date:'), 'cycle:', CHAR(10)||'cycle:'),
+        'severity:', CHAR(10)||'severity:'), 'assignee:', CHAR(10)||'assignee:'),
+        'status:', CHAR(10)||'status:'), 'issue_id:', CHAR(10)||'issue_id:'),
+        'plan-name:', CHAR(10)||'plan-name:'), 'plan-date:', CHAR(10)||'plan-date:'),
+        'created-by:', CHAR(10)||'created-by:'), 'suite-name:', CHAR(10)||'suite-name:'),
+        'suite-date:', CHAR(10)||'suite-date:'), 'Execution Type:', CHAR(10)||'Execution Type:'),
+        'execution-type:', CHAR(10)||'execution-type:'), 'Test Type:', CHAR(10)||'Test Type:'),
+        'test-type:', CHAR(10)||'test-type:'
+      ) AS code_content
+    FROM sections_raw
   ),
   case_titles AS (
-    SELECT
-      uniform_resource_id,
-      extracted_id AS test_case_id,
-      title AS test_case_title
-    FROM
-      sections_with_roles
-    WHERE
-      role_name = 'case'
-      AND extracted_id IS NOT NULL
+    SELECT uniform_resource_id, extracted_id AS test_case_id, title AS test_case_title
+    FROM sections_with_roles WHERE role_name = 'case' AND extracted_id IS NOT NULL
   ),
   evidence_extraction_positions AS (
     SELECT
-      swr.uniform_resource_id,
-      swr.uniform_resource_transform_id,
-      swr.file_basename,
-      swr.last_modified_at,
-      swr.extracted_id AS test_case_id,
-      swr.code_content,
+      swr.*,
       CASE
         WHEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'cycle-date:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'severity:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'severity:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'assignee:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'assignee:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'status:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'status:')
         WHEN INSTR(swr.code_content, CHAR(10) || 'issue_id:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'issue_id:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'requirementID:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'requirementID:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Priority:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Priority:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Tags:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Tags:')
-        WHEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:') > 0 THEN INSTR(swr.code_content, CHAR(10) || 'Scenario Type:')
+        WHEN INSTR(lower(swr.code_content), 'requirementid:') > 0 THEN INSTR(lower(swr.code_content), 'requirementid:')
+        WHEN INSTR(lower(swr.code_content), 'priority:') > 0 THEN INSTR(lower(swr.code_content), 'priority:')
+        WHEN INSTR(lower(swr.code_content), 'tags:') > 0 THEN INSTR(lower(swr.code_content), 'tags:')
+        WHEN INSTR(lower(swr.code_content), 'scenario-type:') > 0 THEN INSTR(lower(swr.code_content), 'scenario-type:')
+        WHEN INSTR(lower(swr.code_content), 'scenario type:') > 0 THEN INSTR(lower(swr.code_content), 'scenario type:')
+        WHEN INSTR(lower(swr.code_content), 'execution-type:') > 0 THEN INSTR(lower(swr.code_content), 'execution-type:')
+        WHEN INSTR(lower(swr.code_content), 'execution type:') > 0 THEN INSTR(lower(swr.code_content), 'execution type:')
+        WHEN INSTR(lower(swr.code_content), 'test-type:') > 0 THEN INSTR(lower(swr.code_content), 'test-type:')
+        WHEN INSTR(lower(swr.code_content), 'test type:') > 0 THEN INSTR(lower(swr.code_content), 'test type:')
         ELSE LENGTH(swr.code_content) + 1
       END AS end_of_cycle_pos,
       CASE
@@ -1830,31 +952,12 @@ CREATE VIEW qf_evidence_history_all AS WITH raw_transform_data AS (
     FROM
       sections_with_roles swr
     WHERE
-      swr.role_name = 'evidence'
-      AND swr.extracted_id IS NOT NULL
-      AND swr.code_content IS NOT NULL
+      swr.role_name = 'evidence' AND swr.extracted_id IS NOT NULL AND swr.code_content IS NOT NULL
   ),
-  -- ✅ NEW: Get the most recent version of each test case at or before each ingestion
   evidence_with_full_history AS (
     SELECT
-      ait.ingestion_timestamp,
-      eep.uniform_resource_id,
-      eep.uniform_resource_transform_id,
-      eep.file_basename,
-      eep.last_modified_at AS file_last_modified,
-      eep.test_case_id,
-      eep.code_content,
-      eep.end_of_cycle_pos,
-      eep.end_of_severity_pos,
-      eep.end_of_assignee_pos,
-      eep.end_of_status_pos,
-      eep.end_of_cycle_date_pos,
-      ROW_NUMBER() OVER (
-        PARTITION BY ait.ingestion_timestamp,
-        eep.test_case_id
-        ORDER BY
-          eep.last_modified_at DESC
-      ) AS rn
+      ait.ingestion_timestamp, eep.*, 
+      ROW_NUMBER() OVER (PARTITION BY ait.ingestion_timestamp, eep.test_case_id ORDER BY eep.last_modified_at DESC) AS rn
     FROM
       all_ingestion_timestamps ait
       CROSS JOIN evidence_extraction_positions eep
@@ -1862,84 +965,35 @@ CREATE VIEW qf_evidence_history_all AS WITH raw_transform_data AS (
       eep.last_modified_at <= ait.ingestion_timestamp
   )
 SELECT
-  ewfh.ingestion_timestamp,
-  ewfh.uniform_resource_id,
-  ewfh.uniform_resource_transform_id,
-  ewfh.file_basename,
-  ewfh.file_last_modified,
-  ewfh.test_case_id,
-  ct.test_case_title,
-  CASE
-    WHEN TRIM(
-      SUBSTR(
-        ewfh.code_content,
-        INSTR(ewfh.code_content, 'cycle:') + 6,
-        ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6)
-      )
-    ) LIKE '%:%' THEN NULL
-    ELSE TRIM(
-      SUBSTR(
-        ewfh.code_content,
-        INSTR(ewfh.code_content, 'cycle:') + 6,
-        ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6)
-      )
-    )
-  END AS latest_cycle,
-  TRIM(
-    SUBSTR(
-      ewfh.code_content,
-      INSTR(ewfh.code_content, 'severity:') + 9,
-      ewfh.end_of_severity_pos - (INSTR(ewfh.code_content, 'severity:') + 9)
-    )
-  ) AS severity,
-  TRIM(
-    SUBSTR(
-      ewfh.code_content,
-      INSTR(ewfh.code_content, 'assignee:') + 9,
-      ewfh.end_of_assignee_pos - (INSTR(ewfh.code_content, 'assignee:') + 9)
-    )
-  ) AS assignee,
-  TRIM(
-    SUBSTR(
-      ewfh.code_content,
-      INSTR(ewfh.code_content, 'status:') + 7,
-      ewfh.end_of_status_pos - (INSTR(ewfh.code_content, 'status:') + 7)
-    )
-  ) AS status,
-  CASE
-    WHEN INSTR(ewfh.code_content, 'issue_id:') > 0 THEN TRIM(
-      SUBSTR(
-        ewfh.code_content,
-        INSTR(ewfh.code_content, 'issue_id:') + 9
-      )
-    )
-    ELSE NULL
-  END AS issue_id,
-  CASE
-    WHEN INSTR(ewfh.code_content, 'cycle-date:') > 0 THEN TRIM(
-      SUBSTR(
-        ewfh.code_content,
-        INSTR(ewfh.code_content, 'cycle-date:') + 11,
-        ewfh.end_of_cycle_date_pos - (INSTR(ewfh.code_content, 'cycle-date:') + 11)
-      )
-    )
-    ELSE NULL
-  END AS cycle_date
+  ewfh.ingestion_timestamp, ewfh.uniform_resource_id, ewfh.uniform_resource_transform_id, ewfh.file_basename, ewfh.last_modified_at AS file_last_modified, ewfh.test_case_id, ct.test_case_title,
+  CASE WHEN TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'cycle:') + 6, ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6))) LIKE '%:%' THEN NULL ELSE TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'cycle:') + 6, ewfh.end_of_cycle_pos - (INSTR(ewfh.code_content, 'cycle:') + 6))) END AS latest_cycle,
+  TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'severity:') + 9, ewfh.end_of_severity_pos - (INSTR(ewfh.code_content, 'severity:') + 9))) AS severity,
+  TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'assignee:') + 9, ewfh.end_of_assignee_pos - (INSTR(ewfh.code_content, 'assignee:') + 9))) AS assignee,
+  TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'status:') + 7, ewfh.end_of_status_pos - (INSTR(ewfh.code_content, 'status:') + 7))) AS status,
+  CASE WHEN INSTR(ewfh.code_content, 'issue_id:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'issue_id:') + 9)) ELSE NULL END AS issue_id,
+  CASE WHEN INSTR(ewfh.code_content, 'cycle-date:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(ewfh.code_content, 'cycle-date:') + 11, ewfh.end_of_cycle_date_pos - (INSTR(ewfh.code_content, 'cycle-date:') + 11))) ELSE NULL END AS cycle_date,
+  CASE WHEN INSTR(lower(ewfh.code_content), 'priority:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'priority:') + 10, 50)) ELSE '' END AS priority,
+  CASE WHEN INSTR(lower(ewfh.code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'tags:') + 6, 100)), '[', ''), ']', ''), '"', ''), '\', '') ELSE '' END AS tags,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'scenario-type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'scenario-type:') + 15, 50))
+    WHEN INSTR(lower(ewfh.code_content), 'scenario type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'scenario type:') + 15, 50))
+    ELSE '' END AS scenario_type,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'execution type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'execution type:') + 16, 50))
+    WHEN INSTR(lower(ewfh.code_content), 'execution-type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'execution-type:') + 16, 50))
+    ELSE '' END AS execution_type,
+  CASE 
+    WHEN INSTR(lower(ewfh.code_content), 'test type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'test type:') + 11, 50))
+    WHEN INSTR(lower(ewfh.code_content), 'test-type:') > 0 THEN TRIM(SUBSTR(ewfh.code_content, INSTR(lower(ewfh.code_content), 'test-type:') + 11, 50))
+    ELSE '' END AS test_type
 FROM
   evidence_with_full_history ewfh
-  LEFT JOIN case_titles ct ON ct.uniform_resource_id = ewfh.uniform_resource_id
-  AND ct.test_case_id = ewfh.test_case_id
+  LEFT JOIN case_titles ct ON ct.uniform_resource_id = ewfh.uniform_resource_id AND ct.test_case_id = ewfh.test_case_id
 WHERE
-  ewfh.rn = 1 -- Only the most recent version at each ingestion point
-  AND (
-    NULLIF(cycle_date, '') IS NULL
-    OR DATE(
-      SUBSTR(cycle_date, 7, 4) || '-' || SUBSTR(cycle_date, 1, 2) || '-' || SUBSTR(cycle_date, 4, 2)
-    ) <= DATE('now', 'localtime')
-  )
+  ewfh.rn = 1 
+  AND (NULLIF(cycle_date, '') IS NULL OR DATE(SUBSTR(cycle_date, 7, 4) || '-' || SUBSTR(cycle_date, 1, 2) || '-' || SUBSTR(cycle_date, 4, 2)) <= DATE('now', 'localtime'))
 ORDER BY
-  ewfh.ingestion_timestamp DESC,
-  ewfh.test_case_id;
+  ewfh.ingestion_timestamp DESC, ewfh.test_case_id;
 -----project----
   -- 5. TAP RESULTS EXTRACTION
   -- ==============================================================================
@@ -2841,78 +1895,46 @@ group by
   project_name;
 DROP VIEW IF EXISTS qf_role_with_case;
 CREATE VIEW qf_role_with_case AS
-select
+SELECT
   tbl.rownum,
-  tbl.extracted_id as testcaseid,
+  tbl.extracted_id AS testcaseid,
   tbl.depth,
   tbl.file_basename,
   tbl.uniform_resource_id,
   tbl.role_name,
   tbl.title,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'requirementID:') + 15,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
-    )
-  ) as requirementID,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Execution Type:') + 16,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Execution Type:') + 16,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Execution Type:') + 16,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
-    )
-  ) as execution_type,
-  prj.title as project_name,
+  CASE WHEN INSTR(lower(tbl.code_content), 'requirementid:') > 0 THEN TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'requirementid:') + 14, 50), CHAR(10), ''), CHAR(13), '')) ELSE '' END AS requirementID,
+  CASE WHEN INSTR(lower(tbl.code_content), 'priority:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'priority:') + 10, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '') ELSE '' END AS priority,
+  CASE WHEN INSTR(lower(tbl.code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'tags:') + 6, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'tags:') + 6), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'tags:') + 6), CHAR(10)) - 1 ELSE 100 END), CHAR(10), ''), CHAR(13), '')), '\', ''), '[', ''), ']', ''), '"', '') ELSE '' END AS tags,
+  CASE 
+    WHEN INSTR(lower(tbl.code_content), 'scenario-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'scenario-type:') + 15, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(tbl.code_content), 'scenario type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'scenario type:') + 15, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS scenario_type,
+  CASE 
+    WHEN INSTR(lower(tbl.code_content), 'execution type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'execution type:') + 16, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(tbl.code_content), 'execution-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'execution-type:') + 16, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution-type:') + 16), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution-type:') + 16), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS execution_type,
+  CASE 
+    WHEN INSTR(lower(tbl.code_content), 'test type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'test type:') + 11, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'test type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'test type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    WHEN INSTR(lower(tbl.code_content), 'test-type:') > 0 THEN REPLACE(TRIM(REPLACE(REPLACE(SUBSTR(tbl.code_content, INSTR(lower(tbl.code_content), 'test-type:') + 11, CASE WHEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'test-type:') + 11), CHAR(10)) > 0 THEN INSTR(SUBSTR(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'test-type:') + 11), CHAR(10)) - 1 ELSE 50 END), CHAR(10), ''), CHAR(13), '')), '\', '')
+    ELSE '' END AS test_type,
+  prj.title AS project_name,
   prj.project_id
-from
+FROM
   qf_role tbl
-  inner join qf_role_with_project prj on prj.uniform_resource_id = tbl.uniform_resource_id
-where
+  INNER JOIN qf_role_with_project prj ON prj.uniform_resource_id = tbl.uniform_resource_id
+WHERE
   tbl.role_name = 'case'
-  and prj.depth = 1;
+  AND prj.depth = 1;
+
+-- Test Type View for Analytics
+DROP VIEW IF EXISTS qf_case_testype;
+CREATE VIEW qf_case_testype AS
+SELECT
+  testcaseid AS "Test Case ID",
+  test_type AS "Test Type",
+  project_name
+FROM qf_role_with_case;
 DROP VIEW IF EXISTS qf_testcase_status;
 CREATE VIEW qf_testcase_status AS
 select
@@ -3031,90 +2053,95 @@ select
   tbl.uniform_resource_id,
   tbl.role_name,
   tbl.title,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'requirementID:') + 15,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'requirementid:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'requirementid:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as requirementID,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Priority:') + 10,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Priority:') + 10,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Priority:') + 10,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+    ELSE ''
+  END as requirementID,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'priority:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'priority:') + 10,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as priority,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Scenario Type:') + 15,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Scenario Type:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Scenario Type:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+    ELSE ''
+  END as priority,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'scenario-type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario-type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as scenario_type,
+    WHEN INSTR(lower(tbl.code_content), 'scenario type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE ''
+  END as scenario_type,
   trim(
     replace(
       SUBSTR(
@@ -3217,90 +2244,95 @@ select
   tbl.file_basename,
   tbl.uniform_resource_id,
   tbl.role_name,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'requirementID:') + 15,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'requirementid:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'requirementid:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as requirementID,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Priority:') + 10,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Priority:') + 10,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Priority:') + 10,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+    ELSE ''
+  END as requirementID,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'priority:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'priority:') + 10,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as priority,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Scenario Type:') + 15,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Scenario Type:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Scenario Type:') + 15,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
+    ELSE ''
+  END as priority,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'scenario-type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario-type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
     )
-  ) as scenario_type,
+    WHEN INSTR(lower(tbl.code_content), 'scenario type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE ''
+  END as scenario_type,
   trim(
     replace(
       SUBSTR(
@@ -3504,6 +2536,8 @@ SELECT
     )
   ) AS extracted_id,
   REPLACE(
+  REPLACE(
+  REPLACE(
     REPLACE(
       REPLACE(
         REPLACE(
@@ -3548,6 +2582,12 @@ SELECT
     ),
     'issue_id:',
     CHAR(10) || 'issue_id:'
+  ),
+  'Execution Type:',
+  CHAR(10) || 'Execution Type:'
+  ),
+  'Test Type:',
+  CHAR(10) || 'Test Type:'
   ) AS code_content,
   rm.role_name,
   s.rn,
@@ -3583,6 +2623,8 @@ SELECT
       ) - 1
     )
   ) AS extracted_id,
+  REPLACE(
+  REPLACE(
   REPLACE(
     REPLACE(
       REPLACE(
@@ -3632,6 +2674,12 @@ SELECT
     ),
     'issue_id:',
     CHAR(10) || 'issue_id:'
+  ),
+  'Execution Type:',
+  CHAR(10) || 'Execution Type:'
+  ),
+  'Test Type:',
+  CHAR(10) || 'Test Type:'
   ) AS code_content,
   rm.role_name,
   s.rn,
@@ -3971,16 +3019,171 @@ select
   tbl.uniform_resource_id,
   tbl.role_name,
   tbl.title,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'requirementid:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'requirementid:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'requirementid:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE ''
+  END as requirementID,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'execution-type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'execution-type:') + 16,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution-type:') + 16),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution-type:') + 16),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    WHEN INSTR(lower(tbl.code_content), 'execution type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'execution type:') + 16,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution type:') + 16),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'execution type:') + 16),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE 'Manual'
+  END as execution_type,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'priority:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'priority:') + 10,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'priority:') + 10),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE ''
+  END as priority,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'tags:') > 0 THEN REPLACE(REPLACE(REPLACE(trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'tags:') + 6,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'tags:') + 6),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'tags:') + 6),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    ), '[', ''), ']', ''), '"', '')
+    ELSE ''
+  END as tags,
+  CASE
+    WHEN INSTR(lower(tbl.code_content), 'scenario-type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario-type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario-type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    WHEN INSTR(lower(tbl.code_content), 'scenario type:') > 0 THEN trim(
+      replace(
+        SUBSTR(
+          tbl.code_content,
+          INSTR(lower(tbl.code_content), 'scenario type:') + 15,
+          case
+            when INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) = 0 then length(tbl.code_content)
+            else INSTR(
+              substr(lower(tbl.code_content), INSTR(lower(tbl.code_content), 'scenario type:') + 15),
+              CHAR(10)
+            ) - 1
+          end
+        ),
+        char(10),
+        ''
+      )
+    )
+    ELSE ''
+  END as scenario_type,
   trim(
     replace(
       SUBSTR(
         tbl.code_content,
-        INSTR(tbl.code_content, 'requirementID:') + 15,
+        INSTR(tbl.code_content, 'Test Type:') + 11,
         case
           when INSTR(
             substr(
               tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
+              INSTR(tbl.code_content, 'Test Type:') + 11,
               length(tbl.code_content)
             ),
             CHAR(10)
@@ -3988,7 +3191,7 @@ select
           else INSTR(
             substr(
               tbl.code_content,
-              INSTR(tbl.code_content, 'requirementID:') + 15,
+              INSTR(tbl.code_content, 'Test Type:') + 11,
               length(tbl.code_content)
             ),
             CHAR(10)
@@ -3998,35 +3201,7 @@ select
       char(10),
       ''
     )
-  ) as requirementID,
-  trim(
-    replace(
-      SUBSTR(
-        tbl.code_content,
-        INSTR(tbl.code_content, 'Execution Type:') + 16,
-        case
-          when INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Execution Type:') + 16,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          ) = 0 then length(tbl.code_content)
-          else INSTR(
-            substr(
-              tbl.code_content,
-              INSTR(tbl.code_content, 'Execution Type:') + 16,
-              length(tbl.code_content)
-            ),
-            CHAR(10)
-          )
-        end
-      ),
-      char(10),
-      ''
-    )
-  ) as execution_type,
+  ) as test_type,
   prj.title as project_name,
   prj.project_id
 from
@@ -4103,6 +3278,12 @@ FROM
         ),
         '/', ''
       ) AS project_name,
+      -- Extract full owner/repo from URL
+      substr(
+        html_url,
+        20,
+        instr(html_url, '/issues') - 20
+      ) AS repo_name,
       -- Rank rows per issue number: latest state wins, ordered by GitHub's
       -- updated_at (bumped on every close/reopen) then by created_at as
       -- a tie-breaker. This deduplicates across multiple ingest sessions so
@@ -4142,13 +3323,13 @@ SELECT
     html_url
 FROM (
     SELECT 
-        sha, 
-        json_extract("commit", '$.message') as message,
-        json_extract("commit", '$.author.name') as author_name,
-        json_extract("commit", '$.author.date') as commit_date,
-        html_url,
-        ROW_NUMBER() OVER (PARTITION BY sha ORDER BY id DESC) as _rn
-    FROM github_commits
+        gc.sha, 
+        json_extract(gc."commit", '$.message') as message,
+        json_extract(gc."commit", '$.author.name') as author_name,
+        json_extract(gc."commit", '$.author.date') as commit_date,
+        gc.html_url,
+        ROW_NUMBER() OVER (PARTITION BY gc.sha ORDER BY gc.id DESC) as _rn
+    FROM github_commits gc
 ) gc WHERE _rn = 1;
 
 -- Create a view to link commits to actual documentation artifacts
@@ -4503,7 +3684,12 @@ SELECT
   cs.latest_assignee,
   cs.latest_issue_id,
   cs.project_name,
-  cs.requirement_ID
+  cs.requirement_ID,
+  cs.priority,
+  cs.tags,
+  cs.scenario_type,
+  cs.execution_type,
+  cs.test_type
 FROM
   qf_case_status cs
   JOIN (
@@ -4554,3 +3740,195 @@ WHERE
 GROUP BY
   project_name,
   requirement_ID;
+
+-- ==============================================================================
+-- QF_RUN_DETAILS VIEW
+-- Combines run.md (markdown) and result.json (JSON) evidence data to provide
+-- a unified view of test run details including steps with per-step status.
+-- ==============================================================================
+DROP VIEW IF EXISTS qf_run_details;
+CREATE VIEW qf_run_details AS
+WITH
+  -- ============================================================================
+  -- PART A: Parse result.json from uniform_resource (deduplicated, latest only)
+  -- ============================================================================
+  result_json_ranked AS (
+    SELECT
+      ur.uniform_resource_id AS result_uniform_resource_id,
+      ur.uri AS result_uri,
+      CAST(ur.content AS TEXT) AS json_content,
+      ROW_NUMBER() OVER (
+        PARTITION BY ur.uri
+        ORDER BY urpe.ingest_session_id DESC, ur.uniform_resource_id DESC
+      ) AS rn
+    FROM
+      uniform_resource ur
+      JOIN ur_ingest_session_fs_path_entry urpe
+        ON ur.uniform_resource_id = urpe.uniform_resource_id
+    WHERE
+      urpe.file_basename = 'result.json'
+      AND ur.content IS NOT NULL
+      AND json_valid(CAST(ur.content AS TEXT))
+  ),
+  result_json_resources AS (
+    SELECT result_uniform_resource_id, result_uri, json_content
+    FROM result_json_ranked
+    WHERE rn = 1
+  ),
+  -- Step A2: Expand each test case from the result.json array
+  result_test_cases AS (
+    SELECT
+      rjr.result_uniform_resource_id,
+      json_extract(tc.value, '$.test_case_fii') AS test_case_id,
+      json_extract(tc.value, '$.title') AS test_description,
+      json_extract(tc.value, '$.status') AS overall_status,
+      json_extract(tc.value, '$.start_time') AS start_time,
+      json_extract(tc.value, '$.end_time') AS end_time,
+      json_extract(tc.value, '$.total_duration') AS total_duration,
+      json_extract(tc.value, '$.steps') AS steps_json
+    FROM
+      result_json_resources rjr,
+      json_each(rjr.json_content) AS tc
+  ),
+  -- Step A3: Aggregate steps into a JSON array per test case
+  result_with_steps AS (
+    SELECT
+      rtc.result_uniform_resource_id,
+      rtc.test_case_id,
+      rtc.test_description,
+      rtc.overall_status,
+      rtc.start_time,
+      rtc.end_time,
+      rtc.total_duration,
+      rtc.steps_json AS steps_detail
+    FROM
+      result_test_cases rtc
+    WHERE
+      rtc.test_case_id IS NOT NULL
+  ),
+
+  -- ============================================================================
+  -- PART B: Parse run.md using qf_markdown_master (already deduplicated)
+  -- ============================================================================
+  run_md_data AS (
+    SELECT
+      mm.uniform_resource_id AS run_uniform_resource_id,
+      mm.uri AS run_uri,
+      mm.cleaned_json_text
+    FROM
+      qf_markdown_master mm
+    WHERE
+      mm.file_basename = 'run.md'
+      AND json_valid(mm.cleaned_json_text)
+  ),
+  -- Step B2: Parse depth-2 sections (## test case headings) from the JSON tree
+  run_test_cases AS (
+    SELECT
+      rmd.run_uniform_resource_id,
+      json_extract(jt.value, '$.title') AS section_title,
+      json_extract(jt.value, '$.body') AS body_json,
+      jt.value AS full_section_json,
+      TRIM(
+        SUBSTR(
+          json_extract(jt.value, '$.body'),
+          INSTR(json_extract(jt.value, '$.body'), '@id') + 4,
+          INSTR(
+            SUBSTR(
+              json_extract(jt.value, '$.body'),
+              INSTR(json_extract(jt.value, '$.body'), '@id') + 4
+            ),
+            '"'
+          ) - 1
+        )
+      ) AS test_case_id
+    FROM
+      run_md_data rmd,
+      json_tree(rmd.cleaned_json_text, '$') AS jt
+    WHERE
+      jt.key = 'section'
+      AND json_extract(jt.value, '$.depth') = 2
+      AND INSTR(COALESCE(json_extract(jt.value, '$.body'), ''), '@id') > 0
+  ),
+  -- Step B3: For each test case, extract Actual Result and Run Summary
+  run_details_parsed AS (
+    SELECT
+      rtc.run_uniform_resource_id,
+      rtc.test_case_id,
+      rtc.section_title AS test_case_heading,
+      -- Extract Actual Result from nested depth-3 section, formatting as markdown list
+      (
+        SELECT GROUP_CONCAT('- ' || c.value, CHAR(10))
+        FROM json_tree(
+          (
+            SELECT json_extract(child.value, '$.body')
+            FROM json_tree(rtc.full_section_json) AS child
+            WHERE child.key = 'section'
+              AND json_extract(child.value, '$.title') = 'Actual Result'
+              AND json_extract(child.value, '$.depth') = 3
+            LIMIT 1
+          )
+        ) AS c
+        WHERE c.key = 'paragraph' AND c.type = 'text'
+      ) AS actual_result,
+      -- Extract Run Summary from nested depth-3 section, formatting as markdown list
+      (
+        SELECT GROUP_CONCAT('- ' || c.value, CHAR(10))
+        FROM json_tree(
+          (
+            SELECT json_extract(child.value, '$.body')
+            FROM json_tree(rtc.full_section_json) AS child
+            WHERE child.key = 'section'
+              AND json_extract(child.value, '$.title') = 'Run Summary'
+              AND json_extract(child.value, '$.depth') = 3
+            LIMIT 1
+          )
+        ) AS c
+        WHERE c.key = 'paragraph' AND c.type = 'text'
+      ) AS run_summary
+    FROM
+      run_test_cases rtc
+  )
+-- ============================================================================
+-- FINAL: Join result.json (steps) with run.md (actual result, run summary)
+-- ============================================================================
+SELECT
+  COALESCE(rdp.run_uniform_resource_id, rws.result_uniform_resource_id) AS uniform_resource_id,
+  COALESCE(rws.test_case_id, rdp.test_case_id) AS test_case_id,
+  COALESCE(rws.test_description, rdp.test_case_heading) AS test_description,
+  rdp.actual_result,
+  rdp.run_summary,
+  rws.overall_status,
+  rws.start_time,
+  rws.end_time,
+  rws.total_duration,
+  rws.steps_detail AS steps,
+  (SELECT TRIM(REPLACE(SUBSTR(content, INSTR(content, 'cycle:') + 6, INSTR(SUBSTR(content, INSTR(content, 'cycle:') + 6), CHAR(10)) - 1), CHAR(13), '')) 
+   FROM uniform_resource WHERE uniform_resource_id = rdp.run_uniform_resource_id) AS run_cycle
+FROM
+  result_with_steps rws
+  LEFT JOIN run_details_parsed rdp
+    ON UPPER(rws.test_case_id) = UPPER(rdp.test_case_id)
+
+UNION ALL
+
+-- Include test cases that exist in run.md but not in result.json
+SELECT
+  rdp.run_uniform_resource_id AS uniform_resource_id,
+  rdp.test_case_id,
+  rdp.test_case_heading AS test_description,
+  rdp.actual_result,
+  rdp.run_summary,
+  NULL AS overall_status,
+  NULL AS start_time,
+  NULL AS end_time,
+  NULL AS total_duration,
+  NULL AS steps,
+  (SELECT TRIM(REPLACE(SUBSTR(content, INSTR(content, 'cycle:') + 6, INSTR(SUBSTR(content, INSTR(content, 'cycle:') + 6), CHAR(10)) - 1), CHAR(13), '')) 
+   FROM uniform_resource WHERE uniform_resource_id = rdp.run_uniform_resource_id) AS run_cycle
+FROM
+  run_details_parsed rdp
+WHERE
+  NOT EXISTS (
+    SELECT 1 FROM result_with_steps rws
+    WHERE UPPER(rws.test_case_id) = UPPER(rdp.test_case_id)
+  );
