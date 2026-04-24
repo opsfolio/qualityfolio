@@ -81,8 +81,7 @@ SELECT
 FROM
   ranked
 WHERE
-  rn = 1
-  AND ingest_session_id = (SELECT MAX(ingest_session_id) FROM ur_ingest_session_fs_path_entry);
+  rn = 1;
 
 -- 2. LOAD doc-classify ROLE→DEPTH MAP
 ------------------------------------------------------------------------------
@@ -754,6 +753,59 @@ from
 group by
   created_date,
   project_name;
+
+-- EVIDENCE FILES VIEW
+-- Extracts test_case_id and cycle from evidence file paths
+-- Path pattern: .../evidence/<TESTCASE_ID>/<CYCLE>/<filename>
+------------------------------------------------------------------------------
+DROP VIEW IF EXISTS qf_evidence;
+CREATE VIEW qf_evidence AS
+WITH evidence_paths AS (
+  SELECT
+    ur.uniform_resource_id,
+    ur.uri,
+    ur.content,
+    ur.nature,
+    urpe.file_basename,
+    SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9) AS path_after_evidence,
+    ROW_NUMBER() OVER (
+      PARTITION BY ur.uri
+      ORDER BY urpe.ingest_session_id DESC, ur.uniform_resource_id DESC
+    ) AS rn
+  FROM uniform_resource ur
+  JOIN ur_ingest_session_fs_path_entry urpe
+    ON ur.uniform_resource_id = urpe.uniform_resource_id
+  WHERE ur.uri LIKE '%/evidence/%'
+    AND INSTR(SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9), '/') > 0
+)
+SELECT
+  ep.uniform_resource_id,
+  ep.uri,
+  ep.content,
+  ep.nature,
+  ep.file_basename,
+  -- test_case_id: segment before first '/' in path_after_evidence
+  SUBSTR(ep.path_after_evidence, 1, INSTR(ep.path_after_evidence, '/') - 1) AS test_case_id,
+  -- cycle: segment between first and second '/' in path_after_evidence
+  CASE
+    WHEN INSTR(SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1), '/') > 0
+    THEN SUBSTR(
+      SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1),
+      1,
+      INSTR(SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1), '/') - 1
+    )
+    ELSE SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1)
+  END AS cycle,
+  -- Classify file type
+  CASE
+    WHEN ep.file_basename LIKE '%.json' THEN 'result_json'
+    WHEN ep.file_basename LIKE '%.md' THEN 'run_md'
+    WHEN ep.file_basename LIKE '%.png' OR ep.file_basename LIKE '%.jpg' OR ep.file_basename LIKE '%.jpeg' THEN 'screenshot'
+    ELSE 'other'
+  END AS evidence_type
+FROM evidence_paths ep
+WHERE ep.rn = 1;
+
 --latest batch changes--
   DROP VIEW IF EXISTS qf_evidence_recent;
 CREATE VIEW qf_evidence_recent AS WITH latest_ingestion AS (
@@ -1866,13 +1918,13 @@ select
   ) as totalcases,
   SUM(
     CASE
-      WHEN status_refined IN ('passed', 'ok') THEN 1
+      WHEN LOWER(status_refined) IN ('passed', 'ok') THEN 1
       ELSE 0
     END
   ) as passed_cases,
   SUM(
     CASE
-      WHEN status_refined IN ('failed', 'not ok') THEN 1
+      WHEN LOWER(status_refined) IN ('failed', 'not ok') THEN 1
       ELSE 0
     END
   ) as failed_cases,

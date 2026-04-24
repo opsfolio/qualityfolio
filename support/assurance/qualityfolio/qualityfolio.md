@@ -3,7 +3,7 @@ sqlpage-conf:
   database_url: "sqlite://resource-surveillance.sqlite.db?mode=rwc"
   web_root: "./dev-src.auto"
   allow_exec: true
-  port: "9227"
+  port: 9227
 ---
 
 ```code DEFAULTS
@@ -340,6 +340,122 @@ SELECT
     .form-fieldset .row {
         justify-content: end !important;
     }
+
+    /* ── Dashboard Card Overrides (scoped to metrics area only) ── */
+
+    /* Card body: stack content vertically and center everything */
+    #metrics-cards .card .card-body,
+    #dashboard-utilities .card .card-body {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 20px 16px !important;
+        position: relative !important;
+    }
+
+    /* Move icon above the text: pull it out of its default position */
+    #metrics-cards .card .card-body .icon,
+    #dashboard-utilities .card .card-body .icon {
+        order: -1 !important;
+        margin: 0 0 10px 0 !important;
+        position: static !important;
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Reset icon positioning that Tabler may add */
+    #metrics-cards .card .card-body .icon svg,
+    #dashboard-utilities .card .card-body .icon svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    /* Remove the default left-border accent on cards */
+    #metrics-cards .card,
+    #dashboard-utilities .card {
+        border-left: none !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+        transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.3s ease, background-color 0.3s ease !important;
+    }
+
+    #metrics-cards .card:hover,
+    #dashboard-utilities .card:hover {
+        box-shadow: 0 4px 16px rgba(22, 22, 22, 0.15) !important;
+        transform: translateY(-2px) !important;
+        background: linear-gradient(90deg, #d8cfeeff 0%, #aeaec0ff 100%) !important;
+        border-color: transparent !important;
+    }
+
+    #metrics-cards .card:hover .card-body h1,
+    #metrics-cards .card:hover .card-body h2,
+    #dashboard-utilities .card:hover .card-body h1,
+    #dashboard-utilities .card:hover .card-body h2 {
+        color: #ffffff !important;
+    }
+
+    /* Center card description / title text */
+    #metrics-cards .card .card-body .d-flex,
+    #dashboard-utilities .card .card-body .d-flex {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* Make the value (h1 inside card) centered */
+    #metrics-cards .card .card-body h1,
+    #metrics-cards .card .card-body h2,
+    #metrics-cards .card .card-body h3,
+    #dashboard-utilities .card .card-body h1,
+    #dashboard-utilities .card .card-body h2,
+    #dashboard-utilities .card .card-body h3 {
+        text-align: center !important;
+        width: 100% !important;
+        margin: 4px 0 !important;
+    }
+
+    /* Card title styling */
+    #metrics-cards .card .card-body h2,
+    #dashboard-utilities .card .card-body h2 {
+        font-size: 19px !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        transition: color 0.3s ease !important;
+    }
+
+    /* Card value styling */
+    #metrics-cards .card .card-body h1,
+    #dashboard-utilities .card .card-body h1 {
+        font-size: 34px !important;
+        font-weight: 700 !important;
+        color: #1f2937 !important;
+        transition: color 0.3s ease !important;
+    }
+
+    /* Remove right-float on icon (Tabler default) */
+    #metrics-cards .card .card-body > .row,
+    #metrics-cards .card .card-body > div > .row,
+    #dashboard-utilities .card .card-body > .row,
+    #dashboard-utilities .card .card-body > div > .row {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    /* Ensure the status-icon sits nicely centered */
+    #metrics-cards .card .card-stamp,
+    #metrics-cards .card .card-status-start,
+    #dashboard-utilities .card .card-stamp,
+    #dashboard-utilities .card .card-status-start {
+        display: none !important;
+    }
   </style>
   ' AS html;
 
@@ -379,6 +495,8 @@ FROM (
 
 
 -- Metrics Cards
+SELECT 'html' AS component, '<div id="metrics-cards" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 20px; background-color: #f8f9fa; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">' AS html;
+
 SELECT 'card' AS component, 4 AS columns;
 
 -- Total Test Cases
@@ -589,6 +707,17 @@ WHERE (latest_assignee IS NULL OR TRIM(latest_assignee) = '')
     'orange' AS color,
     'user' AS icon;
 
+-- Test plan count
+SELECT '## Test Plan Count' AS description_md,
+         '# ' || COALESCE(COUNT(planid), 0) AS description_md,
+       'white' AS background_color,
+       'clipboard-list'       as icon,
+        'green' as color,
+       'test-plan-cases.sql?project_name=' ||
+           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
+FROM qf_role_with_plan
+WHERE
+  project_name = :project_name HAVING COUNT(planid) > 0;
 
 --- Test suite count
 SELECT '## Test Suite Count' AS description_md,
@@ -603,35 +732,35 @@ WHERE
   project_name = :project_name HAVING COUNT(suiteid) > 0;
 
 
--- Test plan count
-SELECT '## Test Plan Count' AS description_md,
-         '# ' || COALESCE(COUNT(planid), 0) AS description_md,
-       'white' AS background_color,
-       'clipboard-list'       as icon,
-        'green' as color,
-       'test-plan-cases.sql?project_name=' ||
-           REPLACE(REPLACE(REPLACE(project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link
-FROM qf_role_with_plan
-WHERE
-  project_name = :project_name HAVING COUNT(planid) > 0;
+SELECT 'html' AS component, '</div>' AS html;
 
--- History test cases
-SELECT
-       '## Test Cycle Execution History' AS description_md,
+-- Dashboard Utilities Section
+SELECT 'divider' AS component,
+       'Dashboard Utilities' AS contents,
+       5 AS size,
+       'blue' AS color;
+
+SELECT 'html' AS component, '<div id="dashboard-utilities" style="border: 1px solid #d1d5db; border-radius: 8px; padding: 20px; background-color: #f8f9fa; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">' AS html;
+
+SELECT 'card' AS component, 4 AS columns;
+
+SELECT '## Test Cycle Execution History' AS description_md,
+       '# 🕒' AS description_md,
        'white' AS background_color,
        'history' AS icon,
        'blue' AS color,
        'test-case-history.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
 
--- Analytics Tile
-SELECT '## Analytics' AS description_md,
-       'View Strategic Insights' AS description_md,
+SELECT '## Analytics & Strategic Insights' AS description_md,
+       '# 📊' AS description_md,
        'white' AS background_color,
        'chart-bar' AS icon,
-       'blue' AS color,
+       'teal' AS color,
        'analytics.sql?project_name=' ||
            REPLACE(REPLACE(REPLACE(:project_name, ' ', '%20'), '&', '%26'), '#', '%23') AS link;
+
+SELECT 'html' AS component, '</div>' AS html;
 
 
 -- -- Recent Commit Changes
@@ -652,6 +781,23 @@ SELECT '<div id="chart-section" style="scroll-margin-top: 56px;"></div>
       if (el) el.scrollIntoView({ block: "start", behavior: "instant" });
     });
   }
+
+  // Force ApexCharts to display the exact 2-decimal percentage we pass it,
+  // preventing it from recalculating and rounding to 100% on pie charts.
+  window.Apex = {
+    dataLabels: {
+      formatter: function (val, opts) {
+          return opts.w.config.series[opts.seriesIndex] + "%";
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: function(value) {
+          return value + "%";
+        }
+      }
+    }
+  };
 </script>' AS html;
 
 -- Test Status Visualization
@@ -1333,7 +1479,7 @@ WITH ranked_history AS (
         SELECT tr.status
         FROM qf_tap_results tr
         WHERE UPPER(tr.test_case_id) = UPPER(tbl.testcaseid)
-          AND COALESCE(DATE(tr.tap_date), DATE(SUBSTR(tr.tap_date,7,4)||'-'||SUBSTR(tr.tap_date,1,2)||'-'||SUBSTR(tr.tap_date,4,2))) = 
+          AND COALESCE(DATE(tr.tap_date), DATE(SUBSTR(tr.tap_date,7,4)||'-'||SUBSTR(tr.tap_date,1,2)||'-'||SUBSTR(tr.tap_date,4,2))) =
               COALESCE(DATE(tbl.cycledate), DATE(SUBSTR(tbl.cycledate,7,4)||'-'||SUBSTR(tbl.cycledate,1,2)||'-'||SUBSTR(tbl.cycledate,4,2)))
         ORDER BY tr.ingest_session_id DESC
         LIMIT 1
@@ -1381,7 +1527,7 @@ SELECT
   d.cycle AS "Latest Cycle",
   CASE
     WHEN EXISTS (
-        SELECT 1 FROM qf_run_details rd 
+        SELECT 1 FROM qf_run_details rd
         WHERE UPPER(rd.test_case_id) = UPPER(d.testcaseid)
           AND rd.run_cycle = d.cycle
     )
@@ -1605,7 +1751,7 @@ SELECT
       SELECT tr.status
       FROM qf_tap_results tr
       WHERE UPPER(tr.test_case_id) = UPPER(tbl.testcaseid)
-        AND COALESCE(DATE(tr.tap_date), DATE(SUBSTR(tr.tap_date,7,4)||'-'||SUBSTR(tr.tap_date,1,2)||'-'||SUBSTR(tr.tap_date,4,2))) = 
+        AND COALESCE(DATE(tr.tap_date), DATE(SUBSTR(tr.tap_date,7,4)||'-'||SUBSTR(tr.tap_date,1,2)||'-'||SUBSTR(tr.tap_date,4,2))) =
             COALESCE(DATE(tbl.cycledate), DATE(SUBSTR(tbl.cycledate,7,4)||'-'||SUBSTR(tbl.cycledate,1,2)||'-'||SUBSTR(tbl.cycledate,4,2)))
       ORDER BY tr.ingest_session_id DESC
       LIMIT 1
@@ -1719,15 +1865,17 @@ SELECT $testcaseid, :new_comment, COALESCE(sqlpage.user_info('name'), sqlpage.us
 WHERE :new_comment IS NOT NULL AND TRIM(:new_comment) <> '';
 
 SELECT 'tab' as component;
-SELECT 'Details' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' as link, :tab = 'Details' as active, 'file-text' as icon;
+SELECT 'Details' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' as link, :tab = 'Details' as active, 'file-text' as icon WHERE :serve_image IS NULL;
+SELECT 'Evidences' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Evidences' as link, :tab = 'Evidences' as active, 'report-search' as icon
+WHERE EXISTS (SELECT 1 FROM qf_evidence WHERE UPPER(test_case_id) = UPPER($testcaseid) LIMIT 1) AND :serve_image IS NULL;
 SELECT 'Revision History' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Revision History' as link, :tab = 'Revision History' as active, 'history' as icon
-WHERE EXISTS (SELECT 1 FROM qf_github_commits LIMIT 1);
+WHERE EXISTS (SELECT 1 FROM qf_github_commits LIMIT 1) AND :serve_image IS NULL;
 
 -- Details Tab Content
 SELECT 'text' AS component, $page_description AS contents_md WHERE :tab = 'Details';
 
 SELECT 'card' AS component,
-       'Test Cases Metadata' AS title,
+       'Test Case Attributes' AS title,
        5 AS columns
 WHERE :tab = 'Details';
 
@@ -1827,15 +1975,105 @@ SELECT comment_text AS "Comment", created_by AS "User", strftime('%m-%d-%Y', cre
     WHEN CAST(strftime('%H', created_at) AS INTEGER) = 12 THEN '12:' || strftime('%M:%S', created_at) || ' PM'
     ELSE CAST(CAST(strftime('%H', created_at) AS INTEGER) - 12 AS TEXT) || ':' || strftime('%M:%S', created_at) || ' PM'
   END AS "Time"
-FROM qf_testcase_comments 
+FROM qf_testcase_comments
 WHERE testcase_id = $testcaseid
-  AND :tab = 'Details' 
+  AND :tab = 'Details'
 ORDER BY created_at DESC;
 
+-- =====================================================================
+-- Evidences Tab Content
+-- =====================================================================
 
-SELECT 'table' AS component, 'Test Cases' AS title
-WHERE :tab = 'Revision History'
-  AND EXISTS (SELECT 1 FROM qf_github_commits LIMIT 1);
+-- Test Run Summary Card (from result.auto.json)
+SELECT 'card' AS component,
+       'Test Run Summary' AS title,
+       1 AS columns
+WHERE :tab = 'Evidences'
+  AND EXISTS (SELECT 1 FROM qf_evidence WHERE UPPER(test_case_id) = UPPER($testcaseid) AND evidence_type = 'result_json');
+
+SELECT
+  'Test Case: ' || json_extract(CAST(ev.content AS TEXT), '$.test_case_fii') AS title,
+  '**Status:** ' || COALESCE(UPPER(json_extract(CAST(ev.content AS TEXT), '$.status')), 'N/A') || '
+
+' ||
+  '**Description:** ' || COALESCE(json_extract(CAST(ev.content AS TEXT), '$.title'), 'N/A') || '
+
+' ||
+  '**Duration:** ' || COALESCE(json_extract(CAST(ev.content AS TEXT), '$.total_duration'), 'N/A') || '
+
+' ||
+  '**Start Time:** ' || COALESCE(json_extract(CAST(ev.content AS TEXT), '$.start_time'), 'N/A') || '
+
+' ||
+  '**End Time:** ' || COALESCE(json_extract(CAST(ev.content AS TEXT), '$.end_time'), 'N/A') || '
+
+' ||
+  '**Cycle:** ' || COALESCE(ev.cycle, 'N/A')
+  AS description_md,
+  CASE WHEN json_extract(CAST(ev.content AS TEXT), '$.status') = 'passed' THEN 'green'
+       WHEN json_extract(CAST(ev.content AS TEXT), '$.status') = 'failed' THEN 'red'
+       ELSE 'azure' END AS color
+FROM qf_evidence ev
+WHERE UPPER(ev.test_case_id) = UPPER($testcaseid)
+  AND ev.evidence_type = 'result_json'
+  AND :tab = 'Evidences'
+ORDER BY ev.cycle DESC
+LIMIT 1;
+
+-- Actual Result Table (from result.auto.json)
+SELECT 'table' AS component,
+       'Actual Result' AS title,
+       'No steps found.' AS empty_title,
+       1 AS sort
+WHERE :tab = 'Evidences'
+  AND EXISTS (SELECT 1 FROM qf_evidence WHERE UPPER(test_case_id) = UPPER($testcaseid) AND evidence_type = 'result_json');
+
+SELECT
+  json_extract(step.value, '$.step') AS "Step #",
+  json_extract(step.value, '$.stepname') AS "Step Name",
+  UPPER(json_extract(step.value, '$.status')) AS "Status",
+  json_extract(step.value, '$.start_time') AS "Start Time",
+  json_extract(step.value, '$.end_time') AS "End Time",
+  CASE
+    WHEN json_extract(step.value, '$.error_message') IS NOT NULL
+      AND json_extract(step.value, '$.error_message') <> ''
+    THEN json_extract(step.value, '$.error_message')
+    ELSE '-'
+  END AS "Error"
+FROM qf_evidence ev,
+     json_each(json_extract(CAST(ev.content AS TEXT), '$.steps')) AS step
+WHERE UPPER(ev.test_case_id) = UPPER($testcaseid)
+  AND ev.evidence_type = 'result_json'
+  AND :tab = 'Evidences'
+ORDER BY CAST(json_extract(step.value, '$.step') AS INTEGER);
+
+-- No Evidence Alert
+SELECT 'alert' AS component,
+       'No Evidence Found' AS title,
+       'No evidence files are available for this test case.' AS description,
+       'info' AS color,
+       'info-circle' AS icon
+WHERE :tab = 'Evidences'
+  AND NOT EXISTS (SELECT 1 FROM qf_evidence WHERE UPPER(test_case_id) = UPPER($testcaseid));
+
+SELECT 'card' AS component, 3 AS columns
+WHERE :tab = 'Evidences'
+  AND EXISTS (
+    SELECT 1
+    FROM qf_evidence
+    WHERE UPPER(test_case_id) = UPPER($testcaseid)
+      AND evidence_type = 'screenshot'
+  );
+
+SELECT
+    'Evidence Screenshot' AS title,
+    'Test Case: ' || $testcaseid AS description,
+    content AS top_image
+FROM qf_evidence
+WHERE UPPER(test_case_id) = UPPER($testcaseid)
+  AND evidence_type = 'screenshot'
+  AND :tab = 'Evidences'
+ORDER BY cycle DESC;
 
 
 select
@@ -2123,7 +2361,7 @@ SELECT 'text' AS component,
 $page_description AS contents_md;
 ${paginate("qf_role_with_case", "WHERE project_name = $project_name AND UPPER(execution_type)='AUTOMATION'")}
 SELECT 'card' AS component,
-       'Test Cases Metadata' AS title,
+       'Test Case Attributes' AS title,
        5 AS columns;
 
 SELECT 'Priority' AS title, qwc.priority AS description, 'flag' AS icon FROM qf_case_master as qcm INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name AND UPPER(qwc.execution_type)='AUTOMATION';
@@ -2216,7 +2454,7 @@ SELECT 'text' AS component,
 $page_description AS contents_md;
 
 SELECT 'card' AS component,
-       'Test Cases Metadata' AS title,
+       'Test Case Attributes' AS title,
        5 AS columns;
 
 SELECT 'Priority' AS title, qwc.priority AS description, 'flag' AS icon FROM qf_case_master as qcm INNER JOIN qf_role_with_case as qwc ON qcm.test_case_id=qwc.testcaseid WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name AND UPPER(qwc.execution_type)='MANUAL';
@@ -2717,32 +2955,55 @@ SELECT 'title' AS component, 'Strategic Analytics' AS contents;
 SELECT 'html' AS component, '<div class="row" style="align-items:stretch;">' AS html;
 
 --- LEFT COLUMN: Testing Pyramid (%) ---
-WITH dynamic_data AS (
+WITH fixed_types AS (
+    -- Order for visual stacking: Manual (tip), UI, Service, Unit (base)
+    SELECT 'Manual Tests' AS label, 1 AS sort_order, '#17a2b8' AS layer_color
+    UNION ALL SELECT 'UI Tests', 2, '#fd7e14'
+    UNION ALL SELECT 'Service Tests', 3, '#ffc107'
+    UNION ALL SELECT 'Unit Tests', 4, '#28a745'
+),
+actual_counts AS (
     SELECT test_type AS label, COUNT(*) AS val
-    FROM qf_role_with_case 
+    FROM qf_role_with_case
     WHERE project_name = $project_name AND test_type IS NOT NULL AND test_type <> ''
     GROUP BY test_type
 ),
 totals AS (
-    SELECT SUM(val) as grand_total FROM dynamic_data
+    SELECT COALESCE(SUM(val), 0) as grand_total FROM actual_counts
+),
+merged_data AS (
+    SELECT
+        ft.label,
+        ft.sort_order,
+        ft.layer_color,
+        COALESCE(ac.val, 0) AS val,
+        CASE WHEN (SELECT grand_total FROM totals) > 0
+            THEN COALESCE(ac.val, 0) * 100.0 / (SELECT grand_total FROM totals)
+            ELSE 0.0
+        END AS pct
+    FROM fixed_types ft
+    LEFT JOIN actual_counts ac ON ft.label = ac.label
 ),
 ranked_data AS (
-    SELECT 
-        label, val, (val * 100.0 / (SELECT grand_total FROM totals)) as pct,
-        ROW_NUMBER() OVER (ORDER BY val ASC) as rank
-    FROM dynamic_data
+    -- Rank 1 will be the Tip (top of the pyramid at y=0)
+    SELECT
+        label, val, pct, layer_color, sort_order,
+        ROW_NUMBER() OVER (ORDER BY sort_order ASC) as rank
+    FROM merged_data
+    WHERE pct > 0
 ),
 cumulative_data AS (
-    SELECT 
-        label, pct, rank,
+    SELECT
+        label, pct, rank, layer_color,
         COALESCE(SUM(pct) OVER (ORDER BY rank ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) / 100.0 AS y_top,
-        SUM(pct) OVER (ORDER BY rank) / 100.0 AS y_bottom,
-        CASE (rank % 5)
-            WHEN 1 THEN '#28a745' WHEN 2 THEN '#ffc107' WHEN 3 THEN '#fd7e14' WHEN 4 THEN '#17a2b8' ELSE '#6f42c1'
-        END AS layer_color
+        SUM(pct) OVER (ORDER BY rank) / 100.0 AS y_bottom
     FROM ranked_data
+),
+legend_data AS (
+    SELECT label, pct, layer_color, sort_order
+    FROM merged_data
 )
-SELECT 
+SELECT
     'html' AS component,
     COALESCE(
         (SELECT '
@@ -2757,85 +3018,95 @@ SELECT
                 flex-direction: column;
                 align-items: center;
             }
-            .pyramid-wrapper-v3 {
+            .pyramid-wrapper-v4 {
                 display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
                 width: 100%;
-                max-width: 780px;
-                height: 380px;
-                margin-top: 10px;
-                position: relative;
+                max-width: 900px;
+                margin-top: 15px;
+                gap: 40px;
             }
-            .pyramid-vis-center {
-                width: 280px;
+            .pyramid-vis-center-v4 {
+                width: 320px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 position: relative;
-                height: 360px;
+                height: 320px;
+                background: transparent;
             }
-            .pyramid-labels-right {
-                flex: 1;
-                position: relative;
-                height: 360px;
-            }
-            .pyramid-layer-v3 {
+            .pyramid-layer-v4 {
                 width: 100%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 position: relative;
+                margin: 0;
+                padding: 0;
+                border: none;
+                transition: all 0.3s ease;
             }
-            .callout-box-abs {
-                position: absolute;
+            .pyramid-layer-v4:hover {
+                filter: brightness(1.1);
+                cursor: help;
+            }
+            .pyramid-legend-v4 {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 15px;
+                padding: 10px 20px;
+                border-left: 2px solid #f1f5f9;
+                min-width: 250px;
+            }
+            .pyramid-legend-item {
                 display: flex;
                 align-items: center;
-                transform: translateY(-50%);
-                color: #2c3e50;
+                gap: 12px;
                 font-weight: 700;
-                font-size: 0.85rem;
-                white-space: nowrap;
+                font-size: 0.95rem;
+                color: #2c3e50;
+                padding: 8px 16px;
+                border-radius: 10px;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.03);
             }
-            .callout-connector {
-                height: 2px;
-                margin-right: 10px;
-                border-radius: 1px;
+            .pyramid-legend-color {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                display: inline-block;
+                flex-shrink: 0;
             }
         </style>
         <div class="col-md-6" style="display:flex; flex-direction:column;">
         <div class="analytics-card-left">
             <h3 style="color:#4e73df; font-weight:800; margin-bottom:10px;">Testing Pyramid (%)</h3>
-            <div class="pyramid-wrapper-v3">
-                <div class="pyramid-vis-center">' ||
+            <div class="pyramid-wrapper-v4">
+                <div class="pyramid-vis-center-v4">' ||
             (SELECT group_concat(layer_html, '') FROM (
-                SELECT 
-                    '<div class="pyramid-layer-v3" style="' ||
+                SELECT
+                    '<div class="pyramid-layer-v4" title="' || label || ': ' || PRINTF("%.1f", pct) || '%" style="' ||
                     'height:' || pct || '%;' ||
                     'background:' || layer_color || ';' ||
                     'clip-path: polygon(' || (50 - (y_top * 50)) || '% 0%, ' || (50 + (y_top * 50)) || '% 0%, ' || (50 + (y_bottom * 50)) || '% 100%, ' || (50 - (y_bottom * 50)) || '% 100%);' ||
                     '"></div>' AS layer_html
                 FROM cumulative_data
-                ORDER BY rank ASC
+                ORDER BY rank ASC -- Manual (rank 1, y=0) at the top
             )) ||
             '</div>
-                <div class="pyramid-labels-right">' ||
-            (SELECT group_concat(label_html, '') FROM (
-                SELECT 
-                    '<div class="callout-box-abs" style="top:' || (y_top + pct/2) || '%; ' || 
-                    (CASE (100 - rank) % 3 
-                        WHEN 0 THEN 'padding-left: 220px;' 
-                        WHEN 1 THEN 'padding-left: 110px;' 
-                        ELSE '' 
-                    END) || '">' ||
-                    '<div class="callout-connector" style="background:' || layer_color || '; width: ' || 
-                    (CASE (100 - rank) % 3 
-                        WHEN 0 THEN 255 
-                        WHEN 1 THEN 145 
-                        ELSE 35 
-                    END) || 'px;"></div>' ||
-                    '<span>' || label || ' (' || PRINTF("%.1f", pct) || '%)</span>' ||
-                    '</div>' AS label_html
-                FROM (SELECT *, (SELECT COUNT(*) FROM cumulative_data) as total FROM cumulative_data)
-                ORDER BY rank ASC
+                <div class="pyramid-legend-v4">' ||
+            (SELECT group_concat(legend_html, '') FROM (
+                SELECT
+                    '<div class="pyramid-legend-item">' ||
+                    '<span class="pyramid-legend-color" style="background:' || layer_color || ';"></span>' ||
+                    '<span>' || label || ' (' || PRINTF("%.2f", pct) || '%)</span>' ||
+                    '</div>' AS legend_html
+                FROM legend_data
+                ORDER BY sort_order ASC
             )) ||
             '</div>
             </div>
@@ -2848,7 +3119,7 @@ SELECT 'html' AS component, '<style>.analytics-chart-col { display:flex; flex-di
 --- RIGHT COLUMN: Execution Bar Chart ---
 SELECT 'chart' AS component, 'bar' AS type, 'Execution Volume by Cycle' AS title, 480 AS height;
 WITH cycle_stats AS (
-    SELECT 
+    SELECT
         cycle,
         STRFTIME('%Y-%m', COALESCE(DATE(cycledate), DATE(SUBSTR(cycledate,7,4)||'-'||SUBSTR(cycledate,1,2)||'-'||SUBSTR(cycledate,4,2)))) AS month_key,
         CASE STRFTIME('%m', COALESCE(DATE(cycledate), DATE(SUBSTR(cycledate,7,4)||'-'||SUBSTR(cycledate,1,2)||'-'||SUBSTR(cycledate,4,2))))
@@ -2866,12 +3137,12 @@ WITH cycle_stats AS (
     GROUP BY h.cycle, month_key, month_name, date_val
 ),
 ranked_cycles AS (
-    SELECT 
+    SELECT
         *,
         ROW_NUMBER() OVER(PARTITION BY month_key ORDER BY date_val ASC, cycle ASC) as cycle_num
     FROM cycle_stats
 )
-SELECT 
+SELECT
     month_name AS x,
     cycle AS series,
     test_count AS value,

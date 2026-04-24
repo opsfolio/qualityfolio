@@ -22,13 +22,7 @@ DB = "resource-surveillance.sqlite.db"
 conn = sqlite3.connect(DB)
 cur = conn.cursor()
 
-# Defensive cleanup: if github_commits exists as a TABLE (erroneously created), drop it
-cur.execute("SELECT type FROM sqlite_master WHERE name='github_commits'")
-row = cur.fetchone()
-if row and row[0] == 'table':
-    print("🧹 Dropping erroneously created github_commits table")
-    cur.execute("DROP TABLE github_commits")
-    conn.commit()
+# Defensive cleanup removed - we DO want github_commits as a table if it comes from adapt-singer
 
 # Ensure minimal github_commits view exists if singer didn't run
 cur.execute("""
