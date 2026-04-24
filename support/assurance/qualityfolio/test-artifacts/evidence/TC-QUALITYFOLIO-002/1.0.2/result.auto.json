@@ -1,0 +1,53 @@
+{
+  "test_case_fii": "TC-QUALITYFOLIO-002",
+  "title": "Verify login failure due to network timeout despite correct credentials",
+  "status": "failed",
+  "start_time": "2026-04-21T10:12:05.120Z",
+  "end_time": "2026-04-21T10:13:42.850Z",
+  "total_duration": "97.73 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Navigate to the login page.",
+      "status": "passed",
+      "start_time": "2026-04-21T10:12:05.120Z",
+      "end_time": "2026-04-21T10:12:18.340Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Enter valid user credentials (registered email and correct password).",
+      "status": "passed",
+      "start_time": "2026-04-21T10:12:18.341Z",
+      "end_time": "2026-04-21T10:12:25.560Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Before clicking Login, simulate a network slowdown or disconnection.",
+      "status": "passed",
+      "start_time": "2026-04-21T10:12:25.561Z",
+      "end_time": "2026-04-21T10:12:32.780Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Click on the Login button.",
+      "status": "passed",
+      "start_time": "2026-04-21T10:12:32.781Z",
+      "end_time": "2026-04-21T10:12:39.920Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Observe the system response during the timeout or connection drop.",
+      "status": "passed",
+      "start_time": "2026-04-21T10:12:39.921Z",
+      "end_time": "2026-04-21T10:12:48.150Z"
+    },
+    {
+      "step": 6,
+      "stepname": "Reconnect the network and check whether the session was created or access granted.",
+      "status": "failed",
+      "start_time": "2026-04-21T10:12:48.151Z",
+      "end_time": "2026-04-21T10:13:42.850Z",
+      "error_message": "After reconnecting the network, the system unexpectedly allowed access without re-authentication, bypassing the required security check for timed-out requests."
+    }
+  ]
+}

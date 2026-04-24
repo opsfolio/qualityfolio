@@ -1874,16 +1874,76 @@ WHERE EXISTS (SELECT 1 FROM qf_github_commits LIMIT 1) AND :serve_image IS NULL;
 -- Details Tab Content
 SELECT 'text' AS component, $page_description AS contents_md WHERE :tab = 'Details';
 
+-- Test Case Attributes styled like Home Page Metrics
+SELECT 'html' AS component, '
+  <style>
+    #metrics-cards .card .card-body {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 20px 16px !important;
+        position: relative !important;
+    }
+    #metrics-cards .card .card-body .icon {
+        order: -1 !important;
+        margin: 0 0 10px 0 !important;
+        position: static !important;
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    #metrics-cards .card .card-body .icon svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+    #metrics-cards .card {
+        border-left: none !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+        transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+    }
+    #metrics-cards .card:hover {
+        box-shadow: 0 4px 16px rgba(22, 22, 22, 0.15) !important;
+        transform: translateY(-2px) !important;
+        background: linear-gradient(90deg, #d8cfeeff 0%, #aeaec0ff 100%) !important;
+        border-color: transparent !important;
+    }
+    #metrics-cards .card:hover .card-body h1,
+    #metrics-cards .card:hover .card-body h2 {
+        color: #ffffff !important;
+    }
+    #metrics-cards .card .card-body h2 {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        margin: 4px 0 !important;
+    }
+    #metrics-cards .card .card-body h1 {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        color: #1f2937 !important;
+        margin: 4px 0 !important;
+    }
+  </style>
+  <div id="metrics-cards" style="margin-bottom: 24px;">' AS html WHERE :tab = 'Details';
+
 SELECT 'card' AS component,
-       'Test Case Attributes' AS title,
        5 AS columns
 WHERE :tab = 'Details';
 
-SELECT 'Priority' AS title, priority AS description, 'flag' AS icon FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
-SELECT 'Test Type' AS title, test_type AS description, 'category' AS icon FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
-SELECT 'Scenario Type' AS title, scenario_type AS description, 'hierarchy' AS icon FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
-SELECT 'Execution Type' AS title, execution_type AS description, 'settings' AS icon FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
-SELECT 'Tags' AS title, tags AS description, 'tags' AS icon FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+SELECT '## Priority' AS description_md, '# ' || priority AS description_md, 'flag' AS icon, 'blue' as color FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+SELECT '## Test Type' AS description_md, '# ' || test_type AS description_md, 'category' AS icon, 'indigo' as color FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+SELECT '## Scenario' AS description_md, '# ' || scenario_type AS description_md, 'hierarchy' AS icon, 'teal' as color FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+SELECT '## Execution' AS description_md, '# ' || execution_type AS description_md, 'settings' AS icon, 'azure' as color FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+SELECT '## Tags' AS description_md, '# ' || tags AS description_md, 'tags' AS icon, 'purple' as color FROM qf_role_with_case WHERE testcaseid = $testcaseid AND project_name = $project_name AND :tab = 'Details';
+
+SELECT 'html' AS component, '</div>' AS html WHERE :tab = 'Details';
 
 SELECT 'card' AS component,
        'Test Cases Details' AS title,
@@ -2076,6 +2136,7 @@ WHERE UPPER(test_case_id) = UPPER($testcaseid)
 ORDER BY cycle DESC;
 
 
+SELECT 'table' AS component WHERE :tab = 'Revision History';
 select
 /*${md.link("commit_sha", ["'testcaserevisiondetails.sql?commit_sha='", "cf.commit_sha", "'&project_name='", "$project_name"])} AS "Revisions" */
 hc.message as "Commit Message",
