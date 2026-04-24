@@ -1858,11 +1858,29 @@ ORDER BY
 ```sql testcasedetails.sql { route: { caption: "Test Case Details" } }
 -- @route.description "Displays detailed information for a selected test case, including its description, preconditions, execution steps, and expected results"
 
-SET tab = COALESCE($tab, 'Details');
+-- Handle Comment Actions
+DELETE FROM qf_testcase_comments WHERE id = $delete_comment_id AND $delete_comment_id IS NOT NULL;
+
+UPDATE qf_testcase_comments 
+SET comment_text = :new_comment 
+WHERE id = :edit_comment_id AND :new_comment IS NOT NULL AND TRIM(:new_comment) <> '';
 
 INSERT INTO qf_testcase_comments (testcase_id, comment_text, created_by)
 SELECT $testcaseid, :new_comment, COALESCE(sqlpage.user_info('name'), sqlpage.user_info('email'), 'Anonymous User')
-WHERE :new_comment IS NOT NULL AND TRIM(:new_comment) <> '';
+WHERE :new_comment IS NOT NULL AND TRIM(:new_comment) <> '' AND (:edit_comment_id IS NULL OR :edit_comment_id = '')
+AND NOT EXISTS (
+    SELECT 1 FROM qf_testcase_comments 
+    WHERE testcase_id = $testcaseid 
+    AND comment_text = :new_comment 
+    AND created_at > datetime('now', '-5 seconds')
+);
+
+-- Safe JS Redirect to clear POST/GET state and prevent refresh duplication
+SELECT 'html' AS component WHERE :new_comment IS NOT NULL OR $delete_comment_id IS NOT NULL;
+SELECT '<script>window.location.replace("testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details");</script>' AS html
+WHERE :new_comment IS NOT NULL OR $delete_comment_id IS NOT NULL;
+
+SET tab = COALESCE($tab, 'Details');
 
 SELECT 'tab' as component;
 SELECT 'Details' as title, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' as link, :tab = 'Details' as active, 'file-text' as icon WHERE :serve_image IS NULL;
@@ -1989,40 +2007,91 @@ WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name AND :tab
 ORDER BY qcm.test_case_id;
 
 -- Comments Section (under Details)
-SELECT 'form' AS component, 'Add Comment' AS validate, 'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' AS action, 'comment-form' AS id WHERE :tab = 'Details';
-SELECT 'new_comment' AS name, 'Write your comment here...' AS placeholder, 'textarea' AS type, '' AS label, 12 AS width WHERE :tab = 'Details';
+SELECT 'form' AS component, 
+       CASE WHEN $edit_comment_id IS NOT NULL THEN 'Update Comment' ELSE 'Add Comment' END AS validate, 
+       'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' AS action, 
+       'comment-form' AS id WHERE :tab = 'Details';
+SELECT 'edit_comment_id' AS name, 'hidden' AS type, $edit_comment_id AS value WHERE :tab = 'Details' AND $edit_comment_id IS NOT NULL;
+SELECT 'new_comment' AS name, 'Write your comment here...' AS placeholder, 'textarea' AS type, '' AS label, 12 AS width,
+       (SELECT comment_text FROM qf_testcase_comments WHERE id = $edit_comment_id) AS value
+WHERE :tab = 'Details';
 
 SELECT 'html' AS component;
 SELECT '
 <style>
-#comment-form button[type=submit] { opacity: 0.5; cursor: not-allowed; }
 .comments-table td:first-child { word-break: break-word; white-space: normal; max-width: 500px; }
 </style>
+' AS html WHERE :tab = 'Details';
+
+SELECT 'html' AS component WHERE :tab = 'Details';
+SELECT '
+<style>
+#qf-delete-modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 99999; align-items: center; justify-content: center;
+}
+#qf-delete-modal-overlay.active { display: flex; }
+#qf-delete-modal {
+  background: #fff; border-radius: 12px; padding: 28px 32px; max-width: 380px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; font-family: inherit;
+}
+#qf-delete-modal h3 { margin: 0 0 8px; font-size: 18px; color: #111827; }
+#qf-delete-modal p { margin: 0 0 24px; color: #6b7280; font-size: 14px; }
+#qf-delete-modal .qf-modal-btns { display: flex; gap: 12px; justify-content: center; }
+#qf-delete-modal button {
+  padding: 9px 22px; border-radius: 7px; border: none; cursor: pointer;
+  font-size: 14px; font-weight: 600; transition: opacity 0.2s;
+}
+#qf-delete-modal button:hover { opacity: 0.85; }
+#qf-btn-cancel { background: #f3f4f6; color: #374151; }
+#qf-btn-confirm { background: #ef4444; color: #fff; }
+</style>
+<div id="qf-delete-modal-overlay">
+  <div id="qf-delete-modal">
+    <h3>🗑️ Delete Comment</h3>
+    <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+    <div class="qf-modal-btns">
+      <button id="qf-btn-cancel">Cancel</button>
+      <button id="qf-btn-confirm">Yes, Delete</button>
+    </div>
+  </div>
+</div>
 <script>
 (function() {
-  var poll = setInterval(function() {
-    var form = document.getElementById("comment-form");
-    if (!form) return;
-    var textarea = form.querySelector("textarea[name=new_comment]");
-    var btn = form.querySelector("button[type=submit]");
-    if (!textarea || !btn) return;
-    clearInterval(poll);
-    btn.disabled = true;
-    btn.style.opacity = "0.5";
-    btn.style.cursor = "not-allowed";
-    textarea.addEventListener("focus", function() {
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      btn.style.cursor = "pointer";
-    });
-    textarea.addEventListener("blur", function() {
-      if (textarea.value.trim().length === 0) {
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
-        btn.style.cursor = "not-allowed";
-      }
-    });
-  }, 100);
+  var overlay = document.getElementById("qf-delete-modal-overlay");
+  var btnCancel = document.getElementById("qf-btn-cancel");
+  var btnConfirm = document.getElementById("qf-btn-confirm");
+  var pendingHref = null;
+
+  document.addEventListener("click", function(e) {
+    var link = e.target;
+    if (link.tagName !== "A") link = link.closest("a");
+    if (!link) return;
+    var href = link.getAttribute("href") || "";
+    if (href.indexOf("delete_comment_id=") !== -1) {
+      e.preventDefault();
+      e.stopPropagation();
+      pendingHref = href;
+      overlay.classList.add("active");
+    }
+  }, true);
+
+  btnCancel.addEventListener("click", function() {
+    overlay.classList.remove("active");
+    pendingHref = null;
+  });
+
+  btnConfirm.addEventListener("click", function() {
+    overlay.classList.remove("active");
+    if (pendingHref) window.location.href = pendingHref;
+  });
+
+  overlay.addEventListener("click", function(e) {
+    if (e.target === overlay) {
+      overlay.classList.remove("active");
+      pendingHref = null;
+    }
+  });
 })();
 </script>
 ' AS html WHERE :tab = 'Details';
@@ -2034,7 +2103,8 @@ SELECT comment_text AS "Comment", created_by AS "User", strftime('%m-%d-%Y', cre
     WHEN CAST(strftime('%H', created_at) AS INTEGER) < 12 THEN CAST(strftime('%H', created_at) AS INTEGER) || ':' || strftime('%M:%S', created_at) || ' AM'
     WHEN CAST(strftime('%H', created_at) AS INTEGER) = 12 THEN '12:' || strftime('%M:%S', created_at) || ' PM'
     ELSE CAST(CAST(strftime('%H', created_at) AS INTEGER) - 12 AS TEXT) || ':' || strftime('%M:%S', created_at) || ' PM'
-  END AS "Time"
+  END AS "Time",
+  JSON('[{"name":"Edit","link":"testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details&edit_comment_id=' || id || '","icon":"pencil","color":"blue"},{"name":"Delete","link":"testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details&delete_comment_id=' || id || '","icon":"trash","color":"red"}]') AS "_sqlpage_actions"
 FROM qf_testcase_comments
 WHERE testcase_id = $testcaseid
   AND :tab = 'Details'
