@@ -1,0 +1,76 @@
+{
+  "test_case_fii": "TC-QUALITYFOLIO-011",
+  "title": "Verify the design of Test Suite Detail page",
+  "status": "failed",
+  "start_time": "2026-04-13T10:00:00.000Z",
+  "end_time": "2026-04-13T10:05:00.000Z",
+  "total_duration": "300.00 seconds",
+  "steps": [
+    {
+      "step": 1,
+      "stepname": "Log in to the Qualityfolio application with valid credentials.",
+      "status": "passed",
+      "start_time": "2026-04-13T10:00:00.000Z",
+      "end_time": "2026-04-13T10:00:10.000Z"
+    },
+    {
+      "step": 2,
+      "stepname": "Navigate to the Test Suites overview page (e.g., `/test-suite-cases-summary.sql`).",
+      "status": "passed",
+      "start_time": "2026-04-13T10:00:10.000Z",
+      "end_time": "2026-04-13T10:00:20.000Z"
+    },
+    {
+      "step": 3,
+      "stepname": "Click on a test suite to open the Test Suite Detail page.",
+      "status": "passed",
+      "start_time": "2026-04-13T10:00:20.000Z",
+      "end_time": "2026-04-13T10:00:30.000Z"
+    },
+    {
+      "step": 4,
+      "stepname": "Inspect the page header for proper alignment, font size, and consistent styling of the suite name and metadata.",
+      "status": "passed",
+      "start_time": "2026-04-13T10:00:30.000Z",
+      "end_time": "2026-04-13T10:01:00.000Z"
+    },
+    {
+      "step": 5,
+      "stepname": "Verify that all data tables render with uniform column widths, proper cell padding, and correct text alignment.",
+      "status": "passed",
+      "start_time": "2026-04-13T10:01:00.000Z",
+      "end_time": "2026-04-13T10:01:30.000Z"
+      
+    },
+    {
+      "step": 6,
+      "stepname": "Check that status badges (passed, failed, skipped) display the correct colors, labels, and consistent sizing.",
+      "status": "passed",
+      "start_time": "2026-04-13T10:01:30.000Z",
+      "end_time": "2026-04-13T10:02:00.000Z"
+    },
+    {
+      "step": 7,
+      "stepname": "Verify that icons and visual indicators render without clipping, distortion, or misalignment.",
+      "status": "failed",
+      "start_time": "2026-04-13T10:02:00.000Z",
+      "end_time": "2026-04-13T10:02:30.000Z",
+      "error_message": "Some icons are clipped and misaligned on the Test Suite Detail page."
+    },
+    {
+      "step": 8,
+      "stepname": "Review spacing and margins between sections for visual consistency and adherence to the design system.",
+      "status": "skipped"
+    },
+    {
+      "step": 9,
+      "stepname": "Resize the browser window to verify responsive layout behavior at common breakpoints (desktop, tablet, mobile).",
+      "status": "skipped"
+    },
+    {
+      "step": 10,
+      "stepname": "Check for any overlapping elements, text truncation, or broken UI components.",
+      "status": "skipped"
+    }
+  ]
+}

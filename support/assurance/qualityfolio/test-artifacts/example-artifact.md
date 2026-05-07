@@ -193,6 +193,14 @@ assignee: John Doe
 status: passed
 ```
 
+```yaml HFM
+cycle: 1.0.3
+cycle-date: 05-14-2026
+severity: Critical
+assignee: John Doe
+status: todo
+```
+
 **Attachment**
 
 - [Results JSON](../evidence/TC-QUALITYFOLIO-001/1.1/result.auto.json)
@@ -678,3 +686,83 @@ status: passed
 
 - [Results JSON](../evidence/TC-QUALITYFOLIO-010/1.1/result.auto.json)
 - [Run MD](../evidence/TC-QUALITYFOLIO-010/1.1/run.auto.md)
+
+#### Verify the design of Test Suite Detail page
+
+@id TC-QUALITYFOLIO-011
+
+```yaml HFM
+requirementID: REQ-QUALITYFOLIO-01
+priority: Medium
+tags: ["Cosmetic", "Functional"]
+scenario-type: Happy Path
+Execution Type: Manual
+Test Type: Unit Tests
+```
+
+**Description**
+
+Verify that the Test Suite Detail page renders correctly without any cosmetic or visual defects. This includes checking layout alignment, typography consistency, color scheme adherence, spacing uniformity, icon rendering, responsive behavior, and overall visual polish of all UI elements on the page.
+
+**Preconditions**
+
+- [x] The Qualityfolio application is accessible at https://qualityfolio.dev/.
+- [x] At least one test suite with associated test cases and execution data exists in the system.
+- [x] The user is logged in and has access to navigate to the Test Suite Detail page.
+
+**Steps**
+
+- [x] Log in to the Qualityfolio application with valid credentials.
+- [x] Navigate to the Test Suites overview page (e.g., `/test-suite-cases-summary.sql`).
+- [x] Click on a test suite to open the Test Suite Detail page.
+- [x] Inspect the page header for proper alignment, font size, and consistent styling of the suite name and metadata.
+- [x] Verify that all data tables render with uniform column widths, proper cell padding, and correct text alignment.
+- [x] Check that status badges (passed, failed, skipped) display the correct colors, labels, and consistent sizing.
+- [x] Verify that icons and visual indicators render without clipping, distortion, or misalignment.
+- [x] Review spacing and margins between sections for visual consistency and adherence to the design system.
+- [x] Resize the browser window to verify responsive layout behavior at common breakpoints (desktop, tablet, mobile).
+- [x] Check for any overlapping elements, text truncation, or broken UI components.
+
+**Expected Results**
+
+- [x] The page header displays the test suite name and metadata with correct typography and alignment.
+- [x] All tables and data grids are properly aligned with consistent column widths and padding.
+- [x] Status badges use the correct color coding and are uniformly sized across all rows.
+- [x] Icons render at the correct size without distortion, clipping, or misalignment.
+- [x] Spacing and margins between sections are uniform and visually consistent.
+- [x] The page layout adjusts gracefully across different viewport sizes with no overlapping or broken elements.
+- [x] No visual artifacts, misaligned elements, or typographical inconsistencies are present on the page.
+
+##### Evidence
+
+@id TC-QUALITYFOLIO-011
+
+```yaml HFM
+cycle: 1.0.4
+cycle-date: 04-13-2026
+severity: Medium
+assignee: John Doe
+status: failed
+```
+
+**Attachment**
+
+- [Results JSON](../evidence/TC-QUALITYFOLIO-011/1.1/result.auto.json)
+- [Run MD](../evidence/TC-QUALITYFOLIO-011/1.1/run.auto.md)
+
+**Issue**
+
+```yaml HFM
+doc-classify:
+  role: issue
+  issue_id: BUG-QUALITYFOLIO-011
+  created_date: 05-06-2026
+  test_case_id: TC-QUALITYFOLIO-011
+  title: "Verify the design of Test Suite Detail page"
+  status: open
+```
+
+**Issue Details**
+
+- [Bug Details](https://github.com/Qualityfolio/Qualityfolio/issues/354)
+- [Screenshot](../evidence/TC-QUALITYFOLIO-002/1.1/loginButtonClick.png)

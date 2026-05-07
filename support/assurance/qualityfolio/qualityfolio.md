@@ -1861,17 +1861,17 @@ ORDER BY
 -- Handle Comment Actions
 DELETE FROM qf_testcase_comments WHERE id = $delete_comment_id AND $delete_comment_id IS NOT NULL;
 
-UPDATE qf_testcase_comments 
-SET comment_text = :new_comment 
+UPDATE qf_testcase_comments
+SET comment_text = :new_comment
 WHERE id = :edit_comment_id AND :new_comment IS NOT NULL AND TRIM(:new_comment) <> '';
 
 INSERT INTO qf_testcase_comments (testcase_id, comment_text, created_by)
 SELECT $testcaseid, :new_comment, COALESCE(sqlpage.user_info('name'), sqlpage.user_info('email'), 'Anonymous User')
 WHERE :new_comment IS NOT NULL AND TRIM(:new_comment) <> '' AND (:edit_comment_id IS NULL OR :edit_comment_id = '')
 AND NOT EXISTS (
-    SELECT 1 FROM qf_testcase_comments 
-    WHERE testcase_id = $testcaseid 
-    AND comment_text = :new_comment 
+    SELECT 1 FROM qf_testcase_comments
+    WHERE testcase_id = $testcaseid
+    AND comment_text = :new_comment
     AND created_at > datetime('now', '-5 seconds')
 );
 
@@ -2007,9 +2007,9 @@ WHERE qcm.test_case_id = $testcaseid AND qwc.project_name=$project_name AND :tab
 ORDER BY qcm.test_case_id;
 
 -- Comments Section (under Details)
-SELECT 'form' AS component, 
-       CASE WHEN $edit_comment_id IS NOT NULL THEN 'Update Comment' ELSE 'Add Comment' END AS validate, 
-       'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' AS action, 
+SELECT 'form' AS component,
+       CASE WHEN $edit_comment_id IS NOT NULL THEN 'Update Comment' ELSE 'Add Comment' END AS validate,
+       'testcasedetails.sql?testcaseid=' || $testcaseid || '&project_name=' || $project_name || '&tab=Details' AS action,
        'comment-form' AS id WHERE :tab = 'Details';
 SELECT 'edit_comment_id' AS name, 'hidden' AS type, $edit_comment_id AS value WHERE :tab = 'Details' AND $edit_comment_id IS NOT NULL;
 SELECT 'new_comment' AS name, 'Write your comment here...' AS placeholder, 'textarea' AS type, '' AS label, 12 AS width,
@@ -2942,57 +2942,288 @@ ORDER BY
 
 ```sql suitecasedetailsreport.sql { route: { caption: "Suite Details" } }
 
-SELECT 'hero' AS component,
-    'Test Suite Specification' as title,
-    COALESCE(
-        (SELECT suite_name FROM qf_role_with_suite WHERE trim(rownum) = trim($id) LIMIT 1),
-        'Suite: ' || $id
-    ) as description,
-    'purple' as color,
-    'package' as icon;
+-- ── Clean Document Report Styles ────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '
+<style>
+  body, .page-body { background-color: #ffffff !important; }
+  
+  .suite-report-container {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 40px auto !important;
+    animation: fadeIn 0.5s ease-out;
+  }
 
-SELECT 'card' AS component, 1 AS columns;
-SELECT
-    'Suite Content' as title,
-    'Detailed scope and test case mapping' as description,
-    'purple' as color,
-    'list-check' as icon;
+  .suite-report-container h1 { font-size: 2rem; font-weight: 700; color: #1e293b; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .suite-report-subtitle { font-size: 1.1rem; color: #64748b; font-weight: 500; display: block; }
 
+  /* Header Card (Like Screenshot) */
+  .suite-header-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 32px 40px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 40px !important;
+    text-align: left !important;
+    transition: all 0.3s ease !important;
+    border-left: 5px solid transparent !important;
+  }
+  .suite-header-card:hover {
+    background: #eff6ff !important;
+    border-left: 5px solid #3b82f6 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* The Single Card Border (Like Screenshot) */
+  .suite-content-area {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 48px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 60px !important;
+  }
+
+  /* Clean Bold Headings (Like Screenshot) */
+  .suite-content-area h3,
+  .suite-content-area .markdown h3 {
+    background: transparent !important;
+    color: #1e293b !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 32px 0 12px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    display: block !important;
+  }
+  .suite-content-area h3:first-child,
+  .suite-content-area .markdown h3:first-child { margin-top: 0 !important; }
+
+  /* Indented Elegant Bullets */
+  .suite-content-area ul,
+  .suite-content-area .markdown ul {
+    list-style: disc !important;
+    padding-left: 48px !important;
+    margin: 20px 0 !important;
+    display: block !important;
+  }
+  .suite-content-area ul li,
+  .suite-content-area .markdown ul li {
+    display: list-item !important;
+    padding-left: 8px !important;
+    margin-bottom: 12px !important;
+    font-size: 1rem !important;
+    color: #475569 !important;
+  }
+  .suite-content-area li::marker,
+  .suite-content-area .markdown li::marker {
+    color: #1e293b !important;
+    font-size: 1.2rem !important;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  #sqlpage_header .navbar .fs-2 { display: none !important; }
+</style>
+' AS html;
+
+-- ── Header ──────────────────────────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '
+<div class="suite-report-container">
+  <div class="suite-header-card">
+    <h1>Test Suite Specification</h1>
+    <span class="suite-report-subtitle">' || 
+      COALESCE(
+          (SELECT suite_name FROM qf_role_with_suite WHERE trim(rownum) = trim($id) LIMIT 1),
+          'Suite: ' || $id
+      ) || '</span>
+  </div>
+  
+  <div class="suite-content-area">
+' AS html;
+
+-- ── Content (Simple & Beautiful) ────────────────────────────────────
 SELECT 'text' AS component,
-       rd.description AS contents_md
+       CASE 
+         WHEN (
+           trim(rd.description) LIKE '**%**' 
+           OR trim(rd.description) LIKE '%**'
+           OR lower(trim(rd.description)) LIKE 'description%' 
+           OR lower(trim(rd.description)) LIKE 'objectives%' 
+           OR lower(trim(rd.description)) LIKE 'scope%'
+           OR lower(trim(rd.description)) LIKE 'test cases%'
+           OR lower(trim(rd.description)) LIKE 'cycle goals%'
+           OR lower(trim(rd.description)) LIKE 'acceptance criteria%'
+           OR lower(trim(rd.description)) LIKE 'preconditions%'
+           OR lower(trim(rd.description)) LIKE 'steps%'
+           OR lower(trim(rd.description)) LIKE 'expected results%'
+         )
+         AND length(rd.description) < 80
+         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+       END AS contents_md
 FROM qf_suite_description_summary rs
 INNER JOIN qf_suite_description_details rd
     ON rs.rownum = rd.rownum
 WHERE trim(rs.rownum) = trim($id)
 ORDER BY rd.rownumdetail;
+
+-- ── Close ────────────────────────────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '  </div>
+</div>' AS html;
+``````
+
+-- ── Close ────────────────────────────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '  </div>
+</div>' AS html;
 ```
 
 ```sql plancasedetailsreport.sql { route: { caption: "Plan Details" } }
 
-SELECT 'hero' AS component,
-    'Test Plan Specification' as title,
-    COALESCE(
-        (SELECT plan_name FROM qf_role_with_plan WHERE trim(rownum) = trim($id) LIMIT 1),
-        'Plan: ' || $id
-    ) as description,
-    'green' as color,
-    'file-text' as icon;
+-- ── Clean Document Report Styles ────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '
+<style>
+  body, .page-body { background-color: #ffffff !important; }
+  
+  .report-container {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 40px auto !important;
+    animation: fadeIn 0.5s ease-out;
+  }
 
-SELECT 'card' AS component, 1 AS columns;
-SELECT
-    'Plan Content' as title,
-    'Complete test strategies and criteria' as description,
-    'green' as color,
-    'clipboard-list' as icon;
+  .report-container h1 { font-size: 2rem; font-weight: 700; color: #1e293b; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .report-subtitle { font-size: 1.1rem; color: #64748b; font-weight: 500; display: block; }
 
+  /* Header Card (Like Screenshot) */
+  .header-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 32px 40px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 40px !important;
+    text-align: left !important;
+    transition: all 0.3s ease !important;
+    border-left: 5px solid transparent !important;
+  }
+  .header-card:hover {
+    background: #eff6ff !important;
+    border-left: 5px solid #3b82f6 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* The Single Card Border (Like Screenshot) */
+  .content-area {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 48px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 60px !important;
+  }
+
+  /* Clean Bold Headings (Like Screenshot) */
+  .content-area h3,
+  .content-area .markdown h3 {
+    background: transparent !important;
+    color: #1e293b !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 32px 0 12px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    display: block !important;
+  }
+  .content-area h3:first-child,
+  .content-area .markdown h3:first-child { margin-top: 0 !important; }
+
+  /* Indented Elegant Bullets */
+  .content-area ul,
+  .content-area .markdown ul {
+    list-style: disc !important;
+    padding-left: 48px !important;
+    margin: 20px 0 !important;
+    display: block !important;
+  }
+  .content-area ul li,
+  .content-area .markdown ul li {
+    display: list-item !important;
+    padding-left: 8px !important;
+    margin-bottom: 12px !important;
+    font-size: 1rem !important;
+    color: #475569 !important;
+  }
+  .content-area li::marker,
+  .content-area .markdown li::marker {
+    color: #1e293b !important;
+    font-size: 1.2rem !important;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  #sqlpage_header .navbar .fs-2 { display: none !important; }
+</style>
+' AS html;
+
+-- ── Header ──────────────────────────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '
+<div class="report-container">
+  <div class="header-card">
+    <h1>Test Plan Specification</h1>
+    <span class="report-subtitle">' || 
+      COALESCE(
+          (SELECT plan_name FROM qf_role_with_plan WHERE trim(rownum) = trim($id) LIMIT 1),
+          'Plan: ' || $id
+      ) || '</span>
+  </div>
+  
+  <div class="content-area">
+' AS html;
+
+-- ── Content (Simple & Beautiful) ────────────────────────────────────
 SELECT 'text' AS component,
-       rd.description AS contents_md
-FROM qf_plan_summary rs
-INNER JOIN qf_plan_detail rd
-    ON rs.rownum = rd.rownum
-WHERE trim(rs.rownum) = trim($id)
+       CASE 
+         WHEN (
+           trim(rd.description) LIKE '**%**' 
+           OR trim(rd.description) LIKE '%**'
+           OR lower(trim(rd.description)) LIKE 'description%' 
+           OR lower(trim(rd.description)) LIKE 'objectives%' 
+           OR lower(trim(rd.description)) LIKE 'scope%'
+           OR lower(trim(rd.description)) LIKE 'test cases%'
+           OR lower(trim(rd.description)) LIKE 'cycle goals%'
+           OR lower(trim(rd.description)) LIKE 'acceptance criteria%'
+           OR lower(trim(rd.description)) LIKE 'functional requirements%'
+           OR lower(trim(rd.description)) LIKE 'cli functions%'
+           OR lower(trim(rd.description)) LIKE 'execution engine%'
+           OR lower(trim(rd.description)) LIKE 'ingestion and administration%'
+           OR lower(trim(rd.description)) LIKE 'orchestration & mail%'
+           OR lower(trim(rd.description)) LIKE 'preconditions%'
+           OR lower(trim(rd.description)) LIKE 'steps%'
+           OR lower(trim(rd.description)) LIKE 'expected results%'
+           OR lower(trim(rd.description)) LIKE 'detailed specification%'
+           OR lower(trim(rd.description)) LIKE 'plan content%'
+         )
+         AND length(rd.description) < 80
+         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+       END AS contents_md
+FROM qf_plan_detail rd
+WHERE trim(rd.rownum) = trim($id)
 ORDER BY rd.rownumdetail;
-```
+
+-- ── Close ────────────────────────────────────────────────────────────
+SELECT 'html' AS component;
+SELECT '  </div>
+</div>' AS html;
+``````
 
 ```sql test-suite-cases-summary.sql { route: { caption: "Test suite" } }
 -- @route.description "Test suite is a collection of test cases designed to verify the functionality, performance, and security of a software application. It ensures that the application meets the specified requirements by executing predefined tests across various scenarios, identifying defects, and validating that the system works as intended.."

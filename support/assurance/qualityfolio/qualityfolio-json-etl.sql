@@ -61,7 +61,7 @@ CREATE TABLE qf_markdown_master AS WITH ranked AS (
       '' -- Fix escaped newlines
     ) AS cleaned_json_text,
     ROW_NUMBER() OVER (
-      PARTITION BY ur.uri
+      PARTITION BY SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9)
       ORDER BY
         urpe.ingest_session_id DESC,
         ur.uniform_resource_id DESC
@@ -760,51 +760,79 @@ group by
 ------------------------------------------------------------------------------
 DROP VIEW IF EXISTS qf_evidence;
 CREATE VIEW qf_evidence AS
-WITH evidence_paths AS (
+WITH all_evidence AS (
+  -- Step 1: gather all evidence file rows
   SELECT
     ur.uniform_resource_id,
     ur.uri,
     ur.content,
     ur.nature,
     urpe.file_basename,
-    SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9) AS path_after_evidence,
-    ROW_NUMBER() OVER (
-      PARTITION BY ur.uri
-      ORDER BY urpe.ingest_session_id DESC, ur.uniform_resource_id DESC
-    ) AS rn
+    urpe.ingest_session_id,
+    SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9) AS path_after_evidence
   FROM uniform_resource ur
   JOIN ur_ingest_session_fs_path_entry urpe
     ON ur.uniform_resource_id = urpe.uniform_resource_id
   WHERE ur.uri LIKE '%/evidence/%'
     AND INSTR(SUBSTR(ur.uri, INSTR(ur.uri, 'evidence/') + 9), '/') > 0
+),
+parsed AS (
+  -- Step 2: parse test_case_id and cycle from path
+  SELECT
+    uniform_resource_id,
+    uri,
+    content,
+    nature,
+    file_basename,
+    ingest_session_id,
+    path_after_evidence,
+    SUBSTR(path_after_evidence, 1, INSTR(path_after_evidence, '/') - 1) AS test_case_id,
+    CASE
+      WHEN INSTR(SUBSTR(path_after_evidence, INSTR(path_after_evidence, '/') + 1), '/') > 0
+      THEN SUBSTR(
+        SUBSTR(path_after_evidence, INSTR(path_after_evidence, '/') + 1),
+        1,
+        INSTR(SUBSTR(path_after_evidence, INSTR(path_after_evidence, '/') + 1), '/') - 1
+      )
+      -- No cycle subfolder: the segment is actually a filename — return NULL
+      ELSE NULL
+    END AS cycle
+  FROM all_evidence
+),
+deduped AS (
+  -- Step 3: keep only the latest ingested row per (test_case_id, file_basename)
+  -- This removes duplicates caused by re-ingesting the same file from a different folder path
+  SELECT
+    uniform_resource_id,
+    uri,
+    content,
+    nature,
+    file_basename,
+    test_case_id,
+    cycle,
+    ROW_NUMBER() OVER (
+      PARTITION BY test_case_id, file_basename
+      ORDER BY ingest_session_id DESC, uniform_resource_id DESC
+    ) AS rn
+  FROM parsed
 )
 SELECT
-  ep.uniform_resource_id,
-  ep.uri,
-  ep.content,
-  ep.nature,
-  ep.file_basename,
-  -- test_case_id: segment before first '/' in path_after_evidence
-  SUBSTR(ep.path_after_evidence, 1, INSTR(ep.path_after_evidence, '/') - 1) AS test_case_id,
-  -- cycle: segment between first and second '/' in path_after_evidence
-  CASE
-    WHEN INSTR(SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1), '/') > 0
-    THEN SUBSTR(
-      SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1),
-      1,
-      INSTR(SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1), '/') - 1
-    )
-    ELSE SUBSTR(ep.path_after_evidence, INSTR(ep.path_after_evidence, '/') + 1)
-  END AS cycle,
+  uniform_resource_id,
+  uri,
+  content,
+  nature,
+  file_basename,
+  test_case_id,
+  cycle,
   -- Classify file type
   CASE
-    WHEN ep.file_basename LIKE '%.json' THEN 'result_json'
-    WHEN ep.file_basename LIKE '%.md' THEN 'run_md'
-    WHEN ep.file_basename LIKE '%.png' OR ep.file_basename LIKE '%.jpg' OR ep.file_basename LIKE '%.jpeg' THEN 'screenshot'
+    WHEN file_basename LIKE '%.json' THEN 'result_json'
+    WHEN file_basename LIKE '%.md' THEN 'run_md'
+    WHEN file_basename LIKE '%.png' OR file_basename LIKE '%.jpg' OR file_basename LIKE '%.jpeg' THEN 'screenshot'
     ELSE 'other'
   END AS evidence_type
-FROM evidence_paths ep
-WHERE ep.rn = 1;
+FROM deduped
+WHERE rn = 1;
 
 --latest batch changes--
   DROP VIEW IF EXISTS qf_evidence_recent;
@@ -3284,14 +3312,29 @@ FROM
           '"', ''
         )
       ) AS assignee,
-      substr(
-        substr(body, instr(body, '**Test Case ID : [') + 18),
-        1,
-        instr(
-          substr(body, instr(body, '**Test Case ID : [') + 18),
-          ']**'
-        ) - 1
-      ) AS testcase_id,
+      CASE
+        -- Bold format: **Test Case ID : [TC-XXX]**
+        WHEN instr(body, '**Test Case ID : [') > 0 THEN
+          substr(
+            substr(body, instr(body, '**Test Case ID : [') + 18),
+            1,
+            instr(
+              substr(body, instr(body, '**Test Case ID : [') + 18),
+              ']**'
+            ) - 1
+          )
+        -- Plain format: Test Case ID : [TC-XXX]
+        WHEN instr(body, 'Test Case ID : [') > 0 THEN
+          substr(
+            substr(body, instr(body, 'Test Case ID : [') + 16),
+            1,
+            instr(
+              substr(body, instr(body, 'Test Case ID : [') + 16),
+              ']'
+            ) - 1
+          )
+        ELSE NULL
+      END AS testcase_id,
       title AS testcase_description,
       body,
       CASE
