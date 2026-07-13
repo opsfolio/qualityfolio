@@ -1,12 +1,12 @@
 cd support/assurance/qualityfolio
 
 cat > .envrc <<EOF
-export NOVU_API_KEY="${{ secrets.NOVU_API_KEY }}"
-export NOVU_API_URL="${{ secrets.NOVU_API_URL }}"
-export NOVU_WORKFLOW_ID="${{ secrets.NOVU_WORKFLOW_ID }}"
-export RECIPIENT_EMAIL="${{ secrets.RECIPIENT_EMAIL }}"
-export NOVU_EMAIL="${{ secrets.NOVU_EMAIL }}"
-export NOVU_PASSWORD="${{ secrets.NOVU_PASSWORD }}"
+export NOVU_API_KEY="$NOVU_API_KEY"
+export NOVU_API_URL="$NOVU_API_URL"
+export NOVU_WORKFLOW_ID="$NOVU_WORKFLOW_ID"
+export RECIPIENT_EMAIL="$RECIPIENT_EMAIL"
+export NOVU_EMAIL="$NOVU_EMAIL"
+export NOVU_PASSWORD="$NOVU_PASSWORD"
 EOF
 
 source .envrc
