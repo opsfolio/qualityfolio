@@ -119,11 +119,11 @@ surveilr shell qualityfolio-json-etl.sql
 ```
 
 ```bash deploy-sqlpage --descr "Generate the dev-src.auto directory to work in SQLPage dev mode"
-spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md | sqlite3 resource-surveillance.sqlite.db
+spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md -m Spryfile.mail.md | sqlite3 resource-surveillance.sqlite.db
 ```
 
 ```bash destroy-devsrc --descr "Destroy the dev-src.auto directory"
-spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
+spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md --md Spryfile.mail.md
 ```
 
 ```bash gitcommits -C --descr "Python script which is retriving git commits and pushing them to SQLite"
@@ -148,7 +148,7 @@ if (( ${#missing[@]} > 0 )); then
   exit 0
 fi
 
-python github_commit.py
+python3 github_commit.py
 ```
 
 ```contribute sqlpage_files --base .
@@ -1256,6 +1256,21 @@ ${pagination.navWithParams("project_name")};
 ```sql failed.sql { route: { caption: "Failed Test Cases" } }
 -- @route.description "Lists all test cases with a failed status, showing their test case ID, title, and latest execution cycle for quick status review"
 
+-- Status alerts
+SELECT 'alert' AS component,
+       'Success' AS title,
+       $message AS description,
+       'check' AS icon,
+       'green' AS color
+WHERE $status = 'success';
+
+SELECT 'alert' AS component,
+       'Error' AS title,
+       $message AS description,
+       'alert-circle' AS icon,
+       'red' AS color
+WHERE $status = 'error';
+
 SELECT 'text' AS component,
 $page_description AS contents_md;
 
@@ -1263,6 +1278,7 @@ ${paginate("qf_case_status_tap", "WHERE project_name = $project_name AND LOWER(t
 
 SELECT 'table' AS component,
        'Test Case ID' AS markdown,
+       'Reminder' AS markdown,
        'Total Failed Test Cases' AS title,
        1 AS search,
        1 AS sort;
@@ -1279,7 +1295,9 @@ SELECT
        tags AS "Tags",
        scenario_type AS "Scenario Type",
        execution_type AS "Execution Type",
-       test_type AS "Test Type"
+       test_type AS "Test Type",
+  '[🔔](/action/send-reminder.sql?testcaseid=' || replace(replace(replace(test_case_id, ' ', '%20'), '&', '%26'), '#', '%23') ||
+   '&project_name=' || replace(replace(replace($project_name, ' ', '%20'), '&', '%26'), '#', '%23') || ')' AS "Reminder"
 FROM qf_case_status_tap
 WHERE LOWER(test_case_status) IN ('failed', 'not ok')
 AND project_name = $project_name
@@ -2477,6 +2495,7 @@ SELECT
     qcs.priority AS "Priority",
     qcs.tags AS "Tags",
     qcs.scenario_type AS "Scenario Type",
+    qcs.execution_type AS "Execution Type",
     qcs.test_type AS "Test Type"
 FROM qf_role_with_case as qrc
 INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
@@ -2568,6 +2587,7 @@ SELECT
     qcs.priority AS "Priority",
     qcs.tags AS "Tags",
     qcs.scenario_type AS "Scenario Type",
+    qcs.execution_type AS "Execution Type",
     qcs.test_type AS "Test Type"
 FROM qf_role_with_case as qrc
 INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
@@ -3516,4 +3536,97 @@ FROM ranked_cycles
 ORDER BY date_val ASC, cycle ASC;
 
 SELECT 'html' AS component, '</div></div>' AS html;
+```
+
+```sql action/send-reminder.sql { route: { caption: "Send Reminder" } }
+-- @route.description "Send test case email reminder using Novu"
+
+-- 1. Validate parameters
+SET testcaseid = $testcaseid;
+SET project_name = $project_name;
+
+-- 2. Retrieve test case details
+SET test_case_title = (SELECT test_case_title FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET test_case_status = (SELECT test_case_status FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET latest_cycle = (SELECT latest_cycle FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET priority = (SELECT priority FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET severity = (SELECT severity FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET latest_assignee = (SELECT latest_assignee FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET latest_cycle_date = (SELECT latest_cycle_date FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET requirement_id = (SELECT requirement_ID FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET execution_type = (SELECT execution_type FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+SET test_type = (SELECT test_type FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
+
+SET message = (
+  SELECT 'This is an automated reminder from Qualityfolio that the following test case is currently in a Failed state and requires your attention.' || char(10) || char(10) ||
+         'Test Case Reminder:' || char(10) ||
+         'Project: ' || COALESCE($project_name, 'N/A') || char(10) ||
+         'Test Case ID: ' || COALESCE($testcaseid, 'N/A') || char(10) ||
+         'Title: ' || COALESCE($test_case_title, 'N/A') || char(10) ||
+         'Status: ' || COALESCE($test_case_status, 'N/A') || char(10) ||
+         'Priority: ' || COALESCE($priority, 'N/A') || char(10) ||
+         'Severity: ' || COALESCE($severity, 'N/A') || char(10) ||
+         'Assignee: ' || COALESCE($latest_assignee, 'N/A') || char(10) ||
+         'Latest Cycle: ' || COALESCE($latest_cycle, 'N/A') || CASE WHEN $latest_cycle_date IS NOT NULL THEN ' (' || $latest_cycle_date || ')' ELSE '' END || char(10) ||
+         'Requirement ID: ' || COALESCE($requirement_id, 'N/A') || char(10) ||
+         'Execution Type: ' || COALESCE($execution_type, 'N/A') || char(10) ||
+         'Test Type: ' || COALESCE($test_type, 'N/A') || char(10) || char(10) ||
+         'Please review and resolve this failed test case to ensure all requirements are met and the test is successfully completed.'
+);
+
+-- 3. Call the reusable Novu mail sending module using flat parameter variables
+SET local_workflow_id = COALESCE(
+  sqlpage.environment_variable('NOVU_WORKFLOW_ID'),
+  'qualityfolio-failed-test-case-reminder'
+);
+
+SET local_recipient_email = COALESCE(
+  sqlpage.environment_variable('RECIPIENT_EMAIL'),
+  'joby.james@citrusinformatics.com'
+);
+
+SET local_novu_email = COALESCE(
+  sqlpage.environment_variable('NOVU_EMAIL'),
+  'novu_opsfolio@opsfolio.com'
+);
+
+SET send_result_array = sqlpage.run_sql(
+  'fleetfolio/action/send-novu-email.sql',
+  json_object(
+    'workflow_id', $local_workflow_id,
+    'to', $local_recipient_email,
+    'from', $local_novu_email,
+    'subject', '[Qualityfolio] Test Case Alert: ' || $testcaseid,
+    'content', $message
+  )
+);
+
+-- Extract status and error message from the module response array
+SET send_status = json_extract($send_result_array, '$[0].status');
+SET error_msg = json_extract($send_result_array, '$[0].error_message');
+
+-- 4. Pre-encode redirect links using SET to keep url_encode arguments simple
+SET success_link = (
+  SELECT '/failed.sql?project_name=' || COALESCE(sqlpage.url_encode($project_name), '') || '&status=success&message=' || sqlpage.url_encode('Email reminder sent successfully for test case ' || $testcaseid)
+);
+
+SET error_link = (
+  SELECT '/failed.sql?project_name=' || COALESCE(sqlpage.url_encode($project_name), '') || '&status=error&message=' || sqlpage.url_encode(COALESCE($error_msg, 'Failed to trigger reminder.'))
+);
+
+-- 5. Determine redirect URL based on status
+SET redirect_url = (
+  SELECT CASE
+    WHEN $testcaseid IS NULL OR $project_name IS NULL THEN
+      '/failed.sql?project_name=' || COALESCE(sqlpage.url_encode($project_name), '') || '&status=error&message=' || sqlpage.url_encode('Invalid request: missing testcaseid or project_name parameter.')
+    WHEN $send_status = 'success' THEN
+      $success_link
+    ELSE
+      $error_link
+  END
+);
+
+-- 6. Perform redirect
+SELECT 'redirect' AS component,
+       $redirect_url AS link;
 ```

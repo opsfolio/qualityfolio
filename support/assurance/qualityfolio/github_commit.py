@@ -3,9 +3,22 @@ import sqlite3
 import time
 import os  # ✅ Add os for basename
 import sys
-from dotenv import load_dotenv
-
-load_dotenv()
+# Try to load dotenv, fallback to manual parsing if not installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    if os.path.exists(".env"):
+        with open(".env") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    if "=" in line:
+                        key, val = line.split("=", 1)
+                        if key.startswith("export "):
+                            key = key[len("export "):].strip()
+                        val = val.strip().strip("'\"")
+                        os.environ[key.strip()] = val
 repo = os.environ.get("GITHUB_REPOSITORY")
 
 if not repo:
