@@ -123,7 +123,7 @@ spry sp spc --package --conf sqlpage/sqlpage.json -m qualityfolio.md -m Spryfile
 ```
 
 ```bash destroy-devsrc --descr "Destroy the dev-src.auto directory"
-spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md --md Spryfile.mail.md
+spry sp spc --fs dev-src.auto --destroy-first --conf sqlpage/sqlpage.json --md qualityfolio.md
 ```
 
 ```bash gitcommits -C --descr "Python script which is retriving git commits and pushing them to SQLite"
@@ -148,7 +148,7 @@ if (( ${#missing[@]} > 0 )); then
   exit 0
 fi
 
-python3 github_commit.py
+python github_commit.py
 ```
 
 ```contribute sqlpage_files --base .
@@ -2495,7 +2495,6 @@ SELECT
     qcs.priority AS "Priority",
     qcs.tags AS "Tags",
     qcs.scenario_type AS "Scenario Type",
-    qcs.execution_type AS "Execution Type",
     qcs.test_type AS "Test Type"
 FROM qf_role_with_case as qrc
 INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
@@ -2587,7 +2586,6 @@ SELECT
     qcs.priority AS "Priority",
     qcs.tags AS "Tags",
     qcs.scenario_type AS "Scenario Type",
-    qcs.execution_type AS "Execution Type",
     qcs.test_type AS "Test Type"
 FROM qf_role_with_case as qrc
 INNER JOIN qf_case_status_tap as qcs ON qrc.testcaseid=qcs.test_case_id
@@ -2967,7 +2965,7 @@ SELECT 'html' AS component;
 SELECT '
 <style>
   body, .page-body { background-color: #ffffff !important; }
-  
+
   .suite-report-container {
     width: 95% !important;
     max-width: none !important;
@@ -3055,24 +3053,24 @@ SELECT '
 <div class="suite-report-container">
   <div class="suite-header-card">
     <h1>Test Suite Specification</h1>
-    <span class="suite-report-subtitle">' || 
+    <span class="suite-report-subtitle">' ||
       COALESCE(
           (SELECT suite_name FROM qf_role_with_suite WHERE trim(rownum) = trim($id) LIMIT 1),
           'Suite: ' || $id
       ) || '</span>
   </div>
-  
+
   <div class="suite-content-area">
 ' AS html;
 
 -- ── Content (Simple & Beautiful) ────────────────────────────────────
 SELECT 'text' AS component,
-       CASE 
+       CASE
          WHEN (
-           trim(rd.description) LIKE '**%**' 
+           trim(rd.description) LIKE '**%**'
            OR trim(rd.description) LIKE '%**'
-           OR lower(trim(rd.description)) LIKE 'description%' 
-           OR lower(trim(rd.description)) LIKE 'objectives%' 
+           OR lower(trim(rd.description)) LIKE 'description%'
+           OR lower(trim(rd.description)) LIKE 'objectives%'
            OR lower(trim(rd.description)) LIKE 'scope%'
            OR lower(trim(rd.description)) LIKE 'test cases%'
            OR lower(trim(rd.description)) LIKE 'cycle goals%'
@@ -3082,8 +3080,8 @@ SELECT 'text' AS component,
            OR lower(trim(rd.description)) LIKE 'expected results%'
          )
          AND length(rd.description) < 80
-         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
-         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-')
+         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-')
        END AS contents_md
 FROM qf_suite_description_summary rs
 INNER JOIN qf_suite_description_details rd
@@ -3095,11 +3093,12 @@ ORDER BY rd.rownumdetail;
 SELECT 'html' AS component;
 SELECT '  </div>
 </div>' AS html;
-``````
+```
 
 -- ── Close ────────────────────────────────────────────────────────────
 SELECT 'html' AS component;
-SELECT '  </div>
+SELECT ' </div>
+
 </div>' AS html;
 ```
 
@@ -3110,7 +3109,7 @@ SELECT 'html' AS component;
 SELECT '
 <style>
   body, .page-body { background-color: #ffffff !important; }
-  
+
   .report-container {
     width: 95% !important;
     max-width: none !important;
@@ -3198,24 +3197,24 @@ SELECT '
 <div class="report-container">
   <div class="header-card">
     <h1>Test Plan Specification</h1>
-    <span class="report-subtitle">' || 
+    <span class="report-subtitle">' ||
       COALESCE(
           (SELECT plan_name FROM qf_role_with_plan WHERE trim(rownum) = trim($id) LIMIT 1),
           'Plan: ' || $id
       ) || '</span>
   </div>
-  
+
   <div class="content-area">
 ' AS html;
 
 -- ── Content (Simple & Beautiful) ────────────────────────────────────
 SELECT 'text' AS component,
-       CASE 
+       CASE
          WHEN (
-           trim(rd.description) LIKE '**%**' 
+           trim(rd.description) LIKE '**%**'
            OR trim(rd.description) LIKE '%**'
-           OR lower(trim(rd.description)) LIKE 'description%' 
-           OR lower(trim(rd.description)) LIKE 'objectives%' 
+           OR lower(trim(rd.description)) LIKE 'description%'
+           OR lower(trim(rd.description)) LIKE 'objectives%'
            OR lower(trim(rd.description)) LIKE 'scope%'
            OR lower(trim(rd.description)) LIKE 'test cases%'
            OR lower(trim(rd.description)) LIKE 'cycle goals%'
@@ -3232,8 +3231,8 @@ SELECT 'text' AS component,
            OR lower(trim(rd.description)) LIKE 'plan content%'
          )
          AND length(rd.description) < 80
-         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
-         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-') 
+         THEN '### ' || ltrim(ltrim(trim(rd.description), '*'), '-')
+         ELSE '* ' || ltrim(ltrim(trim(rd.description), '*'), '-')
        END AS contents_md
 FROM qf_plan_detail rd
 WHERE trim(rd.rownum) = trim($id)
@@ -3243,7 +3242,7 @@ ORDER BY rd.rownumdetail;
 SELECT 'html' AS component;
 SELECT '  </div>
 </div>' AS html;
-``````
+```
 
 ```sql test-suite-cases-summary.sql { route: { caption: "Test suite" } }
 -- @route.description "Test suite is a collection of test cases designed to verify the functionality, performance, and security of a software application. It ensures that the application meets the specified requirements by executing predefined tests across various scenarios, identifying defects, and validating that the system works as intended.."

@@ -1,0 +1,6 @@
+export NOVU_API_KEY="your-novu-api-key"
+export NOVU_API_URL="https://api.novu.infra.opsfolio.com"
+export NOVU_WORKFLOW_ID="qualityfolio-failed-test-case-reminder"
+export NOVU_EMAIL="your-novu-email@example.com"
+export NOVU_PASSWORD="your-novu-password"
+export RECIPIENT_EMAIL="recipient@example.com"

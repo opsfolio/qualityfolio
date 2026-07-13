@@ -3293,14 +3293,15 @@ FROM
           '"', ''
         )
       ) AS assignee,
-      substr(
-        substr(body, instr(body, '**Test Case ID : [') + 18),
-        1,
-        instr(
-          substr(body, instr(body, '**Test Case ID : [') + 18),
-          ']**'
-        ) - 1
-      ) AS testcase_id,
+      CASE 
+        WHEN instr(body, 'Test Case ID : [') > 0 THEN
+          substr(
+            substr(body, instr(body, 'Test Case ID : [') + 16),
+            1,
+            instr(substr(body, instr(body, 'Test Case ID : [') + 16), ']') - 1
+          )
+        ELSE NULL
+      END AS testcase_id,
       title AS testcase_description,
       body,
       CASE
