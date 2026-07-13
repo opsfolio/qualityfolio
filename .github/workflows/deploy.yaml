@@ -23,12 +23,6 @@ jobs:
           WEB_ROOT: "./dev-src.auto"
           ALLOW_EXEC: "true"
           PORT: 9227
-          NOVU_API_KEY: ${{ secrets.NOVU_API_KEY }}
-          NOVU_API_URL: ${{ secrets.NOVU_API_URL }}
-          NOVU_WORKFLOW_ID: ${{ secrets.NOVU_WORKFLOW_ID }}
-          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-          NOVU_EMAIL: ${{ secrets.NOVU_EMAIL }}
-          NOVU_PASSWORD: ${{ secrets.NOVU_PASSWORD }}
         run: |
           bash -x support/generate-qualityfolio-db.sh
           
