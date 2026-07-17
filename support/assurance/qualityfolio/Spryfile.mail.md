@@ -9,6 +9,7 @@ SET local_to_email = COALESCE($to, :to, $to_email, :to_email);
 SET local_from_email = COALESCE($from, :from, $from_email, :from_email);
 SET local_subject = COALESCE($subject, :subject);
 SET local_content = COALESCE($content, :content);
+SET local_asset_id = COALESCE($asset_id, :asset_id, $assetId, :assetId);
 
 SET local_api_key = sqlpage.environment_variable('NOVU_API_KEY');
 SET local_api_url = sqlpage.environment_variable('NOVU_API_URL');
@@ -26,16 +27,16 @@ SET missing_param = (
   END
 );
 
--- 3. Construct HTTP request payload (only if all parameters are valid)
-SET fetch_request = (
-  SELECT json_object(
-    'method', 'POST',
-    'url', $local_api_url || '/v1/events/trigger',
-    'headers', json_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'ApiKey ' || $local_api_key
-    ),
-    'body', json_object(
+-- 3. Execute HTTP request via curl (only if all parameters are valid)
+-- We use sqlpage.exec with curl because SQLPage's built-in sqlpage.fetch can fail with HTTP/2 "connection error received: not a result of an error" on certain servers.
+SET fetch_result = (
+  SELECT sqlpage.exec(
+    'curl',
+    '-s',
+    '-X', 'POST',
+    '-H', 'Content-Type: application/json',
+    '-H', 'Authorization: ApiKey ' || $local_api_key,
+    '-d', json_object(
       'name', $local_workflow_id,
       'to', json_object(
         'subscriberId', $local_to_email,
@@ -45,22 +46,14 @@ SET fetch_request = (
         'subject', $local_subject,
         'content', $local_content,
         'message', $local_content,  -- fallback for templates expecting message
-        'from', $local_from_email
+        'from', $local_from_email,
+        'assetId', $local_asset_id
       )
-    )
+    ),
+    $local_api_url || '/v1/events/trigger'
   )
   WHERE $missing_param IS NULL
 );
-
--- 4. Execute HTTP fetch (pass NULL if credentials/params are missing to prevent execution & parser errors)
-SET fetch_arg = (
-  SELECT CASE
-    WHEN $missing_param IS NOT NULL THEN NULL
-    ELSE $fetch_request
-  END
-);
-
-SET fetch_result = sqlpage.fetch($fetch_arg);
 
 -- 5. Extract errors/acknowledgements
 SET acknowledged = (

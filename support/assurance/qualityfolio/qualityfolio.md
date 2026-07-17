@@ -148,7 +148,7 @@ if (( ${#missing[@]} > 0 )); then
   exit 0
 fi
 
-python github_commit.py
+python3 github_commit.py
 ```
 
 ```contribute sqlpage_files --base .
@@ -3557,21 +3557,66 @@ SET execution_type = (SELECT execution_type FROM qf_case_status_tap WHERE test_c
 SET test_type = (SELECT test_type FROM qf_case_status_tap WHERE test_case_id = $testcaseid AND project_name = $project_name);
 
 SET message = (
-  SELECT 'This is an automated reminder from Qualityfolio that the following test case is currently in a Failed state and requires your attention.' || char(10) || char(10) ||
-         'Test Case Reminder:' || char(10) ||
-         'Project: ' || COALESCE($project_name, 'N/A') || char(10) ||
-         'Test Case ID: ' || COALESCE($testcaseid, 'N/A') || char(10) ||
-         'Title: ' || COALESCE($test_case_title, 'N/A') || char(10) ||
-         'Status: ' || COALESCE($test_case_status, 'N/A') || char(10) ||
-         'Priority: ' || COALESCE($priority, 'N/A') || char(10) ||
-         'Severity: ' || COALESCE($severity, 'N/A') || char(10) ||
-         'Assignee: ' || COALESCE($latest_assignee, 'N/A') || char(10) ||
-         'Latest Cycle: ' || COALESCE($latest_cycle, 'N/A') || CASE WHEN $latest_cycle_date IS NOT NULL THEN ' (' || $latest_cycle_date || ')' ELSE '' END || char(10) ||
-         'Requirement ID: ' || COALESCE($requirement_id, 'N/A') || char(10) ||
-         'Execution Type: ' || COALESCE($execution_type, 'N/A') || char(10) ||
-         'Test Type: ' || COALESCE($test_type, 'N/A') || char(10) || char(10) ||
-         'Please review and resolve this failed test case to ensure all requirements are met and the test is successfully completed.'
+  SELECT '<style>a, a * { text-decoration: none !important; } * { text-decoration: none !important; }</style>' ||
+         '<div style="font-family:-apple-system,BlinkMacSystemFont,''Segoe UI'',Roboto,Helvetica,Arial,sans-serif;max-width:550px;margin:0 auto;padding:24px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:8px;color:#334155;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);text-decoration:none;">' ||
+         '  <div style="border-bottom:2px solid #ef4444;padding-bottom:16px;margin-bottom:20px;text-decoration:none;">' ||
+         '    <span style="background-color:#fef2f2;color:#ef4444;border:1px solid #fee2e2;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;text-decoration:none;">🚨 FAILED TEST CASE ALERT</span>' ||
+         '    <h2 style="margin:8px 0 0 0;font-size:20px;font-weight:700;color:#0f172a;text-decoration:none;">Failed Test Case: ' || COALESCE($testcaseid, 'N/A') || '</h2>' ||
+         '  </div>' ||
+         '  <p style="margin:0 0 16px 0;font-size:14px;color:#475569;line-height:1.5;text-decoration:none;">This is an automated reminder from Qualityfolio that the following test case is currently in a Failed state and requires your attention.</p>' ||
+         '  <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;margin-bottom:20px;text-decoration:none;">' ||
+         '    <div style="font-size:12px;color:#64748b;margin-bottom:8px;font-weight:500;text-decoration:none;">Test Case Details</div>' ||
+         '    <table style="width:100%; border-collapse:collapse; font-size:13px; color:#334155;">' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600; width:120px;">Project:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($project_name, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Title:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($test_case_title, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Status:</td>' ||
+         '        <td style="padding:4px 0;"><span style="background-color:#fee2e2; color:#ef4444; padding:2px 6px; border-radius:4px; font-weight:600; font-size:11px;">' || COALESCE($test_case_status, 'N/A') || '</span></td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Priority:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($priority, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Severity:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($severity, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Assignee:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($latest_assignee, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Latest Cycle:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($latest_cycle, 'N/A') || CASE WHEN $latest_cycle_date IS NOT NULL THEN ' (' || $latest_cycle_date || ')' ELSE '' END || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Requirement ID:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($requirement_id, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Execution Type:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($execution_type, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '      <tr>' ||
+         '        <td style="padding:4px 0; font-weight:600;">Test Type:</td>' ||
+         '        <td style="padding:4px 0;">' || COALESCE($test_type, 'N/A') || '</td>' ||
+         '      </tr>' ||
+         '    </table>' ||
+         '  </div>' ||
+         '  <div style="background-color:#fff5f5;border-left:4px solid #ef4444;padding:16px;border-radius:0 6px 6px 0;margin-bottom:20px;text-decoration:none;">' ||
+         '    <h4 style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#991b1b;text-transform:uppercase;text-decoration:none;">Recommended Action:</h4>' ||
+         '    <p style="margin:0;font-size:13px;color:#7f1d1d;line-height:1.5;text-decoration:none;">Please review and resolve this failed test case to ensure all requirements are met and the test run is successfully completed.</p>' ||
+         '  </div>' ||
+         '  <div style="font-size:11px;color:#94a3b8;text-align:center;border-top:1px solid #f1f5f9;padding-top:12px;text-decoration:none;">Sent automatically by Qualityfolio Test Case Monitoring</div>' ||
+         '</div>'
 );
+
 
 -- 3. Call the reusable Novu mail sending module using flat parameter variables
 SET local_workflow_id = COALESCE(
